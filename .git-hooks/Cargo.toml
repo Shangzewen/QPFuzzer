@@ -9,5 +9,4 @@ cargo-husky = { version = "1.5.0", default-features = false, features = [
     "precommit-hook",
     "prepush-hook",
     "run-cargo-check",
-    "run-cargo-fmt",
 ] }

@@ -131,9 +131,9 @@ pub mod corpus {
     pub const REPLACE_WITH_SHORTER_INPUT: bool = true;
 
     pub const SCHEDULE_INPUT: bool = true;
-    pub const SCHEDULE_EXIT: bool = false;
+    pub const SCHEDULE_EXIT: bool = true;
     pub const SCHEDULE_CRASH: bool = false;
-    pub const SCHEDULE_TIMEOUT: bool = true;
+    pub const SCHEDULE_TIMEOUT: bool = false;
 
     pub const SCALE_ENERGY: bool = true;
     pub const DISINCENTIVIZE_TIMEOUTS: bool = true;

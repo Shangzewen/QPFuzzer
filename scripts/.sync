@@ -1,0 +1,2 @@
+[INIT]
+context = { "pid": 200, "mappings": [ [0x0, 0x60000000, 0x60000000, "zephyr.elf"] ] }

@@ -1,0 +1,53 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "label": "Run Input",
+            "type": "shell",
+            "command": "./run-input.sh target-zephyr/inputs/input-adv.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "GDB Run Input",
+            "type": "shell",
+            "command": "GDB=1 ./run-input.sh target-zephyr/inputs/input-adv.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "Run Post Input",
+            "type": "shell",
+            "command": "./run-postinput.sh target-zephyr/inputs/postinput-anchor-point.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "GDB Run Post Input",
+            "type": "shell",
+            "command": "GDB=1 ./run-postinput.sh target-zephyr/inputs/postinput-anchor-point.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        }
+    ]
+}

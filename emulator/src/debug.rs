@@ -187,18 +187,20 @@ impl EmulatorDebugData {
     }
 
     pub(crate) fn prepare_run(&mut self, id: usize) -> Result<()> {
-        if !self.enabled() {
-            return Ok(());
-        }
-
         // call custom hooks
-        if let Some(runtime) = &mut self.custom_hooks {
-            runtime
-                .on_prepare_run()
-                .context("call custom prepare_run hook")?;
+        if self.trace {
+            if let Some(runtime) = &mut self.custom_hooks {
+                runtime
+                    .on_prepare_run()
+                    .context("call custom prepare_run hook")?;
+            }
         }
 
-        self.write_event(TraceEvent::Run(Run { id }))
+        if self.enabled() {
+            return self.write_event(TraceEvent::Run(Run { id }));
+        }
+
+        return Ok(());
     }
 
     pub(crate) fn post_run(&mut self) -> Result<Option<Vec<Bug>>> {
@@ -354,14 +356,16 @@ impl<I: Input + Debug> EmulatorData<I> {
     }
 
     pub(crate) fn on_instruction(&mut self, pc: Address) -> Result<()> {
-        if self.debug.enabled() {
+        if self.debug.trace {
             // call custom hooks
             if let Some(runtime) = &mut self.debug.custom_hooks {
                 runtime
                     .on_instruction(pc)
                     .context("call custom instruction hook")?;
             }
+        }
 
+        if self.debug.enabled() {
             // add basic block to trace
             self.debug
                 .write_event(TraceEvent::Instruction(Instruction { pc }))

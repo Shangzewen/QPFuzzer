@@ -44,7 +44,7 @@ extern "C" fn create_vcpu_thread(cpu: *mut qemu_sys::CPUState) {
     };
 
     // set the cpu thread
-    cpu.thread = unsafe { ptr::addr_of_mut!(TCG_THREAD) };
+    cpu.thread = { ptr::addr_of_mut!(TCG_THREAD) };
     cpu.halt_cond = unsafe { TCG_HALT_COND.assume_init_mut() };
     // cpu.thread_id = first_cpu.thread_id;
     cpu.can_do_io = 1;
@@ -151,7 +151,7 @@ pub fn tcg_cpu_loop(debug: bool) {
                     qemu_sys::EXCP_DEBUG => {
                         log::debug!("EXCP_DEBUG");
                         gdb_breakpoint(cpu);
-                        break;
+                        // Let execution to continue when debugging via GDB
                     }
                     qemu_sys::EXCP_ATOMIC => {
                         log::debug!("EXCP_ATOMIC");
@@ -234,7 +234,7 @@ extern "C" fn tcg_accel_class_init(oc: *mut qemu_sys::ObjectClass, _data: *mut c
 
     ac.name = cstr!("fuzz-tcg");
     ac.init_machine = Some(tcg_init_machine);
-    ac.allowed = unsafe { ptr::addr_of_mut!(ALLOWED) };
+    ac.allowed = { ptr::addr_of_mut!(ALLOWED) };
 }
 
 extern "C" fn tcg_register_types() {

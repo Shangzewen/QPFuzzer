@@ -1,0 +1,183 @@
+    Finished `release` profile [optimized] target(s) in 0.12s
+     Running `target/release/hoedur-arm --config target-zephyr/config.yml --hook target-zephyr/hook.rs fuzz --statistics --archive-dir target-zephyr/runs`
+12:16:56 INFO    archive - Creating archive dir at "target-zephyr/runs" ...
+12:16:56 INFO    emulator::debug - Exit hook "arch_system_halt" at [00027610]
+12:16:56 INFO    emulator::debug - Exit hook "z_do_kernel_oops" at [000248e8]
+12:16:56 INFO    emulator::debug - Exit hook "z_fatal_error" at [00020504]
+12:16:56 INFO    emulator::debug - Exit hook "z_arm_fault" at [000050bc]
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: Sprintf, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "vprintk", offset: None } }
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: SprintfVaList, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "vfprintf", offset: None } }
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: Sprintf, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "print_formatted", offset: None } }
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: Sprintf2, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "z_impl_z_log_msg_simple_create_0", offset: None } }
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: Sprintf2, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "z_impl_z_log_msg_simple_create_1", offset: None } }
+12:16:56 WARN    emulator::debug - Deprecated debug hook used: DebugHook { name: None, hook_type: Sprintf2, option: DebugHookOption { skip: None, newline: None }, target: Function { symbol: "z_impl_z_log_msg_simple_create_2", offset: None } }
+12:16:56 WARN    emulator::hooks::custom - Script "target-zephyr/hook.rs" contain warnings, see stderr for details:
+[0m[1m[38;5;11mwarning[0m[1m: warning[0m
+    [0m[34m┌─[0m target-zephyr/hook.rs:165:11
+    [0m[34m│[0m  
+[0m[34m137[0m [0m[34m│[0m       else {
+    [0m[34m│[0m [0m[34m╭[0m[0m[34m──────────'[0m
+[0m[34m138[0m [0m[34m│[0m [0m[34m│[0m       // log::info!("<============> RX PKT <============>");
+[0m[34m139[0m [0m[34m│[0m [0m[34m│[0m       let rx_pdu = "";
+[0m[34m140[0m [0m[34m│[0m [0m[34m│[0m 
+    [0m[34m·[0m [0m[34m│[0m
+[0m[34m165[0m [0m[34m│[0m [0m[34m│[0m       for [0m[33m(i, v)[0m in data.iter().enumerate() {
+    [0m[34m│[0m [0m[34m│[0m           [0m[33m^^^^^^[0m [0m[33mlet binding might panic[0m
+    [0m[34m·[0m [0m[34m│[0m
+[0m[34m172[0m [0m[34m│[0m [0m[34m│[0m       log::info!("RX <--- {}", pkt_summary);
+[0m[34m173[0m [0m[34m│[0m [0m[34m│[0m     }
+    [0m[34m│[0m [0m[34m╰[0m[0m[34m─────' in this context[0m
+    [0m[34m│[0m  
+    [0m[34m=[0m Hint: Rewrite to:
+      if (i, v) {
+          // ..
+      }
+
+[0m[1m[38;5;11mwarning[0m[1m: warning[0m
+    [0m[34m┌─[0m target-zephyr/hook.rs:176:3
+    [0m[34m│[0m  
+[0m[34m176[0m [0m[34m│[0m [0m[33m╭[0m   [0m[33mfn print_symbol_name(pc) {[0m
+[0m[34m177[0m [0m[34m│[0m [0m[33m│[0m [0m[33m    if let Ok(symbol_name) = symbolizer::lookup(pc) {[0m
+[0m[34m178[0m [0m[34m│[0m [0m[33m│[0m [0m[33m      log::info!("0x{:08x}: {}", pc, symbol_name);[0m
+[0m[34m179[0m [0m[34m│[0m [0m[33m│[0m [0m[33m    }[0m
+[0m[34m180[0m [0m[34m│[0m [0m[33m│[0m [0m[33m  }[0m
+    [0m[34m│[0m [0m[33m╰[0m[0m[33m───^ not used[0m
+
+12:16:56 WARN    emulator::hooks::custom - Script "target-zephyr/hook.rs" added debug hooks while not in debug-mode, these hooks will not be executed
+12:16:56 WARN    emulator::hooks::custom - Script "target-zephyr/hook.rs" added instruction hooks while not in trace-mode, these hooks will not be executed
+12:16:56 INFO    qemu_rs::memory - Loading data into memory 0x0..0x2e5f0 (0x2e5f0 bytes) from file at 0x0..0x2e5f0 (0x2e5f0 bytes, remaining length 0x0 bytes) "zephyr.bin"
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "arch_system_halt" at [00027610] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x27610, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x27611, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "printk" at [00022328] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x22328, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x22329, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "vfprintf" at [00021cf8] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x21cf8, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x21cf9, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "print_formatted" at [00003eac] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x3eac, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x3ead, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "z_log_vprintk" at [000232a6] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x232a6, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x232a7, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "z_impl_k_busy_wait" at [000275f0] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x275f0, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x275f1, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "z_impl_k_sleep" at [00021614] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x21614, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x21615, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "z_arm_exc_exit" at [00004e24] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x4e24, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x4e25, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "qspi_nor_init" at [0001db08] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1db08, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1db09, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "settings_subsys_init" at [00004958] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x4958, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x4959, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "nrfx_gpiote_0_irq_handler" at [0001fa30] with [70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1fa30, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1fa31, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "rng_pool_get" at [0001d5c0] with [4f, f0, 01, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c0, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c1, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c2, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c3, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c4, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1d5c5, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "settings_save_one" at [000046ac] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46ac, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46ad, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46ae, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46af, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46b0, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x46b1, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "bt_read_static_addr" at [00007f4c] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f4c, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f4d, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f4e, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f4f, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f50, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x7f51, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c380, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c381, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c382, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c383, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_is_done" at [0001c5c0] with [4f, f0, 01, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c0, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c1, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c2, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c3, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c4, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c5c5, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_crc_is_valid" at [0001c600] with [4f, f0, 01, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c600, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c601, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c602, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c603, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c604, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c605, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_rssi_is_ready" at [0001c7a4] with [4f, f0, 01, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a4, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a5, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a6, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a7, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a8, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c7a9, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_filter_has_match" at [0001c820] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c820, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c821, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c822, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c823, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c824, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c825, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_filter_match_get" at [0001c834] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c834, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c835, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c836, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c837, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c838, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1c839, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_ar_has_match" at [0001cc4c] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc4c, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc4d, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc4e, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc4f, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc50, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc51, use with caution
+12:16:56 INFO    emulator::hooks::custom::common - Patch function "radio_ar_match_get" at [0001cc10] with [4f, f0, 00, 00, 70, 47]
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc10, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc11, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc12, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc13, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc14, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1cc15, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b684, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b685, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b686, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b687, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b760, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b761, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b762, use with caution
+12:16:56 WARN    qemu_rs::qcontrol - Write to ROM region at 0x1b763, use with caution
+12:16:56 INFO    hoedur::runner - Running until first MMIO read from input ...
+12:16:56 INFO    hoedur::runner - Result: EndOfInput, 29010 basic blocks executed in 0.835 ms, 0 interrupts, read 0 (0 input) MMIO values
+12:16:56 INFO    hoedur::runner - First MMIO read from input found.
+12:16:56 INFO    fuzzer::fuzzer - Started plain fuzzing...
+12:16:57 INFO    fuzzer::statistics -  1098 execs/s +  2944 minimizations/s :  14948981 basic blocks,  58804 interrupts, 1245314 MMIO reads, 931543 MMIO writes
+Fuzzer: Hoedur
+    stop reasons:
+        EndOfInput                    :         1112
+Corpus has   4911 features   (3900 rare features,   0 unscheduled features, most abundant feature frequency:   254)
+             1964 edges     
+              124 inputs    
+             1113 executions
+12:16:58 INFO    fuzzer::statistics -   916 execs/s +   916 minimizations/s :  24943632 basic blocks,  67191 interrupts, 2373920 MMIO reads, 1573109 MMIO writes
+Fuzzer: Hoedur
+    stop reasons:
+        EndOfInput                    :         2032
+Corpus has   6503 features   (4595 rare features,   0 unscheduled features, most abundant feature frequency:   255)
+             2711 edges     
+              158 inputs    
+             2033 executions

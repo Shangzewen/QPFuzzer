@@ -1,4 +1,6 @@
+use std::process::{Command, Stdio};
 use std::sync::Arc;
+use std::{fmt::Write, num::ParseIntError};
 
 use anyhow::{Context, Result};
 use parking_lot::Mutex;
@@ -24,6 +26,10 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["patch_function"], move |symbol, bytes| {
         patch_function(symbolizer.clone(), symbol, bytes)
     })?;
+
+    module.function(&["system"], system)?;
+    module.function(&["decode_hex"], decode_hex)?;
+    module.function(&["encode_hex"], encode_hex)?;
 
     Ok(module)
 }
@@ -106,4 +112,48 @@ fn patch_function(
     }
 
     Ok(())
+}
+
+/// Executes a system command and returns its output as a `String`.
+///
+/// This function takes a `String` representing the command to execute, and returns the output of that command as a `String`. It uses the `Command` struct from the standard library to execute the command, capture its standard output, and return it as a `String`.
+///
+/// # Arguments
+/// * `cmd` - A `String` representing the command to execute.
+///
+/// # Returns
+/// A `String` containing the output of the executed command.
+fn system(cmd: String) -> String {
+    let output = Command::new("bash")
+        .arg("-c")
+        .arg(cmd)
+        // Tell the OS to record the command's output
+        .stdout(Stdio::piped())
+        // execute the command, wait for it to complete, then capture the output
+        .output()
+        .unwrap();
+
+    let ret = String::from_utf8(output.stdout).unwrap();
+
+    if ret.ends_with("\n") {
+        return ret[0..ret.len() - 1].to_string();
+    }
+
+    return ret;
+}
+
+fn decode_hex(s: &str) -> Result<Vec<u32>, ParseIntError> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u32::from_str_radix(&s[i..i + 2], 16))
+        .collect()
+}
+
+fn encode_hex(bytes: Vec<u32>) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        _ = write!(&mut s, "{:02x}", b);
+    }
+
+    return s;
 }

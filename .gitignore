@@ -8,6 +8,12 @@ qemu-sys/src/bindings/debug/*.rs
 
 __pycache__/
 
-.vscode
-
 .gdb_history
+
+/experiments
+/venv
+log.txt
+
+target-zephyr/runs/
+
+target-zephyr/zephyr.lock~

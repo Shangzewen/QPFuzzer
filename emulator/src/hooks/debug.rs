@@ -56,6 +56,7 @@ impl DebugHook {
                 | DebugHookType::Fputs
                 | DebugHookType::Fputs2
                 | DebugHookType::Sprintf
+                | DebugHookType::Sprintf2
                 | DebugHookType::SprintfVaList
         )
     }
@@ -74,6 +75,7 @@ pub enum DebugHookType {
     Fputs2,
     Printf,
     Sprintf,
+    Sprintf2,
     PrintfVaList,
     SprintfVaList,
 }
@@ -95,6 +97,7 @@ impl DebugHookType {
             Self::SprintfVaList => hook_printf(skip(1), true),
             Self::PrintfVaList => hook_printf(skip(0), true),
             Self::Sprintf => hook_printf(skip(1), false),
+            Self::Sprintf2 => hook_printf(skip(2), false),
             Self::Printf => hook_printf(skip(0), false),
             Self::Fputs => hook_puts(skip(0)),
             Self::Fputs2 => hook_puts(skip(1)),

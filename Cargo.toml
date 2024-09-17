@@ -1,3 +1,5 @@
+cargo-features = ["profile-rustflags"]
+
 [workspace]
 resolver = "2"
 members = [
@@ -12,10 +14,12 @@ members = [
     "modeling",
     "qemu-build",
     "qemu-rs",
-    "qemu-sys",
+    "qemu-sys"
 ]
 
 [profile.release]
-codegen-units = 1
-opt-level = 3
-lto = true
+# codegen-units = 1
+# opt-level = 3
+opt-level = 1
+# lto = true
+rustflags = ["-C", "linker=clang", "-C", "link-arg=-fuse-ld=lld"]

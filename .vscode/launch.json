@@ -1,0 +1,69 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Run Good Input (Trace + Debug)",
+            "args": [
+                "--hook",
+                "${workspaceFolder}/target-zephyr/hook-normal.rs",
+                "--config",
+                "${workspaceFolder}/target-zephyr/config.yml",
+                "--debug",
+                "--trace",
+                "run",
+                "${workspaceFolder}/target-zephyr/input-adv.bin"
+            ],
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hoedur-arm",
+                    "--package=hoedur"
+                ],
+                "filter": {
+                    "name": "hoedur-arm",
+                    "kind": "bin"
+                }
+            },
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug/",
+                "RUST_LOG": "debug"
+            }
+        },
+        {
+            "name": "QEMU Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/target-zephyr/zephyr.elf",
+            "MIMode": "gdb",
+            "cwd": "${workspaceFolder}/target-zephyr",
+            "stopAtConnect": false,
+            // "preLaunchTask": "GDB Run Input",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable retsync",
+                    "text": "source ${workspaceFolder}/scripts/sync.py",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Start retsync",
+                    "text": "sync",
+                    "ignoreFailures": true
+                },
+            ],
+            "visualizerFile":"",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "miDebuggerServerAddress": "localhost:1236"
+        }
+    ]
+}

@@ -20,6 +20,7 @@ use crate::{
 
 static QEMU_CREATED: AtomicBool = AtomicBool::new(false);
 pub(crate) static QEMU_RUNNING: AtomicBool = AtomicBool::new(false);
+pub(crate) static GDB_ENABLED: AtomicBool = AtomicBool::new(false);
 
 pub fn init_qemu(
     cpu: CpuModel,
@@ -102,7 +103,7 @@ fn qemu_args() -> Result<Vec<CString>> {
         .context("Failed to get own executable path")?
         .display()
         .to_string();
-    let args = vec![
+    let mut args = vec![
         exe.as_str(),
         // fuzz machine
         "-machine",
@@ -119,6 +120,13 @@ fn qemu_args() -> Result<Vec<CString>> {
         "-monitor",
         "/dev/null",
     ];
+
+    if let Ok(val) = env::var("GDB") {
+        if val == "1" {
+            args.append(&mut vec!["-gdb", "tcp::1236", "-S"]);
+            GDB_ENABLED.swap(true, Ordering::SeqCst);
+        }
+    }
 
     // convert args to CStrings for FFI
     args.into_iter()
@@ -171,7 +179,7 @@ pub fn run() -> Result<Option<QemuStopReason>> {
         }
     }
 
-    tcg_cpu_loop(false);
+    tcg_cpu_loop(GDB_ENABLED.load(Ordering::SeqCst));
 
     assert!(QEMU_RUNNING.swap(false, Ordering::SeqCst));
 
