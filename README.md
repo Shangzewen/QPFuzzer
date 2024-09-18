@@ -2,6 +2,10 @@
 
 QPFuzzer is a directed firmware fuzzing implementation which utilizes a Hoedur multi-stream input to fuzz firmware employing complex protocols stacks such as BLE, Zigbee, LoRa, etc.
 
+<p align="center">
+  <img src="./docs/logo.png" alt="overview" width="300" height="auto"/>
+</p>
+
 ## Getting Started
 
 ### Dependencies
