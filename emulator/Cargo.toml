@@ -17,6 +17,8 @@ derive_more = { version = "0.99.17", default-features = false, features = [
     "add",
     "add_assign",
 ] }
+atomic-queue = "2.2.0"
+lazy_static = "1.5.0"
 endiannezz = "0.6.5"
 enum-kinds = "0.5.1"
 enum_index = "0.2.0"

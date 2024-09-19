@@ -164,6 +164,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
+name = "atomic-queue"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fddad1ccccb94b03dd3c135815cc7672a5992a65c024a33af2ab11db6e341ff"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -572,6 +578,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "archive",
+ "atomic-queue",
  "bincode",
  "bitflags 2.6.0",
  "common",
@@ -585,6 +592,7 @@ dependencies = [
  "glob",
  "insta",
  "itertools",
+ "lazy_static",
  "log",
  "modeling",
  "parking_lot",

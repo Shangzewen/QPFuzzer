@@ -1,4 +1,7 @@
-
+// ----------- UDP Socket Info -----------
+// Python server: 127.0.0.1:7777
+// Listen packet client: 127.0.0.1:9999
+// Sending packet client: 127.0.0.1:8888 
 struct State {
   sequence,
   data_connection,
@@ -8,6 +11,10 @@ struct State {
 pub fn main(api) {
     //  ------------ Apply Firmware Patches ------------
     api.on_init(apply_patches);
+    let received_pkt="";
+
+    //  ------------ Test udp Socket ---------------
+    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background(received_pkt));
 
     //  ------------ Hook Link Layer Packets ------------
     let cfg = State {
@@ -86,13 +93,15 @@ pub fn main(api) {
       
       let pkt_data = memory_read_buffer(pkt_buf_addr, pkt_length);
       let pkt_hex = common::encode_hex(pkt_data);
-      
+      // send packet to python socket
+      common::send_socket_data(pkt_hex);
       let pkt_summary = parse_ble_packet(pkt_hex, direction);
       if cfg.log_details {
         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
         log::info!("Pkt. Length: {}", pkt_length);
         log::info!("Pkt. Bytes: {}", pkt_hex);
       }
+      // log::info!("Pkt. Bytes: {}", pkt_hex);
       log::info!("TX ---> {}", pkt_summary);
     }
     else {
@@ -100,16 +109,23 @@ pub fn main(api) {
         log::info!("<============> RX PKT <============>");
       }
       let rx_pdu = "";
+      let test_str = "";
 
       // ADV Channel
       if cfg.data_connection == false {
         if cfg.sequence == 0 {
           // Scan Request
-          rx_pdu = "830cf37a7d65de2800000000000c2aba95";
+          rx_pdu = common::get_socket_data();
+          log::info!("<============> rx_pdu received <============>");
+          log::info!("{}",rx_pdu);
+          // rx_pdu = "830cf37a7d65de2800000000000c2aba95";
         }
         else if cfg.sequence >= 1 {
           // Connection Request (where the show begins)
-          rx_pdu = "8522a942f80f51c300000000000c7083329a9c9a17020100100000006400ffffffff1f05002939";
+          rx_pdu = common::get_socket_data();
+          log::info!("<============> rx_pdu received <============>");
+          log::info!("{}",rx_pdu);
+          // rx_pdu = "8522a942f80f51c300000000000c7083329a9c9a17020100100000006400ffffffff1f05002939";
           cfg.data_connection = true; // Switch to data channel
         }
         else {
@@ -159,6 +175,11 @@ pub fn main(api) {
   fn parse_ble_packet(pdu_hex_string, direction) {
     return common::system(format!("python3 scripts/parse-ble-pdu.py {} {}",
                                   pdu_hex_string, direction));
+  }
+
+  fn get_data(ddata){
+
+    return ddata;
   }
 
   fn apply_patches() {
