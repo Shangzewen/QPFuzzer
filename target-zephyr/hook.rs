@@ -68,6 +68,7 @@ pub fn main(api) {
       // Reset state before every run
       api.on_prepare_run(||{
         cfg.sequence = 0;
+        common::send_socket_data("RESET")
       });
     
       // TX
@@ -92,8 +93,11 @@ pub fn main(api) {
       let pkt_length = pdu_length + 2;
       
       let pkt_data = memory_read_buffer(pkt_buf_addr, pkt_length);
+      // log::info!("Pkt data: {}", pkt_data);
+
       let pkt_hex = common::encode_hex(pkt_data);
       // send packet to python socket
+      // println(pkt_hex);
       common::send_socket_data(pkt_hex);
       let pkt_summary = parse_ble_packet(pkt_hex, direction);
       if cfg.log_details {
@@ -101,7 +105,6 @@ pub fn main(api) {
         log::info!("Pkt. Length: {}", pkt_length);
         log::info!("Pkt. Bytes: {}", pkt_hex);
       }
-      // log::info!("Pkt. Bytes: {}", pkt_hex);
       log::info!("TX ---> {}", pkt_summary);
     }
     else {
@@ -136,7 +139,11 @@ pub fn main(api) {
       else {
         // TODO: data channel, time to implement 3rd party link layer stack (zephyr via BubbleSim)
         log::warn!("-------------- TODO -------------");
-        rx_pdu = "0900";
+        common::send_socket_data("Update Flag");
+        // rx_pdu = "0900";
+        rx_pdu = common::get_socket_data();
+        log::info!("<============> rx_pdu received <============>");
+        log::info!("{}",rx_pdu);
         // return;
       }
 
