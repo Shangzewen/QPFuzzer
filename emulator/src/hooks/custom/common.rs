@@ -209,7 +209,7 @@ fn send_socket_data(msg: String){
     let socket = UdpSocket::bind("127.0.0.1:8888").unwrap();
     let remote_addr: SocketAddr = "127.0.0.1:7777".parse().unwrap();
     socket.send_to(msg.as_bytes(), remote_addr).unwrap();
-    println!("Sent message to {}: {:?}", remote_addr, msg);
+    println!("Sent message from peripheral to {}: {:?}", remote_addr, msg);
 }
 
 

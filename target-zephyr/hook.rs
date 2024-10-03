@@ -130,6 +130,9 @@ pub fn main(api) {
           log::info!("{}",rx_pdu);
           // rx_pdu = "8522a942f80f51c300000000000c7083329a9c9a17020100100000006400ffffffff1f05002939";
           cfg.data_connection = true; // Switch to data channel
+          common::send_socket_data("Connected Update Flag");
+          log::info!("Connected Update flag")
+
         }
         else {
           cfg.sequence = cfg.sequence + 1;
@@ -140,7 +143,7 @@ pub fn main(api) {
         // TODO: data channel, time to implement 3rd party link layer stack (zephyr via BubbleSim)
         log::warn!("-------------- TODO -------------");
         common::send_socket_data("Update Flag");
-        // rx_pdu = "0900";
+        // rx_pdu = "0800";
         rx_pdu = common::get_socket_data();
         log::info!("<============> rx_pdu received <============>");
         log::info!("{}",rx_pdu);
