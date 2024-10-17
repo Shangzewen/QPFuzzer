@@ -4,9 +4,7 @@ from scapy.layers.bluetooth import *
 from binascii import unhexlify, hexlify
 # from colorama import Fore, Back, Style, init
 
-# send_nesn = 0
-# send_sn = 0
-# flag2 = False
+
 def generate_reply_data(pkt,flag2):
     # master_addr = "28:de:65:7d:7a:f3"
     raw_packet_bytes = unhexlify(pkt)
@@ -22,7 +20,7 @@ def generate_reply_data(pkt,flag2):
     print(f"This is received sn: {received_sn}")
     send_sn = received_nesn
     send_nesn = received_nesn
-    print(f"This is flag2: {flag2}")
+    #print(f"This is flag2: {flag2}")
     # if received_nesn == send_nesn:
     #     send_nesn = received_nesn
     #     send_sn = received_nesn
@@ -34,7 +32,7 @@ def generate_reply_data(pkt,flag2):
     # send_sn = received_nesn
     
     # rpl_pkt = BTLE_DATA(SN=send_sn,NESN=received_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-    if flag2 == 0:
+    if int(flag2) == 0:
         rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
         rpl_pkt_arr = bytearray(raw(rpl_pkt))
         rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])
@@ -53,6 +51,7 @@ def generate_reply_data(pkt,flag2):
 
     pkt_summary = hexlify(bytes(rpl_pkt))
     return hexlify(bytes(rpl_pkt)), 8, pkt_summary
+
 
 def generate_reply_adv(pkt):
     master_addr = "28:de:65:7d:7a:f3"
@@ -90,7 +89,7 @@ def generate_reply_adv(pkt):
 
 def handle_adv(data):
     received_msg = data.decode()
-    print(f"Rceived Message: {str(received_msg)}")
+    #print(f"Rceived Message: {str(received_msg)}")
     try:
         rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
         return rpl
@@ -98,11 +97,11 @@ def handle_adv(data):
         print("There is an error occured")
         traceback.print_exc()
 
-def handle_data(data,send_sn,send_nesn,flag2):
+def handle_data(data,flag2):
     received_msg = data.decode()
-    print(f"Rceived Message: {str(received_msg)}")
+    #print(f"Rceived Message: {str(received_msg)}")
     try:
-        rpl, pkt_t, p_summary = generate_reply_data(str(received_msg),send_sn,send_nesn,flag2)
+        rpl, pkt_t, p_summary = generate_reply_data(str(received_msg),flag2)
         return rpl
     except Exception as e:
         print("There is an error occured")
@@ -110,8 +109,6 @@ def handle_data(data,send_sn,send_nesn,flag2):
 
 def generate_empty_pdu():
     rpl_pkt = BTLE_DATA(SN=0,NESN=0, LLID=1)
-    send_pkt_summary = rpl_pkt.summary()
-    print(f"RX <--- {str(send_pkt_summary)}")
     rpl_pkt_arr = bytearray(raw(rpl_pkt))
     rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])
     # print(hexlify(rpl_pkt_arr))

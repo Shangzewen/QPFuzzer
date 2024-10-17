@@ -70,15 +70,18 @@ pub fn main(api) {
 
     
     
-    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========ull_rx_sched==========="));
+    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========llcp_pdu_decode_version_ind==========="));
+    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_version_ind")?), |_| log::info!("===========llcp_pdu_encode_version_ind==========="));
 
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
     // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
     // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
     // api.on_instruction(Some(0x0001662e), |_| memory::read_u8(0x20002410)?);
+    api.on_instruction(Some(symbolizer::resolve("rp_comm_tx_proxy")?), |_| log::info!("===========rp_comm_tx_proxy==========="));
+    api.on_instruction(Some(symbolizer::resolve("llcp_tx_enqueue")?), |_| log::info!("===========llcp_tx_enqueue==========="));
+    api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
+    // api.on_instruction(Some(), |_| log::info!("===========rp_comm_send_rsp==========="));
     
-    api.on_instruction(Some(symbolizer::resolve("ull_conn_lll_ack_enqueue")?), |_| log::info!("===========ull_conn_lll_ack_enqueue==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_rx")?), |_| log::info!("===========isr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
     api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
@@ -154,7 +157,7 @@ pub fn main(api) {
 
       }
 
-      log::info!("TX ---> {}", pkt_summary);
+      // log::info!("TX ---> {}", pkt_summary);
     }
     else {
       if cfg.log_details {
@@ -168,7 +171,7 @@ pub fn main(api) {
         if cfg.sequence == 0 {
           // Scan Request
           rx_pdu = common::get_adv_rpl_data();
-          log::info!("rx_pdu is here {}", rx_pdu);
+          // log::info!("rx_pdu is here {}", rx_pdu);
 
           log::info!("<============> rx_pdu received <============>");
 
@@ -201,12 +204,12 @@ pub fn main(api) {
           cfg.initial_pdu_flag = false;
           rx_pdu = common::get_empty_pdu_data();
           log::info!("<============> initial_empty_pdu received <============>");
-          log::info!("{}",rx_pdu);
+          // log::info!("{}",rx_pdu);
         }
         else{
           rx_pdu = common::get_data_rpl_data();
            log::info!("<============> rx_pdu received <============>");
-           log::info!("{}",rx_pdu);
+          //  log::info!("{}",rx_pdu);
         }
         // TODO: data channel, time to implement 3rd party link layer stack (zephyr via BubbleSim)
         // log::warn!("-------------- TODO -------------");
@@ -233,7 +236,7 @@ pub fn main(api) {
           log::info!("Pkt. Length: {}", data[1]);
           log::info!("Pkt. Bytes: {}", rx_pdu);
         }
-      log::info!("RX <--- {}", pkt_summary);
+      // log::info!("RX <--- {}", pkt_summary);
     }
   }
 
