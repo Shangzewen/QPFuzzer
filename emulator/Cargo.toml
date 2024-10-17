@@ -35,9 +35,11 @@ serde = { version = "1.0.162", features = ["derive", "rc"] }
 serde_yaml = "0.8.26"
 variant_count = "1.1.0"
 zstd = "0.12.3"
+pyo3 = {version = "0.22.3", features = ["auto-initialize"]}
 
 [dev-dependencies]
 fastrand = "1.9.0"
 insta = "1.29.0"
 pretty_assertions = "1.3.0"
 tempfile = "3.5.0"
+pyo3 = {version = "0.22.3", features = ["auto-initialize"]}

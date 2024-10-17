@@ -6,6 +6,8 @@ struct State {
   sequence,
   data_connection,
   log_details,
+  adv_ind_flag,
+  initial_pdu_flag,
 }
 
 pub fn main(api) {
@@ -15,12 +17,15 @@ pub fn main(api) {
 
     //  ------------ Test udp Socket ---------------
     api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background(received_pkt));
+    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
     let cfg = State {
               sequence: 0,
               data_connection: false,
-              log_details: false
+              log_details: false,
+              adv_ind_flag: false,
+              initial_pdu_flag:true
             };
 
     hook_link_layer(api, cfg);
@@ -47,11 +52,35 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
     
     // BLE Interrupts
-    // api.on_instruction(Some(symbolizer::resolve("radio_isr_set")?), |_| log::info!("===========radio_isr_set==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_radio")?), |_| log::info!("===========isr_radio==========="));
+    
+    // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
+
+
+    api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
+
+    api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
+
+    api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
+
+    
+    api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
+    
+    api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
+
+
+    
+    
+    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========ull_rx_sched==========="));
+
+    api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
+    // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
+    // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
+    // api.on_instruction(Some(0x0001662e), |_| memory::read_u8(0x20002410)?);
+    
+    api.on_instruction(Some(symbolizer::resolve("ull_conn_lll_ack_enqueue")?), |_| log::info!("===========ull_conn_lll_ack_enqueue==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_rx")?), |_| log::info!("===========isr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_done")?), |_| log::info!("===========isr_done==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_race")?), |_| log::info!("===========isr_race==========="));
@@ -68,7 +97,8 @@ pub fn main(api) {
       // Reset state before every run
       api.on_prepare_run(||{
         cfg.sequence = 0;
-        common::send_socket_data("RESET")
+        cfg.adv_ind_flag = false;
+        // common::send_socket_data("RESET")
       });
     
       // TX
@@ -82,6 +112,7 @@ pub fn main(api) {
 
 
   fn handle_link_layer_packet(cfg, pkt_buf_addr, direction) {
+    // let pkt_hex = "";
 
     if (direction == 1) {
       if cfg.log_details {
@@ -98,13 +129,31 @@ pub fn main(api) {
       let pkt_hex = common::encode_hex(pkt_data);
       // send packet to python socket
       // println(pkt_hex);
-      common::send_socket_data(pkt_hex);
+      // common::send_socket_data(pkt_hex);
+      // Update the tx data to a global variable which will be passed to the gen_adv_rpl to get the rpl pkt
+      // common::update_tx_data(pkt_hex);
       let pkt_summary = parse_ble_packet(pkt_hex, direction);
+      if pkt_summary.contains("BTLE_ADV_IND") {
+        // log::info!("I enterted this loop !!!!");
+        if cfg.adv_ind_flag == false {
+          cfg.adv_ind_flag = true;
+          common::update_tx_data(pkt_hex);
+        }
+        else{
+          return
+        }
+      }
+      else{
+        common::update_tx_data(pkt_hex);
+      }
       if cfg.log_details {
         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
         log::info!("Pkt. Length: {}", pkt_length);
         log::info!("Pkt. Bytes: {}", pkt_hex);
+        log::info!("Pkt. Bytes: {}", pkt_hex);
+
       }
+
       log::info!("TX ---> {}", pkt_summary);
     }
     else {
@@ -118,20 +167,27 @@ pub fn main(api) {
       if cfg.data_connection == false {
         if cfg.sequence == 0 {
           // Scan Request
-          rx_pdu = common::get_socket_data();
+          rx_pdu = common::get_adv_rpl_data();
+          log::info!("rx_pdu is here {}", rx_pdu);
+
           log::info!("<============> rx_pdu received <============>");
-          log::info!("{}",rx_pdu);
+
+          // log::info!("<============> rx_pdu received <============>");
+          // log::info!("{}",rx_pdu);
           // rx_pdu = "830cf37a7d65de2800000000000c2aba95";
         }
         else if cfg.sequence >= 1 {
           // Connection Request (where the show begins)
-          rx_pdu = common::get_socket_data();
+          // rx_pdu = common::get_socket_data();
+          // log::info!("Testtt!!!!! Pkt. Bytes: {}", pkt_hex);
+
           log::info!("<============> rx_pdu received <============>");
           log::info!("{}",rx_pdu);
+          rx_pdu = common::get_adv_rpl_data();
           // rx_pdu = "8522a942f80f51c300000000000c7083329a9c9a17020100100000006400ffffffff1f05002939";
           cfg.data_connection = true; // Switch to data channel
-          common::send_socket_data("Connected Update Flag");
-          log::info!("Connected Update flag")
+          // common::send_socket_data("Connected Update Flag");
+          // log::info!("Connected Update flag")
 
         }
         else {
@@ -140,13 +196,26 @@ pub fn main(api) {
         }
       }
       else {
+        // set initial flag
+        if cfg.initial_pdu_flag == true{
+          cfg.initial_pdu_flag = false;
+          rx_pdu = common::get_empty_pdu_data();
+          log::info!("<============> initial_empty_pdu received <============>");
+          log::info!("{}",rx_pdu);
+        }
+        else{
+          rx_pdu = common::get_data_rpl_data();
+           log::info!("<============> rx_pdu received <============>");
+           log::info!("{}",rx_pdu);
+        }
         // TODO: data channel, time to implement 3rd party link layer stack (zephyr via BubbleSim)
-        log::warn!("-------------- TODO -------------");
-        common::send_socket_data("Update Flag");
+        // log::warn!("-------------- TODO -------------");
+        // common::send_socket_data("Update Flag");
+        // common::gen_reply("empty_pdu", "000000000000000000");
         // rx_pdu = "0800";
-        rx_pdu = common::get_socket_data();
-        log::info!("<============> rx_pdu received <============>");
-        log::info!("{}",rx_pdu);
+        // rx_pdu = common::get_socket_data();
+        // log::info!("<============> rx_pdu received <============>");
+        // log::info!("{}",rx_pdu);
         // return;
       }
 
@@ -164,7 +233,7 @@ pub fn main(api) {
           log::info!("Pkt. Length: {}", data[1]);
           log::info!("Pkt. Bytes: {}", rx_pdu);
         }
-        log::info!("RX <--- {}", pkt_summary);
+      log::info!("RX <--- {}", pkt_summary);
     }
   }
 
@@ -236,4 +305,6 @@ pub fn main(api) {
     common::patch_address(0x0001b684, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix memcmp on adv_ind addr check
     common::patch_address(0x0001b760, [0x4f, 0xf0, 0x20, 0x00]);
+    // Fix upper buffer boundary
+    common::patch_address(0x0001c016, [0x01, 0x20]);
   }
