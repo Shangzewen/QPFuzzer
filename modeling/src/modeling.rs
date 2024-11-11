@@ -129,6 +129,10 @@ impl Modeling {
                 if let Some(model) = self.mmio_models.get(context.mmio()) {
                     return Ok(Some(model));
                 }
+                
+                // if !self.no_model.contains(context) {
+                //     self.no_model.insert(context.clone());
+                // }
 
                 // fuzzware model creation
                 if let Some(fuzzware) = &mut self.fuzzware {

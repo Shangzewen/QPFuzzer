@@ -96,7 +96,7 @@ impl<I: Input + Debug> Hardware<I> {
 
         value
     }
-
+    // Probabily need to update this function
     pub fn mmio_read(
         &mut self,
         context: &AccessContext,
@@ -111,6 +111,8 @@ impl<I: Input + Debug> Hardware<I> {
             .get_or_create(context)
             .context("get/create MMIO model failed")?;
         log::trace!("model = {:x?}", model);
+
+        // model = option::Option<&modeling::mmio_model::MmioModel>
 
         // get input value (either from model or input file)
         let mut input_context = None;
