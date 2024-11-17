@@ -1,0 +1,13 @@
+[package]
+name = "merge_input"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["arm"]
+arm = ["modeling/arm"]
+
+[dependencies]
+modeling = { path = "../../modeling" }
+qemu-rs = { path = "../../qemu-rs" }
+anyhow = "1.0.71"

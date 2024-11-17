@@ -11,6 +11,8 @@ pub struct EmulatorCounts {
     pub(super) interrupt: usize,
     pub(super) mmio_read: usize,
     pub(super) mmio_write: usize,
+    pub(super) input_counter: usize,
+    pub(super) input_counter2: usize,
 }
 
 impl fmt::Display for EmulatorCounts {
@@ -24,12 +26,14 @@ impl fmt::Display for EmulatorCounts {
 }
 
 impl EmulatorCounts {
-    pub fn new(basic_block: usize, interrupt: usize, mmio_read: usize, mmio_write: usize) -> Self {
+    pub fn new(basic_block: usize, interrupt: usize, mmio_read: usize, mmio_write: usize, input_counter: usize, input_counter2: usize) -> Self {
         Self {
             basic_block,
             interrupt,
             mmio_read,
             mmio_write,
+            input_counter,
+            input_counter2,
         }
     }
 
@@ -47,5 +51,12 @@ impl EmulatorCounts {
 
     pub fn mmio_write(&self) -> usize {
         self.mmio_write
+    }
+
+    pub fn input_counter(&self) -> usize {
+        self.input_counter
+    }
+    pub fn input_counter2(&self) -> usize {
+        self.input_counter2
     }
 }

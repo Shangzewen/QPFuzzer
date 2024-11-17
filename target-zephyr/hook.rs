@@ -8,6 +8,7 @@ struct State {
   log_details,
   adv_ind_flag,
   initial_pdu_flag,
+  pkt_length,
 }
 
 pub fn main(api) {
@@ -25,7 +26,8 @@ pub fn main(api) {
               data_connection: false,
               log_details: false,
               adv_ind_flag: false,
-              initial_pdu_flag:true
+              initial_pdu_flag:true,
+              pkt_length: 0
             };
 
     hook_link_layer(api, cfg);
@@ -44,7 +46,7 @@ pub fn main(api) {
     
     // BLE Periodic Timers
     // api.on_instruction(Some(symbolizer::resolve("ticker_start_ext")?), |_| log::info!("===========ticker_start_ext==========="));
-    // api.on_instruction(Some(symbolizer::resolve("ticker_trigger")?), |_| log::info!("===========ticker_trigger==========="));
+    // api.on_instruction(Some(symbolizer::resolve("radio_isr_set")?), |_| log::info!("===========radio_isr_set==========="));
     // api.on_instruction(Some(symbolizer::resolve("rtc0_nrf5_isr")?), |_| log::info!("===========rtc0_nrf5_isr==========="));
     // api.on_instruction(Some(symbolizer::resolve("ticker_cb")?), |_| log::info!("===========ticker_cb==========="));
 
@@ -56,16 +58,16 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
 
 
-    api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
 
-    api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
 
-    api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
+    // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
 
     
-    api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
     
-    api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
 
 
     
@@ -82,8 +84,14 @@ pub fn main(api) {
     api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
     // api.on_instruction(Some(), |_| log::info!("===========rp_comm_send_rsp==========="));
     
+    // api.on_instruction(Some(symbolizer::resolve("_isr_wrapper")?), |_| log::info!("===========_isr_wrapper==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
-    api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
+
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_done")?), |_| log::info!("===========isr_done==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_race")?), |_| log::info!("===========isr_race==========="));
@@ -101,6 +109,8 @@ pub fn main(api) {
       api.on_prepare_run(||{
         cfg.sequence = 0;
         cfg.adv_ind_flag = false;
+        log::info!("===========New Input file===========");
+        cfg.initial_pdu_flag = true;
         // common::send_socket_data("RESET")
       });
     
@@ -124,9 +134,14 @@ pub fn main(api) {
       let pkt_hdr = memory::read_u8(pkt_buf_addr)?;
       let pdu_length = memory::read_u8(pkt_buf_addr+1)?;
       if (pdu_length == 0 && pkt_hdr == 0) {return;}
-      let pkt_length = pdu_length + 2;
-      
-      let pkt_data = memory_read_buffer(pkt_buf_addr, pkt_length);
+      if (pdu_length == 0)
+      {
+        cfg.pkt_length = pdu_length + 3;
+      }
+      else{
+        cfg.pkt_length = pdu_length + 1;
+      }
+      let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
       // log::info!("Pkt data: {}", pkt_data);
 
       let pkt_hex = common::encode_hex(pkt_data);
@@ -151,7 +166,7 @@ pub fn main(api) {
       }
       if cfg.log_details {
         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-        log::info!("Pkt. Length: {}", pkt_length);
+        log::info!("Pkt. Length: {}", cfg.pkt_length);
         log::info!("Pkt. Bytes: {}", pkt_hex);
         log::info!("Pkt. Bytes: {}", pkt_hex);
 
@@ -273,7 +288,8 @@ pub fn main(api) {
     common::patch_function("log_n", arm::RETURN);
     common::patch_function("printk", arm::RETURN);
     common::patch_function("vfprintf", arm::RETURN);
-    common::patch_function("print_formatted", arm::RETURN);    
+    common::patch_function("print_formatted", arm::RETURN);
+    common::patch_function("cts_notify", arm::RETURN);    
     common::patch_function("z_vprintk", arm::RETURN);
     common::patch_function("z_log_vprintk", arm::RETURN);
     common::patch_function("z_impl_k_busy_wait", arm::RETURN);
@@ -295,6 +311,7 @@ pub fn main(api) {
     common::patch_address(0x1c380, [0x04, 0x34, 0x00, 0x20]);
   
     // Force RX to be successfull (Optional it seems)
+    // common::patch_function("nrfx_gpiote_init", arm::RETURN_0);
     common::patch_function("radio_has_disabled", arm::RETURN_1);
     common::patch_function("radio_is_done", arm::RETURN_1);
     common::patch_function("radio_crc_is_valid", arm::RETURN_1);
@@ -303,7 +320,7 @@ pub fn main(api) {
     common::patch_function("radio_filter_match_get", arm::RETURN_0);
     common::patch_function("radio_ar_has_match", arm::RETURN_0);
     common::patch_function("radio_ar_match_get", arm::RETURN_0);
-  
+    common::patch_function("bt_hrs_notify", arm::RETURN_0);
     // Fix memcmp on scan_req addr check
     common::patch_address(0x0001b684, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix memcmp on adv_ind addr check

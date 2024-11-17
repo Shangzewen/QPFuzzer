@@ -1,9 +1,9 @@
 pub mod emulator {
     pub mod limits {
-        pub const DEFAULT_BASIC_BLOCKS: usize = 3_000_000;
+        pub const DEFAULT_BASIC_BLOCKS: usize = 100_000_000;
         pub const DEFAULT_INTERRUPTS: usize = 3_000;
         pub const DEFAULT_MMIO_READ: usize = 0;
-        pub const DEFAULT_INPUT_READ_OVERDUE: usize = 150_000;
+        pub const DEFAULT_INPUT_READ_OVERDUE: usize = 1_000_000;
     }
 
     pub const ENABLE_HIT_COUNT: bool = true;

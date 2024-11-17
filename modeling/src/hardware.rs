@@ -176,11 +176,96 @@ impl<I: Input + Debug> Hardware<I> {
             } else {
                 false
             };
+            // println!("This is value: {}", value);
 
             (value, input_value)
         }))
     }
+    // Probabily need to update this function
+    pub fn mmio_read_update(
+        &mut self,
+        context: &AccessContext,
+        size: ReadSize,
+    ) -> Result<Option<(USize, bool)>> {
+        // unwrap input file
+        let input = self.input.as_mut().expect("input file missing");
 
+        // apply the MMIO model
+        let model = self
+            .modeling
+            .get_or_create(context)
+            .context("get/create MMIO model failed")?;
+        log::trace!("model = {:x?}", model);
+
+        // model = option::Option<&modeling::mmio_model::MmioModel>
+
+        // get input value (either from model or input file)
+        let mut input_context = None;
+        let value = match model {
+            Some(MmioModel::Passthrough { initial_value }) => {
+                let mmio = context.mmio();
+                Some(
+                    self.memory
+                        .read(mmio.addr(), size)
+                        .unwrap_or(*initial_value),
+                )
+            }
+            Some(MmioModel::Constant { value }) => Some(*value),
+            Some(MmioModel::Set { values }) => {
+                let context =
+                    InputContext::from_access(context, InputValueType::Choice(values.len() as u8));
+                let value = input
+                    .read(&context)
+                    .map(|input_value| match input_value.as_ref() {
+                        InputValue::Choice { index, .. } => values[*index as usize],
+                        _ => unreachable!("invalid InputValue type"),
+                    });
+
+                input_context = Some(context);
+                value
+            }
+            Some(MmioModel::BitExtract(be)) => {
+                let context = InputContext::from_access(context, InputValueType::Bits(be.bits()));
+                let value = input
+                    .read(&context)
+                    .map(|input_value| match input_value.as_ref() {
+                        InputValue::Bits { value, .. } => be.apply(*value),
+                        _ => unreachable!("invalid InputValue type"),
+                    });
+
+                input_context = Some(context);
+                value
+            }
+            None => {
+                let context = InputContext::from_access(context, size.into());
+                let value = input
+                    .read(&context)
+                    .map_or(Some(0),|input_value| match input_value.as_ref() {
+                        InputValue::Byte(value) => Some(*value as u32),
+                        InputValue::Word(value) => Some(*value as u32),
+                        InputValue::DWord(value) => Some(*value),
+                        _ => unreachable!("invalid InputValue type"),
+                    });
+
+                input_context = Some(context);
+                value
+            }
+        };
+        log::trace!("[READ] {:x?} => {:x?}", context, value);
+
+        Ok(value.map(|value| {
+            // track mmio accesses
+            let input_value = if let Some(context) = input_context {
+                self.access_log.push(context);
+                true
+            } else {
+                false
+            };
+            // println!("This is value: {}", value);
+
+            (value, input_value)
+        }))
+    }
     pub fn mmio_write(&mut self, context: &AccessContext, data: USize, size: ReadSize) {
         let mmio = context.mmio();
         if self.modeling.is_passthrough(mmio.addr()) {

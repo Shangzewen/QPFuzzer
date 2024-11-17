@@ -38,6 +38,13 @@ use qemu_rs::{
 use serde::{Deserialize, Serialize};
 use variant_count::VariantCount;
 
+// customization 
+use std::collections::HashMap;
+use lazy_static::lazy_static;
+use parking_lot::Mutex;
+
+// Create global hash map 
+
 pub use qemu_rs::Address;
 
 mod arch;
@@ -58,7 +65,10 @@ pub use self::{counts::EmulatorCounts, hooks::custom::Bug, limits::EmulatorLimit
 use self::{debug::EmulatorDebugData, hooks::debug::DebugHook, limits::TargetLimits};
 
 pub type CoverageLog = FxHashSet<Address>;
-
+lazy_static! {
+    static ref global_hashmap: Mutex<HashMap<Address, u32>> = Mutex::new(HashMap::new());
+    static ref dt: Mutex<u32> = Mutex::new(0);
+}
 #[derive(Debug)]
 pub struct ExecutionResult<I: Input + Debug> {
     pub counts: EmulatorCounts,
@@ -139,6 +149,26 @@ pub enum Limit {
 pub enum RunMode {
     Normal,
     Leaf,
+}
+
+// Create the dictionary struct for later usage, it conatins three function, add, update, and get.
+#[derive(Debug, Default)]
+pub struct Dictionary<K, V> {
+    items: std::collections::HashMap<K, V>,
+}
+
+impl<K: std::hash::Hash + Eq, V> Dictionary<K, V> {
+    pub fn get(&self, key: &K) -> Option<&V> {
+        self.items.get(key)
+    }
+
+    pub fn insert(&mut self, key: K, value: V) {
+        self.items.insert(key, value);
+    }
+
+    pub fn update(&mut self, key: K, value: V) -> Option<V> {
+        self.items.insert(key, value)
+    }
 }
 
 #[derive(Debug)]
@@ -321,7 +351,8 @@ impl<I: Input + Debug> EmulatorData<I> {
 
         // basic blocks with input consumption limit
         if let Some(limit) = self.limits().input_read_overdue {
-            if self.counts.basic_block + ticks > self.last_input_read + limit {
+            // println!("This is the stop limit{}",limit);
+            if self.counts.basic_block + ticks > self.last_input_read + limit{
                 log::debug!("input read overdue");
                 assert_eq!(
                     self.last_input_read + limit,
@@ -547,11 +578,14 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
     }
 
     fn on_debug(&mut self, pc: Address) -> Result<()> {
+        log::info!("Debug Output at PC: {:#x}", pc);
         Self::on_debug(self, pc)
     }
 
     fn on_exit(&mut self, pc: Address) -> Result<()> {
         self.on_exit_debug(pc)?;
+
+        log::info!("Exit hook triggered at PC: {:#x}", pc);
 
         self.stop(StopReason::ExitHook);
 
@@ -611,10 +645,15 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
 
         let context = AccessContext::new(pc, addr);
         let size = ReadSize::try_from(size as u32)?;
+        let mut globalhashmap = global_hashmap.lock();
+        // if(self.counts.input_counter2>2000){
         let value = match self.hardware.mmio_read(&context, size) {
             Ok(Some((data, input))) => {
                 // update MMIO read count
                 self.counts.mmio_read += 1;
+                // TODO:: Create a dictionary here which conatins all the context value pair
+                // then update it here and use them later
+                // mmio_map.update(addr, data);
 
                 // MMIO read from input file
                 if input {
@@ -627,14 +666,61 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                 self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, data, size)?;
                 self.check_stop_conditions_debug(true)?;
 
+                // Need to update the global hashmap here
+                if globalhashmap.contains_key(&addr){
+                    globalhashmap.get_mut(&addr).map(|v| *v =data);
+                    println!( "Updated {:#x} {:#x}", addr, data);
+                    let val4 = globalhashmap.get(&addr).unwrap();
+                    println!("This is val4 {}",val4);
+                }
+                else{
+                    globalhashmap.insert(addr, 0);
+                    println!( "Inserted {:#x} {:#x}", addr, 0);
+                }
                 data as u64
             }
             Ok(None) => {
                 // end of input stream
-                self.create_mmio_rewound()?;
-                self.stop(StopReason::EndOfInput);
+        
+                // self.create_mmio_rewound()?;
+                // self.stop(StopReason::EndOfInput);
+                // Create a counter here to continue this block
+                if (self.counts.input_counter > 1) {
+                    self.counts.mmio_read += 1;
+                    // self.counts.input_counter = 0;
 
-                0
+                    self.update_basic_block_count()?;
+                    self.last_input_read = self.counts.basic_block;
+                    self.set_next_basic_block_hook(false);
+                    // let data = 10;
+                    if globalhashmap.contains_key(&addr){
+                        let data = globalhashmap.get(&addr).unwrap().clone();
+                        // update dt to data
+                        *dt.lock()= data.clone();
+                        println!( "Read {:#x} {:#x}", addr, data);
+                        self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, data, ReadSize::Byte)?;
+                            
+                    }else{
+                        self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, 0, ReadSize::Byte)?;
+
+                    }
+
+                    self.check_stop_conditions_debug(true)?;
+                }
+                else {
+                    self.create_mmio_rewound()?;
+                    println!("EndOfInput: {}", self.counts.input_counter);
+                    self.stop(StopReason::EndOfInput);
+                    self.counts.input_counter += 1;
+                    *dt.lock()= 0;
+                }
+    
+                // 10
+                // 0
+                // let data = globalhashmap.get(&addr).unwrap().clone();                    
+                let value = dt.lock().clone();
+                println!( "This is the value returned {}",value);
+                value as u64
             }
             Err(err) if EXIT.load(Ordering::Relaxed) => {
                 // swallow fuzzware error when exit request is present
@@ -648,8 +734,100 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                 return Err(err.context("MMIO read failed"));
             }
         };
-
         Ok(value)
+    // }else{
+    //     self.counts.input_counter2 += 1;
+    //     let value = match self.hardware.mmio_read(&context, size) {
+    //         Ok(Some((data, input))) => {
+    //             // update MMIO read count
+    //             self.counts.mmio_read += 1;
+    //             // TODO:: Create a dictionary here which conatins all the context value pair
+    //             // then update it here and use them later
+    //             // mmio_map.update(addr, data);
+
+    //             // MMIO read from input file
+    //             if input {
+    //                 // set last input read + update next basic block hook
+    //                 self.update_basic_block_count()?;
+    //                 self.last_input_read = self.counts.basic_block;
+    //                 self.set_next_basic_block_hook(false);
+    //             }
+
+    //             self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, data, size)?;
+    //             self.check_stop_conditions_debug(true)?;
+
+    //             // Need to update the global hashmap here
+    //             if globalhashmap.contains_key(&addr){
+    //                 globalhashmap.get_mut(&addr).map(|v| *v =data);
+    //                 println!( "Updated {:#x} {:#x}", addr, data);
+    //                 let val4 = globalhashmap.get(&addr).unwrap();
+    //                 println!("This is val4 {}",val4);
+    //             }
+    //             else{
+    //                 globalhashmap.insert(addr, 0);
+    //                 println!( "Inserted {:#x} {:#x}", addr, 0);
+    //             }
+    //             data as u64
+    //         }
+    //         Ok(None) => {
+    //             // end of input stream
+           
+    //             // self.create_mmio_rewound()?;
+    //             // self.stop(StopReason::EndOfInput);
+    //             // Create a counter here to continue this block
+    //             if (self.counts.input_counter > 1) {
+    //                 self.counts.mmio_read += 1;
+    //                 // self.counts.input_counter = 0;
+
+    //                 self.update_basic_block_count()?;
+    //                 self.last_input_read = self.counts.basic_block;
+    //                 self.set_next_basic_block_hook(false);
+    //                 // let data = 10;
+    //                 if globalhashmap.contains_key(&addr){
+    //                     let data = globalhashmap.get(&addr).unwrap().clone();
+    //                     // update dt to data
+    //                     *dt.lock()= data.clone();
+    //                     println!( "Read {:#x} {:#x}", addr, data);
+    //                     self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, data, ReadSize::Byte)?;
+                            
+    //                 }else{
+    //                     self.on_access_debug(AccessTarget::Mmio, AccessType::Read, &context, 0, ReadSize::Byte)?;
+
+    //                 }
+
+    //                 self.check_stop_conditions_debug(true)?;
+    //             }
+    //             else {
+    //                 self.create_mmio_rewound()?;
+    //                 println!("EndOfInput: {}", self.counts.input_counter);
+    //                 self.stop(StopReason::EndOfInput);
+    //                 self.counts.input_counter += 1;
+    //                 *dt.lock()= 0;
+    //             }
+    
+    //             // 10
+    //             // 0
+    //             // let data = globalhashmap.get(&addr).unwrap().clone();                    
+    //             let value = dt.lock().clone();
+    //             println!( "This is the value returned {}",value);
+    //             value as u64
+    //         }
+    //         Err(err) if EXIT.load(Ordering::Relaxed) => {
+    //             // swallow fuzzware error when exit request is present
+    //             log::warn!("MMIO read failed during exit request, likely due to signal");
+    //             log::debug!("{:?}", err);
+    //             self.stop(StopReason::UserExitRequest);
+
+    //             0
+    //         }
+    //         Err(err) => {
+    //             return Err(err.context("MMIO read failed"));
+    //         }
+    //     };
+    //     Ok(value)
+    // }
+
+
     }
 
     fn on_write(&mut self, pc: Address, addr: Address, data: u64, size: u8) -> Result<()> {
