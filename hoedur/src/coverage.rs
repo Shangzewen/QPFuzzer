@@ -409,6 +409,7 @@ fn run_corpus_archive(
                     result.counts.basic_block(),
                     result.stop_reason.clone(),
                     result.hardware.access_log,
+                    result.relevant_edges
                 ),
             )?;
         }

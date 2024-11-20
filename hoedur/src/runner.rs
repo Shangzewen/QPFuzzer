@@ -484,6 +484,7 @@ fn run_inputs(mut emulator: Emulator, config: RunConfig) -> Result<()> {
                         result.counts.basic_block(),
                         result.stop_reason,
                         result.hardware.access_log,
+                        result.relevant_edges
                     ),
                 )?;
             }
@@ -562,6 +563,7 @@ fn run_corpus_archive(mut emulator: Emulator, config: RunCorpusArchiveConfig) ->
                     result.counts.basic_block(),
                     result.stop_reason.clone(),
                     result.hardware.access_log,
+                    result.relevant_edges
                 ),
             )?;
         }

@@ -1,8 +1,5 @@
 use std::{
-    path::{Path, PathBuf},
-    rc::Rc,
-    sync::atomic::Ordering,
-    vec,
+    path::{Path, PathBuf}, rc::Rc, sync::atomic::Ordering, vec
 };
 
 use anyhow::{Context, Result};
@@ -473,6 +470,7 @@ impl Fuzzer {
             result.counts.basic_block(),
             result.stop_reason,
             result.hardware.access_log,
+            result.relevant_edges
         );
 
         self.statistics.process_minimization();
@@ -658,6 +656,7 @@ impl Fuzzer {
                 result.counts.basic_block(),
                 result.stop_reason,
                 result.hardware.access_log,
+                result.relevant_edges
             ),
             self.emulator.get_coverage_bitmap(),
             self.mutation_log

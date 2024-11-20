@@ -1,6 +1,5 @@
 use std::process::{Command, Stdio};
 use std::sync::Arc;
-use std::thread;
 use std::{fmt::Write, num::ParseIntError};
 
 use anyhow::{Context, Result};
@@ -8,8 +7,8 @@ use parking_lot::Mutex;
 use qemu_rs::{Address, USize};
 use rune::Module;
 use std::net::{UdpSocket, SocketAddr};
-use std::error::Error;
-use std::sync::LazyLock;
+// use std::error::Error;
+// use std::sync::LazyLock;
 use std::str;
 use pyo3::prelude::*; // Import PyO3 functionality
 use pyo3::types::PyBytes; // PyBytes to handle byte strings
@@ -50,12 +49,12 @@ lazy_static! {
     static ref pdu_data: Mutex<String> = Mutex::new(String::new());
     static ref flag2: Mutex<String> = Mutex::new(String::from("0"));
 }
-struct State {
-    sequence: u32,
-    data_connection: bool,
-    log_details: bool,
-    receive_pkt: String,
-  }
+// struct State {
+//     sequence: u32,
+//     data_connection: bool,
+//     log_details: bool,
+//     receive_pkt: String,
+//   }
 pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     let mut module = Module::with_crate("common");
 
@@ -170,7 +169,7 @@ fn patch_function(
     Ok(())
 }
 
-fn udp_socket(mut rcv_pkt: String){
+fn udp_socket(){
     // Bind the socket to a local address and port
     let socket = UdpSocket::bind("127.0.0.1:9999").unwrap();
     loop{
@@ -227,11 +226,11 @@ fn udp_socket(mut rcv_pkt: String){
     // Ok(())
 }
 
-fn running_socket_background(mut rcvd_pkt: String){
+fn running_socket_background(){
 
-    let udp_thread = thread::spawn(move || {
-        udp_socket(rcvd_pkt);
-    });
+    // let udp_thread = thread::spawn(move || {
+    //     udp_socket(rcvd_pkt);
+    // });
 }
 
 fn send_socket_data(msg: String){
@@ -941,7 +940,7 @@ def generate_empty_pdu():
 ///
 /// A `String` containing the advertisement reply data.
 fn get_adv_rpl_data() -> String {
-    generate_adv_rpl();
+    _ = generate_adv_rpl();
     let x = adv_rpl_data.lock().clone();
     // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
     println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());
@@ -949,7 +948,7 @@ fn get_adv_rpl_data() -> String {
 }
 
 fn get_data_rpl_data() -> String {
-    generate_data_rpl();
+    _ = generate_data_rpl();
     let x = pdu_data.lock().clone();
     // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
     println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());
@@ -962,7 +961,7 @@ fn get_tx_data() ->String{
      return x;
 }
 fn get_empty_pdu_data() -> String {
-    generate_empty_pdu_rpl();
+    _ = generate_empty_pdu_rpl();
     let x = empty_pdu_data.lock().clone();
     // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
     println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());

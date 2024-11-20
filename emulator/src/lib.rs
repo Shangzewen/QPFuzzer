@@ -67,6 +67,7 @@ pub struct ExecutionResult<I: Input + Debug> {
     pub execution_time: Duration,
     pub stop_reason: StopReason,
     pub bugs: Option<Vec<Bug>>,
+    pub relevant_edges: u16,
 }
 
 impl<I: Input + Debug> fmt::Display for ExecutionResult<I> {
@@ -156,6 +157,7 @@ pub(crate) struct EmulatorData<I: 'static + Input + Debug> {
     limits: EmulatorLimits,
     input_limits: Option<EmulatorLimits>,
     debug: EmulatorDebugData,
+    relevant_edges: u16,
 }
 
 impl<I: Input + Debug> EmulatorData<I> {
@@ -181,6 +183,7 @@ impl<I: Input + Debug> EmulatorData<I> {
             limits,
             input_limits: None,
             debug,
+            relevant_edges: 0
         }
     }
 
@@ -198,12 +201,16 @@ impl<I: Input + Debug> EmulatorData<I> {
             mmio_rewound.restore();
         }
 
+
+
         // set next basic block hook (single step for rewound)
         self.set_next_basic_block_hook(self.mmio_rewound.is_some());
 
         self.debug.prepare_run(input.id())?;
         self.hardware.prepare_run(input);
         self.execution_start = Some(Instant::now());
+        // Clear relevant edges
+        self.relevant_edges = 0;
 
         Ok(())
     }
@@ -228,6 +235,9 @@ impl<I: Input + Debug> EmulatorData<I> {
             _ => StopReason::Abort,
         });
 
+        let relevant_edges = self.relevant_edges;
+        log::info!("Relevant Edges: {relevant_edges}");
+
         Ok(ExecutionResult {
             counts: self.counts.clone(),
             hardware: self
@@ -242,6 +252,7 @@ impl<I: Input + Debug> EmulatorData<I> {
                     .context("Missing execution start time")?,
             stop_reason,
             bugs,
+            relevant_edges: self.relevant_edges
         })
     }
 
@@ -520,8 +531,21 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
             }
         }
 
+ 
+
         // add this basic block to the coverage bitmap
-        qemu_rs::coverage::add_basic_block(pc as u64);
+        let new_edge = qemu_rs::coverage::add_basic_block(pc as u64);
+
+        if new_edge && (pc == 0x1C528 || pc == 0x1C51C) {
+            self.relevant_edges += 1;
+            match pc {
+                0x1C38C => log::info!("Relevant Edge: radio_isr_set (0x{pc:08X})"),
+                0x1C528 => log::info!("Relevant Edge: radio_pkt_tx_set (0x{pc:08X})"),
+                0x1C51C => log::info!("Relevant Edge: radio_pkt_rx_set (0x{pc:08X})"),
+                _ => ()
+            }
+        }
+    
 
         self.on_basic_block_debug(pc)?;
         self.check_stop_conditions_debug(false)?;

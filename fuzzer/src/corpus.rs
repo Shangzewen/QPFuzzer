@@ -25,6 +25,7 @@ use rand::{
     distributions::{WeightedError, WeightedIndex},
     prelude::*,
 };
+use rand_distr::num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
 use variant_count::VariantCount;
 
@@ -746,6 +747,11 @@ impl InputInfo {
             energy *= scale(self.result.basic_blocks as f64, average_basic_blocks);
         }
 
+        // scale by number of relevant edges
+        if self.result.relevant_edges > 0 {
+            energy *= 100. * self.result.relevant_edges.to_f64().unwrap();
+        }
+
         energy
     }
 
@@ -840,6 +846,7 @@ pub struct InputResult {
     basic_blocks: usize,
     stop_reason: StopReason,
     chrono_stream: LazyTransform<Vec<InputContext>, Rc<ChronoStream>>,
+    relevant_edges: u16
 }
 
 #[derive(
@@ -860,6 +867,7 @@ impl InputResult {
         basic_blocks: usize,
         stop_reason: StopReason,
         access_log: Vec<InputContext>,
+        relevant_edges: u16
     ) -> Self {
         Self {
             input,
@@ -867,6 +875,7 @@ impl InputResult {
             basic_blocks,
             stop_reason,
             chrono_stream: LazyTransform::new(access_log),
+            relevant_edges
         }
     }
 
@@ -979,6 +988,7 @@ impl From<ExecutionResult<InputFile>> for InputResult {
             result.counts.basic_block(),
             result.stop_reason,
             result.hardware.access_log,
+            result.relevant_edges
         )
     }
 }

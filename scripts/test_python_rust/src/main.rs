@@ -1,6 +1,6 @@
 use pyo3::prelude::*; // Import PyO3 functionality
 use pyo3::types::PyBytes;
-use rune::ast::True; // PyBytes to handle byte strings
+// use rune::ast::True; // PyBytes to handle byte strings
 // use hex;
 
 fn test_fun(inputdata: &[u8], flag2: i32) -> PyResult<()> {
@@ -163,5 +163,5 @@ def generate_empty_pdu():
 fn main() {
     // let test_string: String=b"60230000000000c002010607030d180f1805181107f0debc9a785634127856341278563412";
     // test_fun(b"60230000000000c002010607030d180f1805181107f0debc9a785634127856341278563412");
-    test_fun(b"0500",0);
+    _ = test_fun(b"0500",0);
 }

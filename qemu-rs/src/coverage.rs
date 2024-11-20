@@ -48,16 +48,20 @@ impl RawBitmap {
         edge as usize & (self.0.len() - 1)
     }
 
-    fn add(&mut self, edge: u64) {
+    fn add(&mut self, edge: u64, value: u8) -> bool {
         let index = self.index(edge);
         let entry = unsafe { self.0.get_unchecked_mut(index) };
-        *entry = (*entry).saturating_add(1);
+        let last_value = (*entry).clone();
+        *entry = (*entry).saturating_add(value);
+        last_value > 0
     }
 
-    fn set(&mut self, edge: u64) {
+    fn set(&mut self, edge: u64) -> bool {
         let index = self.index(edge);
         let entry = unsafe { self.0.get_unchecked_mut(index) };
+        let last_value = (*entry).clone();
         *entry = 1;
+        last_value > 0
     }
 
     pub(crate) fn create_snapshot() -> Self {
@@ -133,26 +137,28 @@ pub fn get_last_location() -> u64 {
     last_location
 }
 
-pub fn set_last_location(last_location: u64) {
+pub fn set_last_location(last_location: u64) { 
     log::trace!("set_last_location(last_location = {:#x?})", last_location);
-
+    
     unsafe {
         LAST_LOCATION = last_location;
     }
 }
 
-pub fn add_basic_block(pc: u64) {
+pub fn add_basic_block(pc: u64) -> bool {
     // calculate edge
     let current_location = pc.wrapping_mul(HASH_KEY);
     let edge = current_location.bitxor(unsafe { LAST_LOCATION });
+    let new_edge: bool;
 
-    // update coverage bitmap
     if ENABLE_HIT_COUNT {
-        get_coverage_bitmap_mut().add(edge);
+        new_edge = get_coverage_bitmap_mut().add(edge, 1);
     } else {
-        get_coverage_bitmap_mut().set(edge);
+        new_edge = get_coverage_bitmap_mut().set(edge);
     }
 
-    // update last lcoation
+    // update last location
     unsafe { LAST_LOCATION = current_location.rotate_left(5) }
+
+    new_edge
 }
