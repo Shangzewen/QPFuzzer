@@ -345,6 +345,9 @@ impl Statistics {
                 (history.new_counts.interrupt() as f32 / time_diff) as usize,
                 (history.new_counts.mmio_read() as f32 / time_diff) as usize,
                 (history.new_counts.mmio_write() as f32 / time_diff) as usize,
+                (history.new_counts.input_counter() as f32 / time_diff) as usize,
+                (history.new_counts.input_counter2() as f32 / time_diff) as usize,
+
             );
 
             // print fuzzer / basic statistics
