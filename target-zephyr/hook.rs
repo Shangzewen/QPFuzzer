@@ -17,7 +17,7 @@ pub fn main(api) {
     let received_pkt="";
 
     //  ------------ Test udp Socket ---------------
-    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background(received_pkt));
+    // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background(received_pkt));
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
@@ -33,6 +33,13 @@ pub fn main(api) {
     hook_link_layer(api, cfg);
 
     //  ------------ Print Logs ------------
+    // Exit Hooks
+    // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
+
+
     // BLE Setup
     // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| log::info!("===========bt_enable=========="));
     // api.on_instruction(Some(symbolizer::resolve("cts_init")?), |_| log::info!("===========cts_init=========="));
@@ -54,27 +61,16 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
     
     // BLE Interrupts
-    
     // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
-
-
     // api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
-
     // api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
-
     // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
-
-    
     // api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
-    
     // api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
-
-
     
-    
+    // BLE Packet Decoding
     api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========llcp_pdu_decode_version_ind==========="));
     api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_version_ind")?), |_| log::info!("===========llcp_pdu_encode_version_ind==========="));
-
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
     // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
     // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
@@ -82,24 +78,9 @@ pub fn main(api) {
     api.on_instruction(Some(symbolizer::resolve("rp_comm_tx_proxy")?), |_| log::info!("===========rp_comm_tx_proxy==========="));
     api.on_instruction(Some(symbolizer::resolve("llcp_tx_enqueue")?), |_| log::info!("===========llcp_tx_enqueue==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
-    // api.on_instruction(Some(), |_| log::info!("===========rp_comm_send_rsp==========="));
     
-    // api.on_instruction(Some(symbolizer::resolve("_isr_wrapper")?), |_| log::info!("===========_isr_wrapper==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
-    // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
-    // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
-    // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
-
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_done")?), |_| log::info!("===========isr_done==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_race")?), |_| log::info!("===========isr_race==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_abort")?), |_| log::info!("===========isr_abort==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_abort_all")?), |_| log::info!("===========isr_abort_all==========="));
-    // api.on_instruction(Some(symbolizer::resolve("lll_isr_early_abort")?), |_| log::info!("===========lll_isr_early_abort==========="));
-    
-    // BLE Link Layer
+   
+    // BLE Radio (Link Layer)
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), |_| log::info!("===========radio_pkt_tx_set==========="));
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| log::info!("===========radio_pkt_rx_set==========="));
   }
@@ -109,9 +90,7 @@ pub fn main(api) {
       api.on_prepare_run(||{
         cfg.sequence = 0;
         cfg.adv_ind_flag = false;
-        log::info!("===========New Input file===========");
         cfg.initial_pdu_flag = true;
-        // common::send_socket_data("RESET")
       });
     
       // TX
@@ -141,18 +120,13 @@ pub fn main(api) {
       else{
         cfg.pkt_length = pdu_length + 1;
       }
-      let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
-      // log::info!("Pkt data: {}", pkt_data);
 
+      let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
       let pkt_hex = common::encode_hex(pkt_data);
-      // send packet to python socket
-      // println(pkt_hex);
-      // common::send_socket_data(pkt_hex);
-      // Update the tx data to a global variable which will be passed to the gen_adv_rpl to get the rpl pkt
-      // common::update_tx_data(pkt_hex);
-      let pkt_summary = parse_ble_packet(pkt_hex, direction);
+
+      let pkt_summary = common::parse_packet("ble", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
       if pkt_summary.contains("BTLE_ADV_IND") {
-        // log::info!("I enterted this loop !!!!");
+        // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
         if cfg.adv_ind_flag == false {
           cfg.adv_ind_flag = true;
           common::update_tx_data(pkt_hex);
@@ -172,7 +146,7 @@ pub fn main(api) {
 
       }
 
-      // log::info!("TX ---> {}", pkt_summary);
+      log::info!("TX ---> {}", pkt_summary);
     }
     else {
       if cfg.log_details {
@@ -186,27 +160,12 @@ pub fn main(api) {
         if cfg.sequence == 0 {
           // Scan Request
           rx_pdu = common::get_adv_rpl_data();
-          // log::info!("rx_pdu is here {}", rx_pdu);
-
-          log::info!("<============> rx_pdu received <============>");
-
           // log::info!("<============> rx_pdu received <============>");
-          // log::info!("{}",rx_pdu);
-          // rx_pdu = "830cf37a7d65de2800000000000c2aba95";
         }
         else if cfg.sequence >= 1 {
-          // Connection Request (where the show begins)
-          // rx_pdu = common::get_socket_data();
-          // log::info!("Testtt!!!!! Pkt. Bytes: {}", pkt_hex);
-
-          log::info!("<============> rx_pdu received <============>");
-          log::info!("{}",rx_pdu);
+          // log::info!("<============> rx_pdu received <============>");
           rx_pdu = common::get_adv_rpl_data();
-          // rx_pdu = "8522a942f80f51c300000000000c7083329a9c9a17020100100000006400ffffffff1f05002939";
           cfg.data_connection = true; // Switch to data channel
-          // common::send_socket_data("Connected Update Flag");
-          // log::info!("Connected Update flag")
-
         }
         else {
           cfg.sequence = cfg.sequence + 1;
@@ -218,23 +177,12 @@ pub fn main(api) {
         if cfg.initial_pdu_flag == true{
           cfg.initial_pdu_flag = false;
           rx_pdu = common::get_empty_pdu_data();
-          log::info!("<============> initial_empty_pdu received <============>");
-          // log::info!("{}",rx_pdu);
+          // log::info!("<============> initial_empty_pdu received <============>");
         }
         else{
           rx_pdu = common::get_data_rpl_data();
-           log::info!("<============> rx_pdu received <============>");
-          //  log::info!("{}",rx_pdu);
+          //  log::info!("<============> rx_pdu received <============>");
         }
-        // TODO: data channel, time to implement 3rd party link layer stack (zephyr via BubbleSim)
-        // log::warn!("-------------- TODO -------------");
-        // common::send_socket_data("Update Flag");
-        // common::gen_reply("empty_pdu", "000000000000000000");
-        // rx_pdu = "0800";
-        // rx_pdu = common::get_socket_data();
-        // log::info!("<============> rx_pdu received <============>");
-        // log::info!("{}",rx_pdu);
-        // return;
       }
 
       cfg.sequence = cfg.sequence + 1;
@@ -244,14 +192,14 @@ pub fn main(api) {
         memory::write_u8(pkt_buf_addr + i, v);
       }
 
-      let pkt_summary = parse_ble_packet(rx_pdu, direction);
+      let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
+      log::info!("RX <--- {}", pkt_summary);
 
       if cfg.log_details {
           log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
           log::info!("Pkt. Length: {}", data[1]);
           log::info!("Pkt. Bytes: {}", rx_pdu);
         }
-      // log::info!("RX <--- {}", pkt_summary);
     }
   }
 

@@ -1,45 +1,20 @@
 use std::process::{Command, Stdio};
-use std::sync::Arc;
-use std::{fmt::Write, num::ParseIntError};
+use std::{fmt::Write, fs, num::ParseIntError, str, sync::Arc};
 
 use anyhow::{Context, Result};
 use parking_lot::Mutex;
 use qemu_rs::{Address, USize};
 use rune::Module;
-use std::net::{UdpSocket, SocketAddr};
-// use std::error::Error;
-// use std::sync::LazyLock;
-use std::str;
-use pyo3::prelude::*; // Import PyO3 functionality
-use pyo3::types::PyBytes; // PyBytes to handle byte strings
-
+use std::net::{SocketAddr, UdpSocket};
 
 use lazy_static::lazy_static;
 
-
-use crate::hooks::Symbolizer;
-use colored::Colorize;
+use pyo3::prelude::*; // Import PyO3 functionality
+use pyo3::sync::GILOnceCell;
+use pyo3::types::PyBytes; // PyBytes to handle byte strings
 
 use super::memory_write;
-
-
-
-// Thats how to delclare the global variabel in rust
-// lazy_static! {
-//     static ref queue_string: Mutex<String> = Mutex::new(String::new());
-// }
-
-// lazy_static! {
-//     static ref adv_rpl_data: Mutex<String> = Mutex::new(String::new());
-// }
-
-// lazy_static! {
-//     static ref tx_data: Mutex<String> = Mutex::new(String::new());
-// }
-
-// lazy_static! {
-//     static ref empty_pdu_data: Mutex<String> = Mutex::new(String::new());
-// }
+use crate::hooks::Symbolizer;
 
 lazy_static! {
     static ref queue_string: Mutex<String> = Mutex::new(String::new());
@@ -49,12 +24,7 @@ lazy_static! {
     static ref pdu_data: Mutex<String> = Mutex::new(String::new());
     static ref flag2: Mutex<String> = Mutex::new(String::from("0"));
 }
-// struct State {
-//     sequence: u32,
-//     data_connection: bool,
-//     log_details: bool,
-//     receive_pkt: String,
-//   }
+
 pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     let mut module = Module::with_crate("common");
 
@@ -82,10 +52,8 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["update_tx_data"], update_tx_data)?;
     module.function(&["get_empty_pdu_data"], get_empty_pdu_data)?;
     module.function(&["get_data_rpl_data"], get_data_rpl_data)?;
+    module.function(&["parse_packet"], parse_packet)?;
 
-
-
-    
     Ok(module)
 }
 
@@ -169,40 +137,38 @@ fn patch_function(
     Ok(())
 }
 
-fn udp_socket(){
+fn udp_socket() {
     // Bind the socket to a local address and port
     let socket = UdpSocket::bind("127.0.0.1:9999").unwrap();
-    loop{
+    loop {
         let mut all_bytes: Vec<u8> = Vec::new();
 
         let mut buf = [0; 1024]; // Buffer for receiving data
-        // Receive a message from any source
+                                 // Receive a message from any source
         let (amt, src) = socket.recv_from(&mut buf).unwrap();
-    
+
         all_bytes.extend_from_slice(&buf[..amt]);
 
         let hex_string = String::from_utf8(all_bytes).unwrap();
 
         // println!("uhuuuuuu: {hex_string}");
-        
-
 
         // for v in &all_bytes {
         //     print!("{v:02X}");
         // }
 
         // println!("");
-     
+
         // Convert the received byte array to a hex string
         // let hex_string: String = all_bytes
         //     .iter()
         //     .map(|byte| format!("0x{:02X}", byte)) // Convert each byte to hex
         //     .collect::<Vec<String>>()
         //     .join(" "); // Join with spaces for readability
-        if hex_string == "0x6B 0x69 0x6C 0x6C 0x20 0x73 0x6F 0x63 0x6B 0x65 0x74"{
+        if hex_string == "0x6B 0x69 0x6C 0x6C 0x20 0x73 0x6F 0x63 0x6B 0x65 0x74" {
             println!("Received kill signal");
             break;
-        }else{
+        } else {
             // state.receive_pkt = hex_string;
             // println!("Received {} bytes from {}: {}", amt, src, hex_string);
             // rcv_pkt = &hex_string;
@@ -226,25 +192,25 @@ fn udp_socket(){
     // Ok(())
 }
 
-fn running_socket_background(){
+fn running_socket_background() {
 
     // let udp_thread = thread::spawn(move || {
     //     udp_socket(rcvd_pkt);
     // });
 }
 
-fn send_socket_data(msg: String){
+fn send_socket_data(msg: String) {
     let socket = UdpSocket::bind("127.0.0.1:8888").unwrap();
     let remote_addr: SocketAddr = "127.0.0.1:7777".parse().unwrap();
     socket.send_to(msg.as_bytes(), remote_addr).unwrap();
     println!("Sent message from peripheral to {}: {:?}", remote_addr, msg);
 }
 
-
-fn get_socket_data () -> String {
+fn get_socket_data() -> String {
     let x = queue_string.lock().clone();
     return x;
 }
+
 /// Executes a system command and returns its output as a `String`.
 ///
 /// This function takes a `String` representing the command to execute, and returns the output of that command as a `String`. It uses the `Command` struct from the standard library to execute the command, capture its standard output, and return it as a `String`.
@@ -289,213 +255,26 @@ fn encode_hex(bytes: Vec<u32>) -> String {
     return s;
 }
 
-fn update_tx_data(tx:String){
+fn update_tx_data(tx: String) {
     tx_data.lock().clear();
     tx_data.lock().push_str(&tx);
-    // println!("---> TX ---> : {}",tx.blue());
-    println!("{}", format!("---> TX ---> : b'{}'", tx).blue());
 }
+
 fn generate_adv_rpl() -> PyResult<()> {
     // Initialize the Python interpreter
     Python::with_gil(|py| {
         // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
-        let module = PyModule::from_code_bound(py,
-            r#"
-from scapy.all import *
-from scapy.layers.bluetooth4LE import *
-from scapy.layers.bluetooth import *
-from binascii import unhexlify, hexlify
-# from colorama import Fore, Back, Style, init
-
-# send_nesn = 0
-# send_sn = 0
-# flag2 = False
-# Implement the complete state machine for the BLE data channel
-def generate_reply_data(pkt,flag2):
-    # master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    # global send_sn
-    # global send_nesn
-    # global flag2
-    # if dt_flag == 1:
-    # print("DATA")
-    ble_packet = BTLE_DATA(raw_packet_bytes)
-    if "BTLE_CTRL" in ble_packet:
-        if ble_packet[BTLE_CTRL].opcode == 0x09:
-            print("Got LL_FEATURE_RSP")
-            raw_packet_bytes = unhexlify(pkt+'0000')
-            ble_packet=BTLE_DATA(raw_packet_bytes)
-    received_nesn = ble_packet[BTLE_DATA].NESN
-    received_sn = ble_packet[BTLE_DATA].SN
-    print(f"This is received nesn: {received_nesn}")
-    print(f"This is received sn: {received_sn}")
-    send_sn = received_nesn
-    send_nesn = received_nesn
-    # print(f"This is flag2: {flag2}")
-    # if received_nesn == send_nesn:
-    #     send_nesn = received_nesn
-    #     send_sn = received_nesn
-    # else:
-    #     received_nesn = not received_nesn
-
-    # received_nesn = not received_nesn
-    # send_nesn = received_nesn
-    # send_sn = received_nesn
-    
-    # rpl_pkt = BTLE_DATA(SN=send_sn,NESN=received_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-
-    if "LL_FEATURE_RSP" in ble_packet:
-        print("==========LL_FEATURE_RSP Received, Sent LL_LENGTH_REQ==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_LENGTH_REQ(max_tx_bytes=247 + 4, max_rx_bytes=247 + 4)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_LENGTH_RSP" in ble_packet or "LL_UNKNOWN_RSP" in ble_packet:
-        print("==========LL_LENGTH_RSP Received, Sent LL_VERSION_IND==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-    elif "ATT_Exchange_MTU_Response" in ble_packet:
-        print("==========ATT_Exchange_MTU_Response, Sent SM_Pairing_Request==========")
-        rpl_pkt = BTLE_DATA() / L2CAP_Hdr() / SM_Hdr() / SM_Pairing_Request(
-                iocap=0x04,
-                oob=0,
-                authentication=0x09,
-                max_key_size=16,
-                initiator_key_distribution=0x07,
-                responder_key_distribution=0x07
-        )
-    elif "SM_Pairing_Response" in ble_packet:
-        print("==========All Good man All Good==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_VERSION_IND" in ble_packet:
-        print("==========LL_VERSION_IND Received, Sent ATT_Exchange_MTU_Request==========")
-
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        # rpl_pkt_arr[1:2] = bytearray([0x06, 0x00])
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        # print(hexlify(rpl_pkt_arr))
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "BTLE_DATA"  in ble_packet:
-        print("==========BTLE_DATA Received, Sent LL_FEATURE_REQ==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    else:
-        print("Does not recognise reply, sending empty pdu")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-
-    pkt_summary = hexlify(bytes(rpl_pkt))
-    return hexlify(bytes(rpl_pkt)), 8, pkt_summary
-
-def generate_reply_adv(pkt):
-    master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    print("ADV")
-    ble_packet = BTLE_ADV(raw_packet_bytes)
-    pkt_summary = ble_packet.summary()
-    # print(Fore.RED+f"Rceived Message: {str(pkt_summary)}")
-    if BTLE_ADV_IND in ble_packet:
-        # send scan request
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_SCAN_REQ(AdvA = ble_packet[BTLE_ADV_IND].AdvA, ScanA = master_addr)
-        # rpl_pkt.show()
-        # print(hexlify(bytes(rpl_pkt)))
-        send_pkt_summary = rpl_pkt.summary()
-
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-    elif BTLE_SCAN_RSP in ble_packet:
-        # send connection req
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_CONNECT_REQ(InitA = master_addr, AdvA = ble_packet[BTLE_SCAN_RSP].AdvA,
-                                                    AA = 0x7083329a,
-                                                    crc_init = 0x9c9a17,
-                                                    win_size= 2,
-                                                    win_offset = 1,
-                                                    interval = 16,
-                                                    latency = 0,
-                                                    timeout = 0x64,
-                                                    chM = 0x1fffffffff,
-                                                    SCA = 0,
-                                                    hop = 5
-                                                    )
-        # print(hexlify(bytes(rpl_pkt)))
-        # dt_flag = 1
-        send_pkt_summary = rpl_pkt.summary()
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-
-def handle_adv(data):
-    received_msg = data.decode()
-    #print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def handle_data(data,flag2):
-    received_msg = data.decode()
-    msg_lst = list(received_msg)
-    msg_lst.pop(4)
-    msg_lst.pop(4)
-    received_msg = ''.join(msg_lst)
-    print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_data(str(received_msg),flag2)
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def generate_empty_pdu():
-    rpl_pkt = BTLE_DATA(SN=0,NESN=0, LLID=1)
-    rpl = hexlify(bytes(rpl_pkt))
-    return rpl
-                "#,
-            "test_python_function.py",
-        "test_python_function",
-    )?; // Change 'my_script' to your actual Python file name without extension
+        let module = bt_module(py);
 
         // Prepare the byte data you want to pass to the `handle_data` function
-        let input_data = get_tx_data();
-        // println!("This is input data: {}",input_data);
-        let py_byte_data = PyBytes::new_bound(py,input_data.as_bytes());
         let handle_data = module.getattr("handle_adv")?;
-        // Call the 'handle_data' function with the byte data
-        // let result = module.call1("handle_data", (PyBytes::new(py, input_data),))?;
-        let result = handle_data.call1((py_byte_data,))?;
-        // let value: String = result.extract::<String>()?;
-        let result_bytes: &[u8] = result.extract()?;
-        // let mut s = String::with_capacity(result_bytes.len() * 2);
-        // for b in result_bytes {
-        //     _ = write!(&mut s, "{:02x}", b);
-        // }
-    
-        // return s;
-        // let result_as_hex = hex::encode(result_bytes);
-        // println!("Result from Python: {:?}", result);
-        let result_str = std::str::from_utf8(result_bytes).unwrap();
+        let result = handle_data.call1((PyBytes::new_bound(py, get_tx_data().as_bytes()),))?;
+        let result_str = std::str::from_utf8(result.extract()?)?;
         let owned_string = result_str.to_string();
+
         // Update global varible for rx data retrival
         adv_rpl_data.lock().clear();
         adv_rpl_data.lock().push_str(&owned_string);
-        // println!("Result from Python:  {:?}", result_bytes);
-        // println!("Result from Python: b'{}'", owned_string);
-        // Extract the result as a PyBytes (assuming the return value is also a byte string)
-        // return owned_string;
         Ok(())
     })
 }
@@ -504,181 +283,7 @@ fn generate_empty_pdu_rpl() -> PyResult<()> {
     // Initialize the Python interpreter
     Python::with_gil(|py| {
         // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
-        let module = PyModule::from_code_bound(py,
-            r#"
-from scapy.all import *
-from scapy.layers.bluetooth4LE import *
-from scapy.layers.bluetooth import *
-from binascii import unhexlify, hexlify
-# from colorama import Fore, Back, Style, init
-
-# send_nesn = 0
-# send_sn = 0
-# flag2 = False
-# Implement the complete state machine for the BLE data channel
-def generate_reply_data(pkt,flag2):
-    # master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    # global send_sn
-    # global send_nesn
-    # global flag2
-    # if dt_flag == 1:
-    # print("DATA")
-    ble_packet = BTLE_DATA(raw_packet_bytes)
-    if "BTLE_CTRL" in ble_packet:
-        if ble_packet[BTLE_CTRL].opcode == 0x09:
-            print("Got LL_FEATURE_RSP")
-            raw_packet_bytes = unhexlify(pkt+'0000')
-            ble_packet=BTLE_DATA(raw_packet_bytes)
-    received_nesn = ble_packet[BTLE_DATA].NESN
-    received_sn = ble_packet[BTLE_DATA].SN
-    print(f"This is received nesn: {received_nesn}")
-    print(f"This is received sn: {received_sn}")
-    send_sn = received_nesn
-    send_nesn = received_nesn
-    # print(f"This is flag2: {flag2}")
-    # if received_nesn == send_nesn:
-    #     send_nesn = received_nesn
-    #     send_sn = received_nesn
-    # else:
-    #     received_nesn = not received_nesn
-
-    # received_nesn = not received_nesn
-    # send_nesn = received_nesn
-    # send_sn = received_nesn
-    
-    # rpl_pkt = BTLE_DATA(SN=send_sn,NESN=received_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-
-    if "LL_FEATURE_RSP" in ble_packet:
-        print("==========LL_FEATURE_RSP Received, Sent LL_LENGTH_REQ==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_LENGTH_REQ(max_tx_bytes=247 + 4, max_rx_bytes=247 + 4)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_LENGTH_RSP" in ble_packet or "LL_UNKNOWN_RSP" in ble_packet:
-        print("==========LL_LENGTH_RSP Received, Sent LL_VERSION_IND==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-    elif "ATT_Exchange_MTU_Response" in ble_packet:
-        print("==========ATT_Exchange_MTU_Response, Sent SM_Pairing_Request==========")
-        rpl_pkt = BTLE_DATA() / L2CAP_Hdr() / SM_Hdr() / SM_Pairing_Request(
-                iocap=0x04,
-                oob=0,
-                authentication=0x09,
-                max_key_size=16,
-                initiator_key_distribution=0x07,
-                responder_key_distribution=0x07
-        )
-    elif "SM_Pairing_Response" in ble_packet:
-        print("==========All Good man All Good==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_VERSION_IND" in ble_packet:
-        print("==========LL_VERSION_IND Received, Sent ATT_Exchange_MTU_Request==========")
-
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        # rpl_pkt_arr[1:2] = bytearray([0x06, 0x00])
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        # print(hexlify(rpl_pkt_arr))
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "BTLE_DATA"  in ble_packet:
-        print("==========BTLE_DATA Received, Sent LL_FEATURE_REQ==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    else:
-        print("Does not recognise reply, sending empty pdu")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-
-    pkt_summary = hexlify(bytes(rpl_pkt))
-    return hexlify(bytes(rpl_pkt)), 8, pkt_summary
-
-def generate_reply_adv(pkt):
-    master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    print("ADV")
-    ble_packet = BTLE_ADV(raw_packet_bytes)
-    pkt_summary = ble_packet.summary()
-    # print(Fore.RED+f"Rceived Message: {str(pkt_summary)}")
-    if BTLE_ADV_IND in ble_packet:
-        # send scan request
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_SCAN_REQ(AdvA = ble_packet[BTLE_ADV_IND].AdvA, ScanA = master_addr)
-        # rpl_pkt.show()
-        # print(hexlify(bytes(rpl_pkt)))
-        send_pkt_summary = rpl_pkt.summary()
-
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-    elif BTLE_SCAN_RSP in ble_packet:
-        # send connection req
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_CONNECT_REQ(InitA = master_addr, AdvA = ble_packet[BTLE_SCAN_RSP].AdvA,
-                                                    AA = 0x7083329a,
-                                                    crc_init = 0x9c9a17,
-                                                    win_size= 2,
-                                                    win_offset = 1,
-                                                    interval = 16,
-                                                    latency = 0,
-                                                    timeout = 0x64,
-                                                    chM = 0x1fffffffff,
-                                                    SCA = 0,
-                                                    hop = 5
-                                                    )
-        # print(hexlify(bytes(rpl_pkt)))
-        # dt_flag = 1
-        send_pkt_summary = rpl_pkt.summary()
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-
-def handle_adv(data):
-    received_msg = data.decode()
-    #print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def handle_data(data,flag2):
-    received_msg = data.decode()
-    msg_lst = list(received_msg)
-    msg_lst.pop(4)
-    msg_lst.pop(4)
-    received_msg = ''.join(msg_lst)
-    print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_data(str(received_msg),flag2)
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def generate_empty_pdu():
-    rpl_pkt = BTLE_DATA(SN=0,NESN=0, LLID=1)
-    send_pkt_summary = rpl_pkt.summary()
-    print(f"RX <--- {str(send_pkt_summary)}")
-    rpl_pkt_arr = bytearray(raw(rpl_pkt))
-    rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])
-    # print(hexlify(rpl_pkt_arr))
-    rpl_pkt = bytes(rpl_pkt_arr)
-    rpl = hexlify(rpl_pkt)
-    return rpl
-                "#,
-            "test_python_function.py",
-        "test_python_function",
-    )?; // Change 'my_script' to your actual Python file name without extension
+        let module = bt_module(py);
 
         // Prepare the byte data you want to pass to the `handle_data` function
         // let py_byte_data = PyBytes::new_bound(py,inputdata);
@@ -693,7 +298,7 @@ def generate_empty_pdu():
         // for b in result_bytes {
         //     _ = write!(&mut s, "{:02x}", b);
         // }
-    
+
         // return s;
         // let result_as_hex = hex::encode(result_bytes);
         // println!("Result from Python: {:?}", result);
@@ -709,261 +314,104 @@ def generate_empty_pdu():
     })
 }
 
+static PY_MODULE: GILOnceCell<Py<PyModule>> = GILOnceCell::new();
+
+fn bt_module(py: Python<'_>) -> &Bound<'_, PyModule> {
+    PY_MODULE
+        .get_or_init(py, || {
+            PyModule::from_code_bound(
+                py,
+                fs::read_to_string("scripts/ble_stack.py").unwrap().as_str(),
+                "ble_stack.py",
+                "ble_stack",
+            )
+            .unwrap()
+            .unbind()
+        })
+        .bind(py)
+}
+
+const PROTO_BLE: &str = "ble";
+const SUPPORTED_PROTOCOLS: &[&str] = &[PROTO_BLE];
+
+fn parse_packet(
+    proto_name: String,
+    packet: String,
+    direction: usize,
+    channel_mode: bool,
+    show_pkt: bool,
+) -> String {
+    Python::with_gil(|py| -> Result<String, String> {
+        if !SUPPORTED_PROTOCOLS.contains(&proto_name.as_str()) {
+            return Err(format!("Protocol Name not found: {proto_name}"));
+        }
+
+        let parse_fcn = match proto_name.as_str() {
+            PROTO_BLE => {
+                let module = bt_module(py);
+                Ok(module.getattr("parse_ble_packet").unwrap())
+            }
+            _ => Err("Protocol Function not found: parse_ble_packet"),
+        }?;
+
+        Ok(parse_fcn
+            .call1((packet, direction, channel_mode, show_pkt))
+            .unwrap()
+            .extract()
+            .unwrap())
+    })
+    .unwrap()
+}
+
 fn generate_data_rpl() -> PyResult<()> {
     // Initialize the Python interpreter
     Python::with_gil(|py| {
         // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
-        let module = PyModule::from_code_bound(py,
-            r#"
-from scapy.all import *
-from scapy.layers.bluetooth4LE import *
-from scapy.layers.bluetooth import *
-from binascii import unhexlify, hexlify
-# from colorama import Fore, Back, Style, init
-
-
-# Implement the complete state machine for the BLE data channel
-def generate_reply_data(pkt,flag2):
-    # master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    # global send_sn
-    # global send_nesn
-    # global flag2
-    # if dt_flag == 1:
-    # print("DATA")
-    ble_packet = BTLE_DATA(raw_packet_bytes)
-    if "BTLE_CTRL" in ble_packet:
-        if ble_packet[BTLE_CTRL].opcode == 0x09:
-            print("Got LL_FEATURE_RSP")
-            raw_packet_bytes = unhexlify(pkt+'0000')
-            ble_packet=BTLE_DATA(raw_packet_bytes)
-    received_nesn = ble_packet[BTLE_DATA].NESN
-    received_sn = ble_packet[BTLE_DATA].SN
-    print(f"This is received nesn: {received_nesn}")
-    print(f"This is received sn: {received_sn}")
-    send_sn = received_nesn
-    send_nesn = received_nesn
-    # print(f"This is flag2: {flag2}")
-    # if received_nesn == send_nesn:
-    #     send_nesn = received_nesn
-    #     send_sn = received_nesn
-    # else:
-    #     received_nesn = not received_nesn
-
-    # received_nesn = not received_nesn
-    # send_nesn = received_nesn
-    # send_sn = received_nesn
-    
-    # rpl_pkt = BTLE_DATA(SN=send_sn,NESN=received_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-
-    if "LL_FEATURE_RSP" in ble_packet:
-        print("==========LL_FEATURE_RSP Received, Sent LL_LENGTH_REQ==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_LENGTH_REQ(max_tx_bytes=247 + 4, max_rx_bytes=247 + 4)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_LENGTH_RSP" in ble_packet or "LL_UNKNOWN_RSP" in ble_packet:
-        print("==========LL_LENGTH_RSP Received, Sent LL_VERSION_IND==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-    elif "ATT_Exchange_MTU_Response" in ble_packet:
-        print("==========ATT_Exchange_MTU_Response, Sent SM_Pairing_Request==========")
-        rpl_pkt = BTLE_DATA() / L2CAP_Hdr() / SM_Hdr() / SM_Pairing_Request(
-                iocap=0x04,
-                oob=0,
-                authentication=0x09,
-                max_key_size=16,
-                initiator_key_distribution=0x07,
-                responder_key_distribution=0x07
-        )
-    elif "SM_Pairing_Response" in ble_packet:
-        print("==========All Good man All Good==========")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "LL_VERSION_IND" in ble_packet:
-        print("==========LL_VERSION_IND Received, Sent ATT_Exchange_MTU_Request==========")
-
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        # rpl_pkt_arr[1:2] = bytearray([0x06, 0x00])
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        # print(hexlify(rpl_pkt_arr))
-        rpl_pkt = bytes(rpl_pkt_arr)
-    elif "BTLE_DATA"  in ble_packet:
-        print("==========BTLE_DATA Received, Sent LL_FEATURE_REQ==========")
-        # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-    else:
-        print("Does not recognise reply, sending empty pdu")
-        rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
-        rpl_pkt_arr = bytearray(raw(rpl_pkt))
-        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
-        rpl_pkt = bytes(rpl_pkt_arr)
-
-
-    pkt_summary = hexlify(bytes(rpl_pkt))
-    return hexlify(bytes(rpl_pkt)), 8, pkt_summary
-
-
-def generate_reply_adv(pkt):
-    master_addr = "28:de:65:7d:7a:f3"
-    raw_packet_bytes = unhexlify(pkt)
-    print("ADV")
-    ble_packet = BTLE_ADV(raw_packet_bytes)
-    pkt_summary = ble_packet.summary()
-    # print(Fore.RED+f"Rceived Message: {str(pkt_summary)}")
-    if BTLE_ADV_IND in ble_packet:
-        # send scan request
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_SCAN_REQ(AdvA = ble_packet[BTLE_ADV_IND].AdvA, ScanA = master_addr)
-        # rpl_pkt.show()
-        # print(hexlify(bytes(rpl_pkt)))
-        send_pkt_summary = rpl_pkt.summary()
-
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-    elif BTLE_SCAN_RSP in ble_packet:
-        # send connection req
-        rpl_pkt = BTLE_ADV(RxAdd=1)/BTLE_CONNECT_REQ(InitA = master_addr, AdvA = ble_packet[BTLE_SCAN_RSP].AdvA,
-                                                    AA = 0x7083329a,
-                                                    crc_init = 0x9c9a17,
-                                                    win_size= 2,
-                                                    win_offset = 1,
-                                                    interval = 16,
-                                                    latency = 0,
-                                                    timeout = 0x64,
-                                                    chM = 0x1fffffffff,
-                                                    SCA = 0,
-                                                    hop = 5
-                                                    )
-        # print(hexlify(bytes(rpl_pkt)))
-        # dt_flag = 1
-        send_pkt_summary = rpl_pkt.summary()
-        return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
-
-def handle_adv(data):
-    received_msg = data.decode()
-    #print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def handle_data(data,flag2):
-    received_msg = data.decode()
-    msg_lst = list(received_msg)
-    msg_lst.pop(4)
-    msg_lst.pop(4)
-    received_msg = ''.join(msg_lst)
-    print(f"Rceived Message: {str(received_msg)}")
-    try:
-        rpl, pkt_t, p_summary = generate_reply_data(str(received_msg),flag2)
-        return rpl
-    except Exception as e:
-        print("There is an error occured")
-        traceback.print_exc()
-
-def generate_empty_pdu():
-    rpl_pkt = BTLE_DATA(SN=0,NESN=0, LLID=1)
-    rpl_pkt_arr = bytearray(raw(rpl_pkt))
-    rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])
-    # print(hexlify(rpl_pkt_arr))
-    rpl_pkt = bytes(rpl_pkt_arr)
-    rpl = hexlify(rpl_pkt)
-    return rpl
-                "#,
-            "test_python_function.py",
-        "test_python_function",
-    )?; // Change 'my_script' to your actual Python file name without extension
+        let module = bt_module(py);
 
         // Prepare the byte data you want to pass to the `handle_data` function
         let input_data = get_tx_data();
         // println!("This is input data: {}",input_data);
-        let py_byte_data = PyBytes::new_bound(py,input_data.as_bytes());
+        let py_byte_data = PyBytes::new_bound(py, input_data.as_bytes());
         let handle_data = module.getattr("handle_data")?;
         // Call the 'handle_data' function with the byte data
         // let result = module.call1("handle_data", (PyBytes::new(py, input_data),))?;
         let flag_want = flag2.lock().clone();
 
         // println!("This is flag want: {}",flag_want);
-    
-        let result = handle_data.call1((py_byte_data,flag_want))?;
+
+        let result = handle_data.call1((py_byte_data, flag_want))?;
         if flag2.lock().clone() == "0" {
             flag2.lock().clear();
             flag2.lock().push_str("1");
-        }
-        else{
+        } else {
             flag2.lock().clear();
             flag2.lock().push_str("0");
         }
-        // let result = handle_data.call0()?;
-        // let value: String = result.extract::<String>()?;
-        let result_bytes: &[u8] = result.extract()?;
-        // let mut s = String::with_capacity(result_bytes.len() * 2);
-        // for b in result_bytes {
-        //     _ = write!(&mut s, "{:02x}", b);
-        // }
-    
-        // return s;
-        // let result_as_hex = hex::encode(result_bytes);
-        // println!("Result from Python: {:?}", result);
-        let result_str = std::str::from_utf8(result_bytes).unwrap();
-        let owned_string = result_str.to_string();
-        pdu_data.lock().clear();
-        pdu_data.lock().push_str(&owned_string);
-        // println!("Result from Python:  {:?}", result_bytes);
-        // println!("Result from Python: b'{}'", owned_string);
+
         // Extract the result as a PyBytes (assuming the return value is also a byte string)
-        // return owned_string;
+        let bytes_string =  std::str::from_utf8(result.extract()?)?;
+        pdu_data.lock().clear();
+        pdu_data.lock().push_str(&bytes_string);
         Ok(())
     })
 }
-/// Generates and retrieves advertisement reply data.
-///
-/// This function performs the following steps:
-/// 1. Calls `generate_adv_rpl()` to create new advertisement reply data.
-/// 2. Retrieves the generated data from the `adv_rpl_data` global variable.
-/// 3. Prints the data that will be sent to the emulation.
-/// 4. Returns the advertisement reply data as a String.
-///
-/// # Returns
-///
-/// A `String` containing the advertisement reply data.
+
 fn get_adv_rpl_data() -> String {
     _ = generate_adv_rpl();
-    let x = adv_rpl_data.lock().clone();
-    // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
-    println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());
-    return x;
+    adv_rpl_data.lock().clone()
 }
 
 fn get_data_rpl_data() -> String {
     _ = generate_data_rpl();
-    let x = pdu_data.lock().clone();
-    // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
-    println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());
+    pdu_data.lock().clone()
+}
 
-    return x;
+fn get_tx_data() -> String {
+    tx_data.lock().clone()
 }
-fn get_tx_data() ->String{
-    let x = tx_data.lock().clone();
-    // println!("This is get tx data: {}",x);
-     return x;
-}
+
 fn get_empty_pdu_data() -> String {
     _ = generate_empty_pdu_rpl();
-    let x = empty_pdu_data.lock().clone();
-    // println!("<--- RX <--- : {}", format!("b'{}'", x).yellow());
-    println!("{}", format!("<--- RX <--- : b'{}'", x).yellow());
-    return x;
+    empty_pdu_data.lock().clone()
 }
