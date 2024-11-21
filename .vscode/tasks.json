@@ -40,7 +40,46 @@
         {
             "label": "GDB Run Post Input",
             "type": "shell",
-            "command": "GDB=1 ./run-postinput.sh target-zephyr/inputs/postinput-anchor-point.bin",
+            "command": "GDB=1 ./run-postinput.sh target-zephyr/inputs/postinput_multiple_rpl.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "GDB Run New Post Input",
+            "type": "shell",
+            // "command": "GDB=1 ./run-postinput.sh target-zephyr/runs/input/input-202738.bin",
+            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/target-zephyr/runs/input/input-195168.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "GDB Run New Post Input",
+            "type": "shell",
+            // "command": "GDB=1 ./run-postinput.sh target-zephyr/runs/input/input-202738.bin",
+            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/runs/input/input-195168.bin",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "Test rust debugger",
+            "type": "shell",
+            // "command": "GDB=1 ./run-postinput.sh target-zephyr/runs/input/input-202738.bin",
+            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/inputs/postinput_version_ind_rpl.bin",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -49,5 +88,7 @@
                 "$rustc"
             ]
         }
+
+
     ]
 }

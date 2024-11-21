@@ -76,3 +76,27 @@ Trace logs are saved to `target-zephyr/log-tracing.txt`
 ```bash
 ./trace-input.sh target-zephyr/inputs/input-adv.bin
 ```
+
+## Project Structure
+
+Here's an overview of the project's main folders:
+
+| Folder         | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| `archive`      | Contains code related to archiving and managing data.                       |
+| `common`       | Shared utilities and configurations used across the project.                |
+| `docs`         | Documentation and related resources.                                        |
+| `emulator`     | Code for emulating different hardware and software environments.            |
+| `frametracer`  | Tools and libraries for tracing and analyzing execution frames.             |
+| `fuzzer`       | Core fuzzing logic and algorithms.                                          |
+| `hoedur`       | Implements the Hoedur multi-stream input system.                            |
+| `hoedur-analyze` | Analysis tools for Hoedur execution data.                                 |
+| `modeling`     | Models and simulations for various hardware and software components.        |
+| `qemu-build`   | Build scripts and configurations for QEMU integration.                      |
+| `qemu-rs`      | Rust bindings and extensions for QEMU.                                      |
+| `qemu-sys`     | System-level patches and configurations for QEMU.                           |
+| `reverse-eng`  | Tools and resources for reverse engineering tasks.                          |
+| `scripts`      | Various scripts for testing, evaluation, and automation.                    |
+| `target-zephyr`| Contains inputs and logs specific to the Zephyr target environment.         |
+
+This table provides a brief description of the main components and their organization within the project.

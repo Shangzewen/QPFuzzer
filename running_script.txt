@@ -1,2 +1,4 @@
 # Good input running
 ./run-postinput.sh target-zephyr/runs/input/input-75649.bin
+
+./run-postinput.sh ./target-zephyr/runs/input/input-80526.bin

@@ -17,7 +17,7 @@ pub fn main(api) {
     let received_pkt="";
 
     //  ------------ Test udp Socket ---------------
-    // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background(received_pkt));
+    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
@@ -68,9 +68,22 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
     
-    // BLE Packet Decoding
-    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========llcp_pdu_decode_version_ind==========="));
-    api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_version_ind")?), |_| log::info!("===========llcp_pdu_encode_version_ind==========="));
+    // get pc for pdu rep rsp    
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========llcp_pdu_decode_version_ind==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_version_ind")?), |_| log::info!("===========llcp_pdu_encode_version_ind==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_version_ind")?), |_| register::read("pc")?);
+
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_feature_rsp")?), |_| log::info!("===========llcp_pdu_decode_feature_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_feature_rsp")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_feature_rsp")?), |_| log::info!("===========llcp_pdu_encode_feature_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_feature_rsp")?), |_| register::read("pc")?);
+
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_length_rsp")?), |_| log::info!("===========llcp_pdu_decode_length_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_length_rsp")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| log::info!("===========llcp_pdu_encode_length_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| register::read("pc")?);
+
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
     // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
     // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
@@ -78,11 +91,29 @@ pub fn main(api) {
     api.on_instruction(Some(symbolizer::resolve("rp_comm_tx_proxy")?), |_| log::info!("===========rp_comm_tx_proxy==========="));
     api.on_instruction(Some(symbolizer::resolve("llcp_tx_enqueue")?), |_| log::info!("===========llcp_tx_enqueue==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
+    // api.on_instruction(Some(), |_| log::info!("===========rp_comm_send_rsp==========="));
     
-   
-    // BLE Radio (Link Layer)
+    // api.on_instruction(Some(symbolizer::resolve("_isr_wrapper")?), |_| log::info!("===========_isr_wrapper==========="));
+    // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
+
+    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
+    // api.on_instruction(Some(symbolizer::resolve("isr_done")?), |_| log::info!("===========isr_done==========="));
+    // api.on_instruction(Some(symbolizer::resolve("isr_race")?), |_| log::info!("===========isr_race==========="));
+    // api.on_instruction(Some(symbolizer::resolve("isr_abort")?), |_| log::info!("===========isr_abort==========="));
+    // api.on_instruction(Some(symbolizer::resolve("isr_abort_all")?), |_| log::info!("===========isr_abort_all==========="));
+    // api.on_instruction(Some(symbolizer::resolve("lll_isr_early_abort")?), |_| log::info!("===========lll_isr_early_abort==========="));
+    
+    // BLE Link Layer
+    // api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), |_| register::read("pc")?);
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), |_| log::info!("===========radio_pkt_tx_set==========="));
+    // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| register::read("pc")?);
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| log::info!("===========radio_pkt_rx_set==========="));
+
   }
 
   fn hook_link_layer(api, cfg){

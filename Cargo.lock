@@ -446,6 +446,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fd119d74b830634cea2a0f58bbd0d54540518a14397557951e79340abc28c0"
 
 [[package]]
+name = "colored"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbf2150cce219b664a8a70df7a1f933836724b503f8a413af9365b4dcc4d90b8"
+dependencies = [
+ "lazy_static",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
 name = "common"
 version = "0.1.0"
 dependencies = [
@@ -581,6 +591,7 @@ dependencies = [
  "atomic-queue",
  "bincode",
  "bitflags 2.6.0",
+ "colored",
  "common",
  "derive_more",
  "endiannezz",
@@ -1038,6 +1049,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hoedur"
 version = "0.1.0"
 dependencies = [
@@ -1390,6 +1407,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "merge_input"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "modeling",
+ "qemu-rs",
 ]
 
 [[package]]
@@ -2275,6 +2301,45 @@ checksum = "21bebf2b7c9e0a515f6e0f8c51dc0f8e4696391e6f1ff30379559f8365fb0df7"
 dependencies = [
  "rustix",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "test_python_rust"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "atomic-queue",
+ "bincode",
+ "bitflags 2.6.0",
+ "derive_more",
+ "endiannezz",
+ "enum-kinds",
+ "enum_index",
+ "enum_index_derive",
+ "fastrand 1.9.0",
+ "glob",
+ "hex",
+ "insta",
+ "itertools",
+ "lazy_static",
+ "log",
+ "parking_lot",
+ "pretty_assertions",
+ "pyo3",
+ "rune",
+ "serde",
+ "serde_yaml 0.8.26",
+ "tempfile",
+ "variant_count",
+ "zstd",
+]
+
+[[package]]
+name = "test_rust"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "parking_lot",
 ]
 
 [[package]]

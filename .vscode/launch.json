@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {"name":"Python Debugger: Current File","type":"debugpy","request":"launch","program":"${file}","console":"integratedTerminal"},
         {
             "type": "lldb",
             "request": "launch",
@@ -36,6 +37,49 @@
             }
         },
         {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Run Post Input",
+            "args": [
+                "--hook",
+                "${workspaceFolder}/target-zephyr/hook.rs",
+                "--config",
+                "${workspaceFolder}/target-zephyr/config.yml",
+                "--debug",
+                "--trace",
+                "run",
+                "--prefix-input",
+                "${workspaceFolder}/target-zephyr/inputs/merged_input.bin",
+                "${workspaceFolder}/target-zephyr/runs/input/input-195168.bin"
+            ],
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hoedur-arm",
+                    "--package=hoedur"
+                ],
+                "filter": {
+                    "name": "hoedur-arm",
+                    "kind": "bin"
+                }
+            },
+            "logging": {
+                "engineLogging": true,
+                "trace": true,
+                "traceResponse": true
+            },
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug/",
+                "RUST_LOG": "debug",
+                // This appends the virtual environment’s bin directory to the beginning of 
+                // the existing PATH, ensuring that executables in venv/bin are prioritized
+                //  over others in the system path(because the venv still take some 
+                // global depenencies from the system, if dont dpecify this, the dependencies could not be found).
+                "PATH": "/home/asset/qpfuzzer/venv/bin:${env:PATH}"
+            },
+        },
+        {
             "name": "QEMU Debug",
             "type": "cppdbg",
             "request": "launch",
@@ -64,6 +108,18 @@
             "visualizerFile":"",
             "miDebuggerPath": "/usr/bin/gdb-multiarch",
             "miDebuggerServerAddress": "localhost:1236"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Run Merge Input",
+            "program": "${workspaceFolder}/target/debug/merge_input",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "LD_LIBRARY_PATH": "${workspaceFolder}/target/debug/",
+                "RUST_LOG": "debug"
+            }
         }
     ]
 }

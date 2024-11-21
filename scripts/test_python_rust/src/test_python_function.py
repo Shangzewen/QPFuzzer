@@ -220,7 +220,7 @@ def generate_empty_pdu():
     return rpl
 # test1 = handle_adv(b'60230000000000c002010607030d180f1805181107f0debc9a785634127856341278563412')
 # print(f"Result for test1: {test1}")
-test_packet = BTLE_DATA()/BTLE_CTRL()/LL_FEATURE_RSP()
+test_packet = BTLE_DATA()/BTLE_CTRL()/LL_LENGTH_REQ()
 test = hexlify(bytes(test_packet))
 print(test)
 test2 = handle_data(b'07090009214101000000',1)

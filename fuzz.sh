@@ -5,6 +5,7 @@ source venv/bin/activate
 export TARGET=target-zephyr
 export HOOK_FILE=$TARGET/hook.rs
 export PREFIX_INPUT=$TARGET/inputs/prefix-adv.bin
+export PREFIX_INPUT_2=$TARGET/inputs/feature_req_rsp.bin
 export CORPUS_FOLDER=$TARGET/runs
 
 
@@ -13,9 +14,9 @@ cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- \
     --hook $HOOK_FILE \
     --trace \
     fuzz \
-    --prefix-input $PREFIX_INPUT \
     --statistics \
     --archive-dir $CORPUS_FOLDER \
+    --prefix-input $PREFIX_INPUT \
     | tee $TARGET/log-fuzzing.txt >/dev/null
 
 # cd target-zephyr/runs/
