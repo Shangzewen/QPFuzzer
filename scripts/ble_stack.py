@@ -175,11 +175,12 @@ def generate_reply_data(pkt, flag2):
 def generate_reply_adv(pkt):
     master_addr = "28:de:65:7d:7a:f3"
     raw_packet_bytes = unhexlify(pkt)
-    print("ADV")
+    # print("This is received Message: ", pkt)
     ble_packet = BTLE_ADV(raw_packet_bytes)
     # pkt_summary = ble_packet.summary()
     # print(Fore.RED+f"Rceived Message: {str(pkt_summary)}")
     if BTLE_ADV_IND in ble_packet:
+        print("==========BTLE_ADV_IND Received, Sent BTLE_SCAN_REQ==========")
         # send scan request
         rpl_pkt = BTLE_ADV(RxAdd=1) / BTLE_SCAN_REQ(
             AdvA=ble_packet[BTLE_ADV_IND].AdvA, ScanA=master_addr
@@ -190,6 +191,7 @@ def generate_reply_adv(pkt):
 
         return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
     elif BTLE_SCAN_RSP in ble_packet:
+        print("==========BTLE_SCAN_RSP Received, Sent CONNECT_REQ==========")
         # send connection req
         rpl_pkt = BTLE_ADV(RxAdd=1) / BTLE_CONNECT_REQ(
             InitA=master_addr,
@@ -213,7 +215,7 @@ def generate_reply_adv(pkt):
 
 def handle_adv(data):
     received_msg = data.decode()
-    # print(f"Rceived Message: {str(received_msg)}")
+    print(f"Rceived Message: {str(received_msg)}")
     try:
         rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
         return rpl

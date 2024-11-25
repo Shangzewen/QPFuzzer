@@ -40,7 +40,7 @@
         {
             "label": "GDB Run Post Input",
             "type": "shell",
-            "command": "GDB=1 ./run-postinput.sh target-zephyr/inputs/postinput_multiple_rpl.bin",
+            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/inputs/multiple_pdu_commu.bin",
             "group": {
                 "kind": "build",
                 "isDefault": false

@@ -222,8 +222,12 @@ def generate_empty_pdu():
 # print(f"Result for test1: {test1}")
 test_packet = BTLE_DATA()/BTLE_CTRL()/LL_LENGTH_REQ()
 test = hexlify(bytes(test_packet))
-print(test)
+# print(test)
 test2 = handle_data(b'07090009214101000000',1)
+test3 = handle_adv(b"602300000000c002010607030d180f1805181107f0debc9a7856341278563412785634")
+
 print(f"Result for test2: {test2}")
+print(f"Result for test3: {test3}")
+
 # test3 = generate_empty_pdu()
 # print(f"Result for test3: {test3}")

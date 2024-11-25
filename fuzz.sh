@@ -16,7 +16,6 @@ cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- \
     fuzz \
     --statistics \
     --archive-dir $CORPUS_FOLDER \
-    --prefix-input $PREFIX_INPUT \
     | tee $TARGET/log-fuzzing.txt >/dev/null
 
 # cd target-zephyr/runs/

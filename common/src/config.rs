@@ -37,8 +37,8 @@ pub mod fuzzer {
     pub const MUTATION_COUNT_POW2: RangeInclusive<usize> = 2..=5; // 4, 8, 16, 32
 
     // minimization
-    pub const MINIMIZE_MUTATION_CHAIN: bool = true;
-    pub const MINIMIZE_INPUT_LENGTH: bool = true;
+    pub const MINIMIZE_MUTATION_CHAIN: bool = false;
+    pub const MINIMIZE_INPUT_LENGTH: bool = false;
     pub const REMOVE_UNREAD_VALUES: bool = true;
 
     // snapshot fuzzing (only partially supported)
@@ -122,13 +122,13 @@ pub mod fuzzer {
 }
 
 pub mod corpus {
-    pub const MIN_RARE_FEATURES: usize = 100;
-    pub const FEATURE_FREQUENCY_THRESHOLD: u16 = 0xff;
+    pub const MIN_RARE_FEATURES: usize = 10;
+    pub const FEATURE_FREQUENCY_THRESHOLD: u16 = 0xffff;
 
     pub const MAX_MUTATION_FACTOR: f64 = 20f64;
-    pub const UPDATE_ENERGY_INTERVAL: usize = 128;
+    pub const UPDATE_ENERGY_INTERVAL: usize = 64;
 
-    pub const REPLACE_WITH_SHORTER_INPUT: bool = true;
+    pub const REPLACE_WITH_SHORTER_INPUT: bool = false;
 
     pub const SCHEDULE_INPUT: bool = true;
     pub const SCHEDULE_EXIT: bool = true;

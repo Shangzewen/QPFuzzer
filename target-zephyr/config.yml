@@ -11,6 +11,15 @@ interrupt:
         symbol: arch_cpu_idle
       - name: atomic_interrupt
         symbol: arch_cpu_atomic_idle
+  # there is a offset of 0x10 for the isrtable in binary ninja and the real offset, need to + 0x10
+  # allowlist:
+  #   - 0x10
+  #   - 0x16
+  #   - 0x1b
+  #   - 0x1c
+  #   - 0x1d
+  #   - 0x21
+  #   - 0x28
 
 
 memory_maps:

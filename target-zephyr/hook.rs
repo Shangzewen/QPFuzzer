@@ -67,7 +67,8 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
-    
+    // api.on_interrupt(None, None, |pc, isr| log::info!("Interrupt: 0x{:x} @ 0x{:x}", isr, pc));
+
     // get pc for pdu rep rsp    
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| log::info!("===========llcp_pdu_decode_version_ind==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_version_ind")?), |_| register::read("pc")?);
@@ -122,6 +123,7 @@ pub fn main(api) {
         cfg.sequence = 0;
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
+        cfg.data_connection = false;
       });
     
       // TX
@@ -151,9 +153,18 @@ pub fn main(api) {
       else{
         cfg.pkt_length = pdu_length + 1;
       }
+      // println!("This is pkt_length {}", cfg.pkt_length);
+      // if (cfg.pkt_length > 20){
+      //   cfg.data_connection = false;
+      //   log::info!("Received adv packet!");
+      // }else{
+      //   cfg.data_connection = true;
+      //   log::info!("Received data packet!");
 
+      // }
       let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
       let pkt_hex = common::encode_hex(pkt_data);
+      log::info!(" TX Pkt. Bytes: {}", pkt_hex);
 
       let pkt_summary = common::parse_packet("ble", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
       if pkt_summary.contains("BTLE_ADV_IND") {
@@ -191,10 +202,11 @@ pub fn main(api) {
         if cfg.sequence == 0 {
           // Scan Request
           rx_pdu = common::get_adv_rpl_data();
-          // log::info!("<============> rx_pdu received <============>");
+          log::info!("RX adv: {}", rx_pdu);
         }
         else if cfg.sequence >= 1 {
-          // log::info!("<============> rx_pdu received <============>");
+          log::info!("RX adv: {}", rx_pdu);
+
           rx_pdu = common::get_adv_rpl_data();
           cfg.data_connection = true; // Switch to data channel
         }
@@ -212,6 +224,7 @@ pub fn main(api) {
         }
         else{
           rx_pdu = common::get_data_rpl_data();
+          log::info!("RX data pdu: {}", rx_pdu);
           //  log::info!("<============> rx_pdu received <============>");
         }
       }
