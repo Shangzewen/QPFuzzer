@@ -123,7 +123,7 @@ pub fn main(api) {
         cfg.sequence = 0;
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
-        cfg.data_connection = false;
+        // cfg.data_connection = false;
       });
     
       // TX
