@@ -50,6 +50,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["get_socket_data"], get_socket_data)?;
     module.function(&["get_adv_rpl_data"], get_adv_rpl_data)?;
     module.function(&["update_tx_data"], update_tx_data)?;
+    module.function(&["clear_tx_data"],clear_tx_data)?;
     module.function(&["get_empty_pdu_data"], get_empty_pdu_data)?;
     module.function(&["get_data_rpl_data"], get_data_rpl_data)?;
     module.function(&["parse_packet"], parse_packet)?;
@@ -409,6 +410,14 @@ fn get_data_rpl_data() -> String {
 
 fn get_tx_data() -> String {
     tx_data.lock().clone()
+}
+
+fn clear_tx_data(){
+    tx_data.lock().clear();
+    // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
+    tx_data.lock().push_str("010000");
+    // println!("This is tx_data_buffer_after_push: {}",tx_data.lock().clone());
+    log::info!("Start from beagining, update tx_buffer to empty_pdu")
 }
 
 fn get_empty_pdu_data() -> String {
