@@ -1,4 +1,4 @@
-use std::{fmt, hash::Hash, iter, rc::Rc, str::FromStr};
+use std::{borrow::Borrow, fmt, hash::Hash, iter, rc::Rc, str::FromStr};
 
 use anyhow::{Context, Result};
 use common::{
@@ -99,6 +99,7 @@ impl Corpus {
             Some(id) => self.inputs.get_mut(&id),
             None => None,
         };
+        log::info!("This is the parnet input id: {:?}", result.input.parent());
 
         // process result (updates local and global feature frequencies)
         let mut uniq_features = FxHashSet::default();
@@ -136,6 +137,7 @@ impl Corpus {
                 Entry::Vacant(_) if schedule => {
                     // new unique feature found
                     uniq_features.insert(feature);
+                    log::info!("This is the unique feature logged: {:?}",feature);
                 }
                 _ => {}
             }
@@ -158,9 +160,10 @@ impl Corpus {
                 .filter(|feature| !unscheduled_features.contains(feature))
                 .collect();
         }
-
+        log::info!("This is the base_input_unique_features: {:?}",base_input_uniq_features);
         // input contains rare features => keep
         let result_kind = if !uniq_features.is_empty() {
+            log::info!("CorpusResultKind::NewCoverage");
             CorpusResultKind::NewCoverage
         } else {
             match &base_input {
@@ -170,11 +173,17 @@ impl Corpus {
                         && result.read_count() < base.result.read_count()
                         && result.stop_reason() == base.result.stop_reason() =>
                 {
+                    log::info!("CorpusResultKind::ShorterInput");
                     CorpusResultKind::ShorterInput
                 }
-                _ => CorpusResultKind::Uninteresting,
+                _ => {
+                    log::info!("CorpusResultKind::Uninteresting");
+                    CorpusResultKind::Uninteresting
+                },
             }
         };
+
+        
 
         if update {
             // update mutation count
@@ -245,7 +254,7 @@ impl Corpus {
         {
             // current most_abundant_rare_feature
             let (feature, frequency) = self.most_abundant_rare_feature();
-            log::trace!(
+            log::info!(
                 "removing most abundant rare feature = {:x?}: {}",
                 feature,
                 frequency

@@ -215,6 +215,7 @@ impl Fuzzer {
         // add empty input if corpus is empty
         if fuzzer.corpus.is_empty() {
             fuzzer.run_fuzzer_input(InputFile::default(), &fuzzer.pre_fuzzing.clone(), false)?;
+            // log::info!("This is the input read_limit for default input file: {}", InputFile::default()::read_limit);
         }
 
         Ok(fuzzer)
@@ -414,13 +415,14 @@ impl Fuzzer {
     ) -> Result<Option<InputResult>> {
         // emulator counts before execution
         let counts = EXECUTIONS_HISTORY.then(|| self.emulator.counts());
-
+        // let mut test_input = input.clone();
+        // let rl = test_input.get_read_limit();
         // run input
         let result = self
             .emulator
             .run(input, RunMode::Leaf)
             .context("run emulator")?;
-
+        // log::info!("Lets check the read_limit: {:?}", rl);
         if import {
             log::info!("Result: {}", result);
         }
@@ -645,6 +647,8 @@ impl Fuzzer {
         import: bool,
     ) -> Result<Option<InputResult>> {
         let input = &result.hardware.input;
+        log::info!("This is the input id: {} when process result start.", input.id());
+        log::info!("This is the stop reason: {:?} for input: {} ",result.stop_reason.clone(), input.id());
         let mut statistics_info = self.statistics.enabled().then(|| {
             StatisticsInfo::from_input(input, result.stop_reason.clone(), self.mutation_log.len())
         });
@@ -722,7 +726,10 @@ impl Fuzzer {
 
                 Some(result)
             }
-            CorpusResult::Uninteresting(result) => Some(result),
+            CorpusResult::Uninteresting(result) => {
+                log::info!("This is the id for the uninteresting input: {}", result.file().id());
+                Some(result)
+            },
         };
 
         if !import {

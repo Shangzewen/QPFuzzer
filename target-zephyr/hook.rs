@@ -319,5 +319,5 @@ pub fn main(api) {
     // Fix memcmp on adv_ind addr check
     common::patch_address(0x0001b760, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix upper buffer boundary
-    common::patch_address(0x0001c016, [0x01, 0x20]);
+    // common::patch_address(0x0001c016, [0x01, 0x20]);
   }

@@ -41,6 +41,8 @@ memory_maps:
 debug_hooks:
   - symbol: printk
     type: printf
+  - symbol: assert_print
+    type: printf
   - symbol: vprintk
     type: sprintf
   - symbol: vfprintf

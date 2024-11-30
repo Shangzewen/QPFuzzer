@@ -413,6 +413,13 @@ impl<I: Input + Debug> EmulatorData<I> {
     }
 
     pub(crate) fn on_exit_debug(&mut self, pc: Address) -> Result<()> {
+        if let Some(name) = self.debug.exit_hooks.get(&pc) {
+            log::info!("on_exit_debug: Hit exit hook at {:#x?} : {:?}", pc, name);
+        } else {
+            log::info!("on_exit_debug: Unknown exit hook at {:#x?}", pc);
+        }
+
+        
         if !self.debug.enabled() {
             return Ok(());
         } else {

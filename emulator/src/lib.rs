@@ -536,7 +536,7 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
         // add this basic block to the coverage bitmap
         let new_edge = qemu_rs::coverage::add_basic_block(pc as u64);
 
-        if new_edge && (pc == 0x1C528 || pc == 0x1C51C || pc == 0x1772C || pc == 0x178F4 || pc == 0x178A4 || pc == 0x17C50) {
+        if (pc == 0x1C528 || pc == 0x1C51C || pc == 0x1772C || pc == 0x178F4 || pc == 0x178A4 || pc == 0x17C50) {
             self.relevant_edges += 1;
             match pc {
                 0x1C38C => log::info!("Relevant Edge: radio_isr_set (0x{pc:08X})"),
