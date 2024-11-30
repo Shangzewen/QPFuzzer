@@ -296,6 +296,9 @@ pub fn main(api) {
     common::patch_function("rng_pool_get", arm::RETURN_1);
     common::patch_function("settings_save_one", arm::RETURN_0);
     common::patch_function("bt_read_static_addr", arm::RETURN_0);
+    // Always patch radio_is_ready to return 0
+    common::patch_function("radio_is_ready", arm::RETURN_0);
+
   
     // Force ticker_trigger within rtc0_nrf5_isr
     // common::patch_address(0x1a408, arm::MOVS_NOP(2,1)); // does not work
@@ -319,5 +322,5 @@ pub fn main(api) {
     // Fix memcmp on adv_ind addr check
     common::patch_address(0x0001b760, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix upper buffer boundary
-    // common::patch_address(0x0001c016, [0x01, 0x20]);
+    common::patch_address(0x0001c016, [0x02, 0x20]);
   }
