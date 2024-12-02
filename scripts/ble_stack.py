@@ -23,7 +23,8 @@ from scapy.layers.bluetooth import (
 
 DIR_TX = 1
 DIR_RX = 0
-
+send_sn = 0
+send_nesn = 0
 
 def parse_ble_packet(
     pkt_hex,
@@ -58,12 +59,8 @@ def parse_ble_packet(
 # Implement the complete state machine for the BLE data channel
 def generate_reply_data(pkt, flag2):
     # master_addr = "28:de:65:7d:7a:f3"
+    global send_nesn, send_sn 
     raw_packet_bytes = unhexlify(pkt)
-    # global send_sn
-    # global send_nesn
-    # global flag2
-    # if dt_flag == 1:
-    # print("DATA")
     ble_packet = BTLE_DATA(raw_packet_bytes)
     if "BTLE_CTRL" in ble_packet:
         if ble_packet[BTLE_CTRL].opcode == 0x09:
@@ -74,8 +71,26 @@ def generate_reply_data(pkt, flag2):
     received_sn = ble_packet[BTLE_DATA].SN
     print(f"This is received nesn: {received_nesn}")
     print(f"This is received sn: {received_sn}")
-    send_sn = received_nesn
-    send_nesn = received_nesn
+    # Complete handle sn and nesn
+    if send_sn != received_nesn:
+        send_sn = (send_sn+1)%2
+        print(f"Slave has received my packet, update sn to: {send_sn}")
+    else:
+        print(f"Slave has not received my packet, keep sn to: {send_sn}")
+    
+    if send_nesn == received_sn:
+        send_nesn = (send_nesn+1)%2
+        print(f"received new packet form slave, update nesn to: {send_nesn}")
+    else:
+        print(f"received old packet form slave, keep nesn to: {send_nesn}")
+    # send_sn = received_nesn
+    # send_nesn = received_nesn
+
+    # if received_nesn == 0 and received_nesn == 0:
+    #     send_nesn = 1
+    # else:
+    #     send_sn = not received_nesn
+
     # print(f"This is flag2: {flag2}")
     # if received_nesn == send_nesn:
     #     send_nesn = received_nesn
@@ -99,6 +114,7 @@ def generate_reply_data(pkt, flag2):
         rpl_pkt_arr = bytearray(raw(rpl_pkt))
         rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
         rpl_pkt = bytes(rpl_pkt_arr)
+        # rpl_pkt = generate_empty_pdu()
     elif "LL_LENGTH_RSP" in ble_packet or "LL_UNKNOWN_RSP" in ble_packet:
         print("==========LL_LENGTH_RSP Received, Sent LL_VERSION_IND==========")
         # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / L2CAP_Hdr() / ATT_Hdr() / ATT_Exchange_MTU_Request(mtu=247)
@@ -225,6 +241,9 @@ def handle_adv(data):
 
 
 def handle_data(data, flag2):
+    # print(f"This is send nesn: {send_nesn}")
+    # print(f"This is send sn: {send_sn}")
+    global send_nesn, send_sn 
     received_msg = data.decode()
     msg_lst = list(received_msg)
     msg_lst.pop(4)
@@ -240,7 +259,9 @@ def handle_data(data, flag2):
 
 
 def generate_empty_pdu():
-    rpl_pkt = BTLE_DATA(SN=0, NESN=0, LLID=1)
+    # print(f"This is send nesn: {send_nesn}")
+    # print(f"This is send sn: {send_sn}")
+    rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, LLID=1)
     rpl_pkt_arr = bytearray(raw(rpl_pkt))
     rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])
     # print(hexlify(rpl_pkt_arr))
