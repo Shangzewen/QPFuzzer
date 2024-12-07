@@ -39,7 +39,6 @@ pub struct Hardware<I: Input + Debug> {
     memory: Memory,
     input: Option<I>,
     access_log: Vec<InputContext>,
-    ticker: USize,
 }
 
 #[derive(Debug, Clone)]
@@ -59,7 +58,6 @@ impl<I: Input + Debug> Hardware<I> {
             memory: Memory::new(),
             input: None,
             access_log: vec![],
-            ticker: 0,
         }
     }
 
@@ -68,7 +66,6 @@ impl<I: Input + Debug> Hardware<I> {
         debug_assert!(self.access_log.is_empty());
 
         self.input = Some(input);
-        self.ticker = 0 ;
     }
 
     pub fn modeling(&self) -> &Modeling {
@@ -105,15 +102,6 @@ impl<I: Input + Debug> Hardware<I> {
         context: &AccessContext,
         size: ReadSize,
     ) -> Result<Option<(USize, bool)>> {
-
-        // Handle manually specified timers
-        if context.mmio().addr() == 0x4000b504 {
-            // log::info!("Ticker Access: {}", self.ticker);
-            let ticker_pre_update = self.ticker.clone();
-            self.ticker += 10;
-            return Ok(Some((ticker_pre_update, true)));
-        }
-
         // unwrap input file
         let input = self.input.as_mut().expect("input file missing");
 
@@ -124,6 +112,7 @@ impl<I: Input + Debug> Hardware<I> {
             .context("get/create MMIO model failed")?;
         log::trace!("model = {:x?}", model);
 
+        // model = option::Option<&modeling::mmio_model::MmioModel>
 
         // get input value (either from model or input file)
         let mut input_context = None;

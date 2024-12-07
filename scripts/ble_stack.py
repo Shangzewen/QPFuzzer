@@ -43,6 +43,7 @@ def parse_ble_packet(
         raw_pkt = bytearray(raw_pkt)
         del raw_pkt[2]
         raw_pkt += bytearray([0x00, 0x00])
+        # print(f"[raw_pkt: data_channel] {hexlify(raw_pkt)}")
 
     ble_pkt = BTLE_DATA(raw_pkt) if data_channel else BTLE_ADV(raw_pkt)
 
@@ -67,6 +68,11 @@ def generate_reply_data(pkt, flag2):
             print("Got LL_FEATURE_RSP")
             raw_packet_bytes = unhexlify(pkt + "0000")
             ble_packet = BTLE_DATA(raw_packet_bytes)
+    elif "ATT_Hdr" in ble_packet:
+        if ble_packet[ATT_Hdr].opcode == 0x03:
+            print("Got ATT_Exchange_MTU_Response")
+            raw_packet_bytes = unhexlify(pkt + "0000")
+            ble_packet = BTLE_DATA(raw_packet_bytes)
     received_nesn = ble_packet[BTLE_DATA].NESN
     received_sn = ble_packet[BTLE_DATA].SN
     print(f"This is received nesn: {received_nesn}")
@@ -83,26 +89,6 @@ def generate_reply_data(pkt, flag2):
         print(f"received new packet form slave, update nesn to: {send_nesn}")
     else:
         print(f"received old packet form slave, keep nesn to: {send_nesn}")
-    # send_sn = received_nesn
-    # send_nesn = received_nesn
-
-    # if received_nesn == 0 and received_nesn == 0:
-    #     send_nesn = 1
-    # else:
-    #     send_sn = not received_nesn
-
-    # print(f"This is flag2: {flag2}")
-    # if received_nesn == send_nesn:
-    #     send_nesn = received_nesn
-    #     send_sn = received_nesn
-    # else:
-    #     received_nesn = not received_nesn
-
-    # received_nesn = not received_nesn
-    # send_nesn = received_nesn
-    # send_sn = received_nesn
-
-    # rpl_pkt = BTLE_DATA(SN=send_sn,NESN=received_nesn) / BTLE_CTRL() / LL_VERSION_IND(version='4.2')
 
     if "LL_FEATURE_RSP" in ble_packet:
         print("==========LL_FEATURE_RSP Received, Sent LL_LENGTH_REQ==========")
@@ -142,6 +128,10 @@ def generate_reply_data(pkt, flag2):
                 responder_key_distribution=0x07,
             )
         )
+        rpl_pkt_arr = bytearray(raw(rpl_pkt))
+        rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
+        rpl_pkt = bytes(rpl_pkt_arr)
+
     elif "SM_Pairing_Response" in ble_packet:
         print("==========All Good man All Good==========")
         rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, len=0, LLID=1)
@@ -261,6 +251,10 @@ def handle_data(data, flag2):
 def generate_empty_pdu():
     # print(f"This is send nesn: {send_nesn}")
     # print(f"This is send sn: {send_sn}")
+    # global send_nesn, send_sn
+    send_nesn = 0
+    send_sn = 0
+    print(f"Rest the sn to: {send_sn}, and nesn to: {send_nesn}")
     rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn, LLID=1)
     rpl_pkt_arr = bytearray(raw(rpl_pkt))
     rpl_pkt_arr[1:2] = bytearray([0x00, 0x00])

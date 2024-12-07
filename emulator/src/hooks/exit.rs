@@ -10,6 +10,7 @@ pub struct ExitHook {
 }
 impl ExitHook {
     pub fn new(name: Option<String>, target: HookTarget) -> Self {
+        // log::info!("This is the name  {:?} and target {:?} for exithook",name,target);
         Self { name, target }
     }
 

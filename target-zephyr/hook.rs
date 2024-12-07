@@ -84,8 +84,11 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_length_rsp")?), |_| register::read("pc")?);
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| log::info!("===========llcp_pdu_encode_length_rsp==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| register::read("pc")?);
-
+    api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
+    api.on_instruction(Some(symbolizer::resolve("ull_rx_put")?), |_| log::info!("===========ull_rx_put==========="));
+    // api.on_instruction(Some(symbolizer::resolve("ll_rx_sched")?), |_| log::info!("===========ll_rx_sched==========="));
+    // api.on_instruction(Some(symbolizer::resolve("mayfly_run")?), |_| log::info!("===========mayfly_run==========="));
     // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
     // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
     // api.on_instruction(Some(0x0001662e), |_| memory::read_u8(0x20002410)?);
@@ -114,7 +117,21 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), |_| log::info!("===========radio_pkt_tx_set==========="));
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| register::read("pc")?);
     // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| log::info!("===========radio_pkt_rx_set==========="));
-
+    // print symble name
+    // api.on_interrupt(None, None, |pc, isr| print_symbol_name(pc, true, isr));
+  }
+  fn print_symbol_name(pc, is_interrupt, isr_number) {
+    match symbolizer::lookup(pc)
+    {
+      Ok(symbol_name) => {
+        if (is_interrupt) {
+          log::info!("0x{:08x}: [ISR:0x{:02X}] {}", pc, isr_number, symbol_name);
+        }
+        else if (symbol_name != "memset" && symbol_name != "memcpy") {
+          log::info!("0x{:08x}: {}", pc, symbol_name);
+        }
+      }
+    }
   }
 
   fn hook_link_layer(api, cfg){
@@ -124,7 +141,8 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
-        // cfg.data_connection = false;
+        // enable the data_connection_flag for fuzzing from scrach
+        cfg.data_connection = false;
       });
     
       // TX
@@ -248,11 +266,11 @@ pub fn main(api) {
     }
   }
 
-  fn print_symbol_name(pc) {
-    if let Ok(symbol_name) = symbolizer::lookup(pc) {
-      log::info!("0x{:08x}: {}", pc, symbol_name);
-    }
-  }
+  // fn print_symbol_name(pc) {
+  //   if let Ok(symbol_name) = symbolizer::lookup(pc) {
+  //     log::info!("0x{:08x}: {}", pc, symbol_name);
+  //   }
+  // }
 
   fn memory_read_buffer(addr, length) {
     let pkt_data = [];
@@ -281,8 +299,7 @@ pub fn main(api) {
     common::patch_function("log_n", arm::RETURN);
     common::patch_function("printk", arm::RETURN);
     common::patch_function("vfprintf", arm::RETURN);
-    common::patch_function("print_formatted", arm::RETURN);
-    common::patch_function("cts_notify", arm::RETURN);    
+    common::patch_function("print_formatted", arm::RETURN);    
     common::patch_function("z_vprintk", arm::RETURN);
     common::patch_function("z_log_vprintk", arm::RETURN);
     common::patch_function("z_impl_k_busy_wait", arm::RETURN);
@@ -296,31 +313,33 @@ pub fn main(api) {
     common::patch_function("rng_pool_get", arm::RETURN_1);
     common::patch_function("settings_save_one", arm::RETURN_0);
     common::patch_function("bt_read_static_addr", arm::RETURN_0);
-    // Always patch radio_is_ready to return 0
     common::patch_function("radio_is_ready", arm::RETURN_0);
-
   
     // Force ticker_trigger within rtc0_nrf5_isr
-    // common::patch_address(0x1a408, arm::MOVS_NOP(2,1)); // does not work
+    // common::patch_address(0x1a408, arm::MOV(2,1));
   
     // Fix isr_radio - Check if isr_cb is not NULL
     common::patch_address(0x1c380, [0x04, 0x34, 0x00, 0x20]);
   
     // Force RX to be successfull (Optional it seems)
-    // common::patch_function("nrfx_gpiote_init", arm::RETURN_0);
     common::patch_function("radio_has_disabled", arm::RETURN_1);
     common::patch_function("radio_is_done", arm::RETURN_1);
     common::patch_function("radio_crc_is_valid", arm::RETURN_1);
     common::patch_function("radio_rssi_is_ready", arm::RETURN_1);
+    common::patch_function("radio_df_cte_ready", arm::RETURN_0);
     common::patch_function("radio_filter_has_match", arm::RETURN_0);
     common::patch_function("radio_filter_match_get", arm::RETURN_0);
     common::patch_function("radio_ar_has_match", arm::RETURN_0);
     common::patch_function("radio_ar_match_get", arm::RETURN_0);
-    common::patch_function("bt_hrs_notify", arm::RETURN_0);
+    common::patch_function("radio_tmr_aa_restore", arm::RETURN_0);
+    
+
+    common::patch_function("lll_preempt_calc", arm::RETURN_0); // **
+
+    common::patch_function("isr_race", arm::RETURN);
+  
     // Fix memcmp on scan_req addr check
     common::patch_address(0x0001b684, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix memcmp on adv_ind addr check
     common::patch_address(0x0001b760, [0x4f, 0xf0, 0x20, 0x00]);
-    // Fix upper buffer boundary
-    common::patch_address(0x0001c016, [0x02, 0x20]);
   }
