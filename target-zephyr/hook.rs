@@ -84,6 +84,19 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_decode_length_rsp")?), |_| register::read("pc")?);
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| log::info!("===========llcp_pdu_encode_length_rsp==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_pdu_encode_length_rsp")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(symbolizer::resolve("smp_pairing_req")?), |_| log::info!("===========smp_pairing_req==========="));
+    // api.on_instruction(Some(symbolizer::resolve("smp_pairing_req")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| log::info!("===========send_pairing_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| register::read("pc")?);
+    // api.on_instruction(Some(0x0000ca70), |_| log::info!("===========smp_send==========="));
+    // api.on_instruction(Some(0x0000ca70), |_| register::read("pc")?);
+    //SM pairing 
+    // api.on_instruction(Some(symbolizer::resolve("smp_pairing_req")?), |_| log::info!("===========smp_pairing_req==========="));
+    // api.on_instruction(Some(symbolizer::resolve("smp_pairing_rsp")?), |_| log::info!("===========smp_pairing_rsp==========="));
+    // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| log::info!("===========send_pairing_rsp==========="));
+    // api.on_instruction(Some(0x0000ca70), |_| log::info!("===========smp_send==========="));
+    api.on_instruction(Some(symbolizer::resolve("z_log_msg_simple_create_0")?), |_| log::info!("===========z_log_msg_simple_create_0==========="));
+    
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_rx_put")?), |_| log::info!("===========ull_rx_put==========="));

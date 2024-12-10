@@ -5,10 +5,11 @@ source venv/bin/activate
 # the python subprocess does not know the correct path everytime )
 export PATH="/home/asset/.cargo/bin:$PATH" 
 
-export TARGET=target-zephyr
-export HOOK_FILE=$TARGET/hook.rs
-export PREFIX_INPUT="$TARGET/inputs/prefix-adv.bin"
-export PREFIX_INPUT2="$TARGET/inputs/feature_rep_rsp.bin"
+export TARGET_ZEPHYR=target-zephyr
+export TARGET=interval-500-fuzzed-clock-10t
+
+export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
+export PREFIX_INPUT=$TARGET_ZEPHYR/inputs/sm_pairing_req.bin
 
 
 
