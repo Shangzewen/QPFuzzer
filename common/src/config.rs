@@ -122,7 +122,7 @@ pub mod fuzzer {
 }
 
 pub mod corpus {
-    pub const MIN_RARE_FEATURES: usize = 10;
+    pub const MIN_RARE_FEATURES: usize = 5;
     pub const FEATURE_FREQUENCY_THRESHOLD: u16 = 0xffff;
 
     pub const MAX_MUTATION_FACTOR: f64 = 20f64;

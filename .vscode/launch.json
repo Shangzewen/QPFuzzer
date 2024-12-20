@@ -49,8 +49,8 @@
                 "--trace",
                 "run",
                 "--prefix-input",
-                "${workspaceFolder}/target-zephyr/inputs/merged_input.bin",
-                "${workspaceFolder}/target-zephyr/runs/input/input-195168.bin"
+                "${workspaceFolder}/target-zephyr/inputs/prefix-adv.bin",
+                "${workspaceFolder}/target-zephyr/runs/exit/input-7248.bin"
             ],
             "cargo": {
                 "args": [
@@ -83,9 +83,9 @@
             "name": "QEMU Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/target-zephyr/zephyr.elf",
+            "program": "${workspaceFolder}/interval-500-fuzzed-clock-10t/zephyr.elf",
             "MIMode": "gdb",
-            "cwd": "${workspaceFolder}/target-zephyr",
+            "cwd": "${workspaceFolder}/interval-500-fuzzed-clock-10t",
             "stopAtConnect": false,
             // "preLaunchTask": "GDB Run Input",
             "setupCommands": [

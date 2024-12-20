@@ -17,7 +17,7 @@ pub fn main(api) {
     let received_pkt="";
 
     //  ------------ Test udp Socket ---------------
-    // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
+    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
@@ -228,47 +228,48 @@ pub fn main(api) {
       }
       let rx_pdu = "";
       let test_str = "";
-
+      rx_pdu = common::get_rx_data();
+      log::info!("RX Packet: {}", rx_pdu);
       // ADV Channel
-      if cfg.data_connection == false {
-        if cfg.sequence == 0 {
-          // Scan Request
-          rx_pdu = common::get_adv_rpl_data();
-          log::info!("RX adv: {}", rx_pdu);
-        }
-        else if cfg.sequence >= 1 {
-          log::info!("RX adv: {}", rx_pdu);
+      // if cfg.data_connection == false {
+      //   if cfg.sequence == 0 {
+      //     // Scan Request
+      //     rx_pdu = common::get_adv_rpl_data();
+      //     log::info!("RX adv: {}", rx_pdu);
+      //   }
+      //   else if cfg.sequence >= 1 {
+      //     log::info!("RX adv: {}", rx_pdu);
 
-          rx_pdu = common::get_adv_rpl_data();
-          cfg.data_connection = true; // Switch to data channel
-        }
-        else {
-          cfg.sequence = cfg.sequence + 1;
-          return;
-        }
-      }
-      else {
-        // set initial flag
-        if cfg.initial_pdu_flag == true{
-          cfg.initial_pdu_flag = false;
-          rx_pdu = common::get_empty_pdu_data();
-          // log::info!("<============> initial_empty_pdu received <============>");
-        }
-        else{
-          rx_pdu = common::get_data_rpl_data();
-          log::info!("RX data pdu: {}", rx_pdu);
-          //  log::info!("<============> rx_pdu received <============>");
-        }
-      }
+      //     rx_pdu = common::get_adv_rpl_data();
+      //     cfg.data_connection = true; // Switch to data channel
+      //   }
+      //   else {
+      //     cfg.sequence = cfg.sequence + 1;
+      //     return;
+      //   }
+      // }
+      // else {
+      //   // set initial flag
+      //   if cfg.initial_pdu_flag == true{
+      //     cfg.initial_pdu_flag = false;
+      //     rx_pdu = common::get_empty_pdu_data();
+      //     // log::info!("<============> initial_empty_pdu received <============>");
+      //   }
+      //   else{
+      //     rx_pdu = common::get_data_rpl_data();
+      //     log::info!("RX data pdu: {}", rx_pdu);
+      //     //  log::info!("<============> rx_pdu received <============>");
+      //   }
+      // }
 
-      cfg.sequence = cfg.sequence + 1;
+      // cfg.sequence = cfg.sequence + 1;
       
       let data = common::decode_hex(rx_pdu)?;
       for (i, v) in data.iter().enumerate() {
         memory::write_u8(pkt_buf_addr + i, v);
       }
 
-      let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
+      let pkt_summary = common::parse_packet("ble", rx_pdu, direction, 0, cfg.log_details);
       log::info!("RX <--- {}", pkt_summary);
 
       if cfg.log_details {

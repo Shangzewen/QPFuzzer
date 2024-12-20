@@ -16,7 +16,7 @@
         {
             "label": "GDB Run Input",
             "type": "shell",
-            "command": "GDB=1 ./run-input.sh target-zephyr/inputs/input-adv.bin",
+            "command": "GDB=1 ./run-input.sh target-zephyr/runs/input_previous/input-589524.bin",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -40,7 +40,9 @@
         {
             "label": "GDB Run Post Input",
             "type": "shell",
-            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/inputs/multiple_pdu_commu.bin",
+            // "command": "GDB=1 ./run-postinput.sh ./target-zephyr/runs/input/input-548.bin ",
+            "command": "GDB=1 ./run-input.sh ./target-zephyr/runs/input/input-6899.bin",
+            
             "group": {
                 "kind": "build",
                 "isDefault": false

@@ -62,6 +62,7 @@ def generate_reply_data(pkt, flag2):
     # master_addr = "28:de:65:7d:7a:f3"
     global send_nesn, send_sn 
     raw_packet_bytes = unhexlify(pkt)
+    # print(f"Rceived Raw Packet Bytes: {raw_packet_bytes}")
     ble_packet = BTLE_DATA(raw_packet_bytes)
     if "BTLE_CTRL" in ble_packet:
         if ble_packet[BTLE_CTRL].opcode == 0x09:
@@ -142,6 +143,9 @@ def generate_reply_data(pkt, flag2):
         print(
             "==========LL_VERSION_IND Received, Sent ATT_Exchange_MTU_Request=========="
         )
+        # print(
+        #     "==========LL_VERSION_IND Received, Sent ATT_Exchange_MTU_Request=========="
+        # )
 
         # rpl_pkt = BTLE_DATA(SN=send_sn, NESN=send_nesn) / BTLE_CTRL() / LL_FEATURE_REQ(feature_set='le_encryption+le_data_len_ext')
         rpl_pkt = (
@@ -150,6 +154,19 @@ def generate_reply_data(pkt, flag2):
             / ATT_Hdr()
             / ATT_Exchange_MTU_Request(mtu=247)
         )
+        # rpl_pkt = (
+        #     BTLE_DATA()
+        #     / L2CAP_Hdr()
+        #     / SM_Hdr()
+        #     / SM_Pairing_Request(
+        #         iocap=0x04,
+        #         oob=0,
+        #         authentication=0x09,
+        #         max_key_size=16,
+        #         initiator_key_distribution=0x07,
+        #         responder_key_distribution=0x07,
+        #     )
+        # )
         rpl_pkt_arr = bytearray(raw(rpl_pkt))
         # rpl_pkt_arr[1:2] = bytearray([0x06, 0x00])
         rpl_pkt_arr[1:2] = bytearray([bytes(rpl_pkt)[1], 0x00])
@@ -234,6 +251,7 @@ def handle_data(data, flag2):
     # print(f"This is send nesn: {send_nesn}")
     # print(f"This is send sn: {send_sn}")
     global send_nesn, send_sn 
+    # print(f"Rceived data: {str(data)}")
     received_msg = data.decode()
     msg_lst = list(received_msg)
     msg_lst.pop(4)

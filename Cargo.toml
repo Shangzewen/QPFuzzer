@@ -15,7 +15,7 @@ members = [
     "qemu-build",
     "qemu-rs",
     "qemu-sys",
-    "scripts/test_python_rust", "scripts/test_rust", "scripts/merge_input"]
+    "scripts/test_python_rust", "scripts/test_rust", "scripts/unix_socket"]
 
 [profile.release]
 # codegen-units = 1
