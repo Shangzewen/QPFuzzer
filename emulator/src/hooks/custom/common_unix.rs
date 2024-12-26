@@ -19,7 +19,7 @@ use super::memory_write;
 use crate::hooks::Symbolizer;
 const SOCKET_PATH: &str = "/tmp/central.sock";
 lazy_static! {
-    static ref queue_string: Mutex<String> = Mutex::new(String::new());
+    static ref rx_data: Mutex<String> = Mutex::new(String::new());
     static ref adv_rpl_data: Mutex<String> = Mutex::new(String::new());
     static ref tx_data: Mutex<String> = Mutex::new(String::new());
     static ref empty_pdu_data: Mutex<String> = Mutex::new(String::new());
@@ -48,6 +48,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["encode_hex"], encode_hex)?;
     // module.function(&["udp_socket"], udp_socket)?;
     module.function(&["running_socket_background"], running_socket_background)?;
+    module.function(&["get_rx_data"], get_rx_data)?;
     module.function(&["send_socket_data"], send_socket_data)?;
     module.function(&["get_socket_data"], get_socket_data)?;
     module.function(&["get_adv_rpl_data"], get_adv_rpl_data)?;
@@ -146,7 +147,20 @@ fn parse_hex_to_u8_array(input: &str) -> Vec<u8> {
         .map(|hex| u8::from_str_radix(hex, 16).expect("Invalid hex number")) // Convert each hex string to u8
         .collect() // Collect into a Vec<u8>
 }
+fn format_hex_string(input: &str) -> String {
+    // Validate the input length is even
+    if input.len() % 2 != 0 {
+        panic!("Hex string length must be even!");
+    }
 
+    // Split the input string into 2-character chunks and join them with spaces
+    input
+        .as_bytes()
+        .chunks(2)
+        .map(|chunk| std::str::from_utf8(chunk).unwrap())
+        .collect::<Vec<&str>>()
+        .join(" ")
+}
 fn handle_client(mut stream: UnixStream) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
     println!("Client connected.");
@@ -166,14 +180,16 @@ fn handle_client(mut stream: UnixStream) -> io::Result<()> {
         // Respond back to the client
         if buffer.trim_end() == "Tx" {
             // can not send string Send raw bytes `0500`
-            let input = "60 23 00 00 00 00 00 c0 02 01 06 07 03 0d 18 0f 18 05 18 11 07 f0 de bc 9a 78 56 34 12 78 56 34 12 78 56 34";
-            // let input = "60 23 24 D2 5A 24 D2 5A 02 01 06 07 03 0D 18 0F 18 05 18 11 07 F0 DE BC 9A 78 56 34 12 78 56 34 12 78 56 34 12 38 7D 62";
+            // let input = "60 23 00 00 00 00 00 c0 02 01 06 07 03 0d 18 0f 18 05 18 11 07 f0 de bc 9a 78 56 34 12 78 56 34 12 78 56 34";
+            let input = &format_hex_string(&get_tx_data());
+            println!("input: {}", input);
             let response = parse_hex_to_u8_array(input);
             stream.write_all(&response)?;
             println!("Sent: {:?}",response);
         } else {
             // Default response
             let response = format!("ACK: {}", buffer.trim_end());
+            update_rx_data((buffer.trim_end()).to_string());
             stream.write_all(response.as_bytes())?;
         }
         stream.flush()?;
@@ -225,7 +241,7 @@ fn send_socket_data(msg: String) {
 }
 
 fn get_socket_data() -> String {
-    let x = queue_string.lock().clone();
+    let x = rx_data.lock().clone();
     return x;
 }
 
@@ -283,12 +299,15 @@ fn generate_adv_rpl() -> PyResult<()> {
     Python::with_gil(|py| {
         // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
         let module = bt_module(py);
-
+        // let testttt = get_tx_data();
+        // let input_test =format_hex_string(&testttt); 
+        // println!("This is get_tx_data: {}", input_test);
         // Prepare the byte data you want to pass to the `handle_data` function
         let handle_data = module.getattr("handle_adv")?;
         let result = handle_data.call1((PyBytes::new_bound(py, get_tx_data().as_bytes()),))?;
         let result_str = std::str::from_utf8(result.extract()?)?;
         let owned_string = result_str.to_string();
+        // println!("This is owned_string: {}",owned_string);
 
         // Update global varible for rx data retrival
         adv_rpl_data.lock().clear();
@@ -428,7 +447,9 @@ fn get_data_rpl_data() -> String {
 fn get_tx_data() -> String {
     tx_data.lock().clone()
 }
-
+fn get_rx_data() -> String {
+    rx_data.lock().clone()
+}
 fn clear_tx_data(){
     tx_data.lock().clear();
     // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
@@ -440,4 +461,8 @@ fn clear_tx_data(){
 fn get_empty_pdu_data() -> String {
     _ = generate_empty_pdu_rpl();
     empty_pdu_data.lock().clone()
+}
+fn update_rx_data(rx: String) {
+    rx_data.lock().clear();
+    rx_data.lock().push_str(&rx);
 }

@@ -428,6 +428,10 @@ impl InputFile {
     pub fn set_read_limit(&mut self, read_limit: usize) {
         self.read_limit = Some(read_limit);
     }
+    // Implement get_read_limit()
+    // pub fn get_read_limit(&mut self) -> Option<usize> {
+    //     return self.read_limit;
+    // }
 
     pub fn id(&self) -> InputId {
         self.id

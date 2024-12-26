@@ -239,6 +239,8 @@ def generate_reply_adv(pkt):
 def handle_adv(data):
     received_msg = data.decode()
     print(f"Rceived Message: {str(received_msg)}")
+    print (f"Rceived raw data: {data}") 
+
     try:
         rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
         return rpl

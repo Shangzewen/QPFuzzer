@@ -4,6 +4,30 @@ use std::thread;
 
 const SOCKET_PATH: &str = "/tmp/central.sock";
 
+fn parse_hex_to_u8_array(input: &str) -> Vec<u8> {
+    input
+        .split_whitespace() // Split the input string by spaces
+        .map(|hex| u8::from_str_radix(hex, 16).expect("Invalid hex number")) // Convert each hex string to u8
+        .collect() // Collect into a Vec<u8>
+}
+// convert the received byte array for rx packets
+fn bytes_to_hex_string(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{:02x}", b)).collect::<Vec<String>>().concat()
+}
+fn format_hex_string(input: &str) -> String {
+    // Validate the input length is even
+    if input.len() % 2 != 0 {
+        panic!("Hex string length must be even!");
+    }
+
+    // Split the input string into 2-character chunks and join them with spaces
+    input
+        .as_bytes()
+        .chunks(2)
+        .map(|chunk| std::str::from_utf8(chunk).unwrap())
+        .collect::<Vec<&str>>()
+        .join(" ")
+}
 fn handle_client(mut stream: UnixStream) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
     println!("Client connected.");
@@ -11,7 +35,7 @@ fn handle_client(mut stream: UnixStream) -> io::Result<()> {
     loop {
         let mut buffer = String::new();
         let bytes_read = reader.read_line(&mut buffer)?;
-        
+
         if bytes_read == 0 {
             // Client closed the connection
             println!("Client disconnected.");
@@ -21,17 +45,27 @@ fn handle_client(mut stream: UnixStream) -> io::Result<()> {
         println!("Received: {}", buffer.trim_end());
 
         // Respond back to the client
-        let response = if buffer == "Tx\n" {
-            "Tx packet".to_string()
+        if buffer.trim_end() == "Tx" {
+            // can not send string Send raw bytes `0500`
+            let input = "60 23 00 00 00 00 00 c0 02 01 06 07 03 0d 18 0f 18 05 18 11 07 f0 de bc 9a 78 56 34 12 78 56 34 12 78 56 34";
+            // let input = "60 23 24 D2 5A 24 D2 5A 02 01 06 07 03 0D 18 0F 18 05 18 11 07 F0 DE BC 9A 78 56 34 12 78 56 34 12 78 56 34 12 38 7D 62";
+            let response = parse_hex_to_u8_array(input);
+            stream.write_all(&response)?;
+            println!("Sent: {:?}",response);
         } else {
-            format!("ACK: {}", buffer)
-        };
-        stream.write_all(response.as_bytes())?;
+            // Default response
+            let response = format!("ACK: {}", buffer.trim_end());
+            // println!("This is the buffer trim_end: {}",buffer.trim_end());
+            let rx_ddata = bytes_to_hex_string((buffer.trim_end()).as_bytes());
+            println!("rx_ddata: {}", rx_ddata);
+            stream.write_all(response.as_bytes())?;
+        }
         stream.flush()?;
     }
 
     Ok(())
 }
+
 
 fn main() -> io::Result<()> {
     // Ensure the socket file does not exist before starting the server
