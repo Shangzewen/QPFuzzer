@@ -33,7 +33,7 @@ use super::Symbolizer;
 
 #[cfg(feature = "arm")]
 mod arm;
-mod common;
+mod common_unix;
 mod symbolizer;
 
 pub(crate) static STOP: AtomicBool = AtomicBool::new(false);
@@ -123,7 +123,7 @@ impl HookRuntime {
         context.install(&rune::modules::test::module()?)?;
 
         // install hödur modules
-        context.install(&common::module(symbolizer.clone())?)?;
+        context.install(&common_unix::module(symbolizer.clone())?)?;
         context.install(&symbolizer::module(symbolizer)?)?;
         context.install(&module_convert()?)?;
         context.install(&module_input()?)?;

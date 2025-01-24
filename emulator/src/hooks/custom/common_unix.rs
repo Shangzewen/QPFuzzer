@@ -25,6 +25,8 @@ lazy_static! {
     static ref empty_pdu_data: Mutex<String> = Mutex::new(String::new());
     static ref pdu_data: Mutex<String> = Mutex::new(String::new());
     static ref flag2: Mutex<String> = Mutex::new(String::from("0"));
+    static ref flagdata: Mutex<String> = Mutex::new(String::from("0"));
+
 }
 
 pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
@@ -163,7 +165,7 @@ fn format_hex_string(input: &str) -> String {
 }
 fn handle_client(mut stream: UnixStream) -> io::Result<()> {
     let mut reader = BufReader::new(stream.try_clone()?);
-    println!("Client connected.");
+    // println!("Client connected.");
 
     loop {
         let mut buffer = String::new();
@@ -171,24 +173,34 @@ fn handle_client(mut stream: UnixStream) -> io::Result<()> {
 
         if bytes_read == 0 {
             // Client closed the connection
-            println!("Client disconnected.");
+            // println!("Client disconnected.");
             break;
         }
 
-        println!("Received: {}", buffer.trim_end());
+        // println!("Received: {}", buffer.trim_end());
 
         // Respond back to the client
         if buffer.trim_end() == "Tx" {
             // can not send string Send raw bytes `0500`
             // let input = "60 23 00 00 00 00 00 c0 02 01 06 07 03 0d 18 0f 18 05 18 11 07 f0 de bc 9a 78 56 34 12 78 56 34 12 78 56 34";
             let input = &format_hex_string(&get_tx_data());
-            println!("input: {}", input);
+            // let test_input = input.to_string() + " 09 00 00 00";
+            // println!("Tx_data: {}", input);
+            // println!("Tx_data: {}", test_input);
             let response = parse_hex_to_u8_array(input);
+            // let response = parse_hex_to_u8_array(&test_input);
             stream.write_all(&response)?;
-            println!("Sent: {:?}",response);
+            // println!("Sent: {:?}",response);
         } else {
             // Default response
             let response = format!("ACK: {}", buffer.trim_end());
+            println!("This is received rx data from socket: {}",(buffer.trim_end()).to_string());
+            if ((buffer.trim_end()).to_string()) == "E52209A6540EE9EB24D25A24D25AC0AF1FA8D711FF010000280000009001FFFFFFFF1FAA159FAA"{
+                if flagdata.lock().clone() == "0" {
+                    flagdata.lock().clear();
+                    flagdata.lock().push_str("1");
+                }
+            }
             update_rx_data((buffer.trim_end()).to_string());
             stream.write_all(response.as_bytes())?;
         }
@@ -453,9 +465,15 @@ fn get_rx_data() -> String {
 fn clear_tx_data(){
     tx_data.lock().clear();
     // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
-    tx_data.lock().push_str("010000");
+    if flagdata.lock().clone() == "1" {
+        flagdata.lock().clear();
+        // flagdata.lock().push_str("0");
+        tx_data.lock().push_str("0500A0320D");
+    }else{
+        tx_data.lock().push_str("602324D25A24D25A02010607030D180F1805181107F0DEBC9A785634127856341278563412387D62");
+    }
     // println!("This is tx_data_buffer_after_push: {}",tx_data.lock().clone());
-    log::info!("Start from beagining, update tx_buffer to empty_pdu")
+    log::info!("Start from beagining, update tx_buffer")
 }
 
 fn get_empty_pdu_data() -> String {
