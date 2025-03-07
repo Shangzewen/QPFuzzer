@@ -2,7 +2,7 @@ board:
   init_nsvtor: 0x000000
 
 interrupt:
-  mode: disabled
+  mode: fuzzed
   trigger:
     on-infinite-sleep: false
     interval: 1000
@@ -11,6 +11,8 @@ interrupt:
         symbol: arch_cpu_idle
       - name: atomic_interrupt
         symbol: arch_cpu_atomic_idle
+      # - name: task
+      #   symbol: nrf_egu_task_trigger
   # there is a offset of 0x10 for the isrtable in binary ninja and the real offset, need to + 0x10
   # allowlist:
   #   - 0x10
@@ -23,6 +25,10 @@ interrupt:
 
 
 memory_maps:
+  - name: scs  # System Control Space (SCS) for NVIC
+    address: 0xE000E000
+    size: 0x1000
+    type: mmio
   - name: mmio
     address: 0x40000000
     size: 0x20000000
@@ -46,6 +52,14 @@ debug_hooks:
     type: printf
   - symbol: vprintk
     type: sprintf
+  # - symbol: print_formatted
+  #   type: sprintf
+  - symbol: z_cbvprintf_impl
+    type: sprintf-va-list2
+  # - symbol: cbvprintf_package
+  #   type: sprintf-va-list3
+
+
     
 exit_hooks:
   - name: z_do_kernel_oops

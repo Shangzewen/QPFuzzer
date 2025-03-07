@@ -58,6 +58,9 @@ impl DebugHook {
                 | DebugHookType::Sprintf
                 | DebugHookType::Sprintf2
                 | DebugHookType::SprintfVaList
+                | DebugHookType::SprintfVaList2
+                | DebugHookType::SprintfVaList3
+
         )
     }
 }
@@ -78,6 +81,8 @@ pub enum DebugHookType {
     Sprintf2,
     PrintfVaList,
     SprintfVaList,
+    SprintfVaList2,
+    SprintfVaList3,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -95,6 +100,8 @@ impl DebugHookType {
 
         match self {
             Self::SprintfVaList => hook_printf(skip(1), true),
+            Self::SprintfVaList2 => hook_printf(skip(2), true),
+            Self::SprintfVaList3 => hook_printf(skip(3), true),
             Self::PrintfVaList => hook_printf(skip(0), true),
             Self::Sprintf => hook_printf(skip(1), false),
             Self::Sprintf2 => hook_printf(skip(2), false),

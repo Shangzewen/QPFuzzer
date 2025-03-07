@@ -3,7 +3,6 @@ use std::{ffi::CStr, fmt, slice};
 use anyhow::{bail, Result};
 use either::Either::{Left, Right};
 use endiannezz::Primitive;
-
 #[cfg(feature = "arm")]
 use anyhow::Context;
 
@@ -321,3 +320,17 @@ impl<'a> MemoryBlock<'a> {
         crate::memory::contains(self.start, self.data.len() as USize, address)
     }
 }
+// impl QemuCallback for QemuStateControl {
+//     fn on_write(&mut self, _pc: Address, addr: Address, data: u64, _size: u8) -> Result<()> {
+//         if addr == 0xE000E100 {
+//             log::info!("MMIO Write to NVIC ISER Register at {:#X}: {:#X}", addr, data);
+            
+//             // TODO: Implement the actual enabling of interrupts if needed
+            
+//             return Ok(());
+//         }
+        
+//         log::warn!("Unhandled MMIO write to {:#X}: {:#X}", addr, data);
+//         Ok(())
+//     }
+// }

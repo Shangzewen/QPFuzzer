@@ -18,7 +18,7 @@ pub fn main(api) {
 
     //  ------------ Test udp Socket ---------------
     // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
     let cfg = State {

@@ -32,8 +32,7 @@ use modeling::{
     modeling::Modeling,
 };
 use qemu_rs::{
-    init_qemu, memory::MemoryMap, qcontrol, Board, CpuModel, Event, Exception, MemoryBlock,
-    MmioRewound, QemuCallback, QemuStopReason, Snapshot, USize,
+    init_qemu, memory::MemoryMap, qcontrol, Board, CpuModel, Event, Exception, MemoryBlock, MmioRewound, QemuCallback, QemuStopReason, Register, Snapshot, USize
 };
 use serde::{Deserialize, Serialize};
 use variant_count::VariantCount;
@@ -431,7 +430,7 @@ impl<I: Input + Debug> EmulatorData<I> {
 
         ArchEmulator::on_exception_exit(self)?;
         self.on_exception_exit_debug()?;
-
+        // let f:i32 = 0x40014000 >> 0x0c;
         Ok(())
     }
 
@@ -524,77 +523,114 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
 
         ArchEmulator::on_basic_block(self, pc)?;
 
+
         // inject IRQ
         if let Some(next_irq) = self.interrupt.next_interval(&self.counts) {
             if next_irq == 0 {
                 self.inject_interrupt(false);
             }
         }
+        // if pc == 0x684d0
+        // nrf_egu_event_clear
+        // if pc == 0x0001bad0
+        if pc == 0x00019444
+        {
+            // let cpu_state = qemu_rs::qcontrol();
+            // Register
+            let r0_addr=qcontrol().register(Register::R0);
+            let target_irq_num = (r0_addr >> 12) & 0x000001FF;
+            log::info!("This is target irq num: (0x{target_irq_num:08X})");
+            let dec_targer_irq_num = target_irq_num as i32;
+            log::info!("This is target irq num: ({dec_targer_irq_num})");
+            //TODO: enable IRQ
+            let irq_address = 0xe000e100 + ((target_irq_num >> 5) << 2);
+            log::info!("This is target irq_address: (0x{irq_address:08X})");
+            
 
- 
+            let irq_value = 1 << (target_irq_num & 0x1F);
+            log::info!("This is target irq_value: (0x{irq_value:08X})");
+            // let exe_inter = Exception::from(dec_targer_irq_num);
+            // let exe_inter = Exception::from(20);
+            //qemu_rs::qcontrol().nvic_exception().
+            // let result_on_write =qemu_rs::QemuCallback::on_write(self, pc, irq_address, irq_value, 4);
+            // log::info!("This is the result_on_write {result_on_write:?}");
+            // let result_on_read =qemu_rs::QemuCallback::on_read(self, pc, irq_address,4);
+            // log::info!("This is the result_on_read {result_on_read:?}");
+            // let result = qemu_rs::qcontrol_mut().write(irq_address, irq_value);
+            // // qemu_rs::qcontrol_mut().write_from(address, data)
+            // log::info!("This is the result {result:?}");
+            // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x8)));
+            // log::info!("This is r0 address: (0x{r0_addr:08X})");
+        }
+
+        // TODO::IRQ Handler for zigbee
 
         // add this basic block to the coverage bitmap
         let new_edge = qemu_rs::coverage::add_basic_block(pc as u64);
 
         // if new_edge && (pc == 0x1C528 || pc == 0x1C51C || pc == 0x1772C || pc == 0x178F4 || pc == 0x178A4 || pc == 0x17C50) {
-        //     // self.relevant_edges += 1;
-        //     match pc {
-        //         0x1C51C => {
-        //             self.relevant_edges += 10;
-        //             // log::info!("Relevant Edge: radio_pkt_rx_set (0x{pc:08X})");
-        //         },
-        //         0x1b620 => {
-        //             self.relevant_edges += 100;
-        //             // log::info!("Relevant Edge: lll_adv_scan_req_check (0x{pc:08X})");
-        //         },
-        //         0x1b690 => {
-        //             self.relevant_edges += 100;
-        //             // log::info!("Relevant Edge: lll_adv_connect_ind_check (0x{pc:08X})");
-        //         },
-        //         0x14328 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: ull_conn_rx (0x{pc:08X})");
-        //         },
-        //         0x1C38C => {
-        //             self.relevant_edges += 10;
-        //             log::info!("Relevant Edge: radio_isr_set (0x{pc:08X})")
-        //         },
-        //         0x1C528 => {
-        //             self.relevant_edges += 10;
-        //             log::info!("Relevant Edge: radio_pkt_tx_set (0x{pc:08X})")
-        //         },
+        if new_edge && (pc == 0x1BAA4 ) {
 
-        //         0x1772C => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: llcp_pdu_encode_feature_rsp (0x{pc:08X})")
-        //         },
-        //         0x178F4 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: llcp_pdu_decode_version_ind (0x{pc:08X})")
-        //         },
-        //         0x178A4 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: llcp_pdu_encode_version_ind (0x{pc:08X})")
-        //         },
-        //         0x17C50 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: llcp_pdu_encode_length_rsp (0x{pc:08X})")
-        //         },
-        //         0xD484 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: smp_pairing_req (0x{pc:08X})")
-        //         },
-        //         0x267EA => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: send_pairing_rsp (0x{pc:08X})")
-        //         },
-        //         0xCA70 => {
-        //             self.relevant_edges += 100;
-        //             log::info!("Relevant Edge: smp_send (0x{pc:08X})")
-        //         },
-        //         _ => ()
-        //     }
-        // }
+            // self.relevant_edges += 1;
+            match pc {
+                // relevant edge for zigbee
+                0x1BAA4 => {
+                    self.relevant_edges += 10;
+                    log::info!("Relevant Edge: egu_task_trigger (0x{pc:08X})");
+                },
+                // relevant edge for ble
+                // 0x1b620 => {
+                //     self.relevant_edges += 100;
+                //     // log::info!("Relevant Edge: lll_adv_scan_req_check (0x{pc:08X})");
+                // },
+                // 0x1b690 => {
+                //     self.relevant_edges += 100;
+                //     // log::info!("Relevant Edge: lll_adv_connect_ind_check (0x{pc:08X})");
+                // },
+                // 0x14328 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: ull_conn_rx (0x{pc:08X})");
+                // },
+                // 0x1C38C => {
+                //     self.relevant_edges += 10;
+                //     log::info!("Relevant Edge: radio_isr_set (0x{pc:08X})")
+                // },
+                // 0x1C528 => {
+                //     self.relevant_edges += 10;
+                //     log::info!("Relevant Edge: radio_pkt_tx_set (0x{pc:08X})")
+                // },
+
+                // 0x1772C => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: llcp_pdu_encode_feature_rsp (0x{pc:08X})")
+                // },
+                // 0x178F4 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: llcp_pdu_decode_version_ind (0x{pc:08X})")
+                // },
+                // 0x178A4 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: llcp_pdu_encode_version_ind (0x{pc:08X})")
+                // },
+                // 0x17C50 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: llcp_pdu_encode_length_rsp (0x{pc:08X})")
+                // },
+                // 0xD484 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: smp_pairing_req (0x{pc:08X})")
+                // },
+                // 0x267EA => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: send_pairing_rsp (0x{pc:08X})")
+                // },
+                // 0xCA70 => {
+                //     self.relevant_edges += 100;
+                //     log::info!("Relevant Edge: smp_send (0x{pc:08X})")
+                // },
+                _ => ()
+            }
+        }
     
 
         self.on_basic_block_debug(pc)?;
@@ -733,6 +769,17 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
         let size = ReadSize::try_from(size as u32)?;
         self.hardware.mmio_write(&context, data as USize, size);
         self.counts.mmio_write += 1;
+
+        if addr == 0xE000E100 {
+            log::info!("MMIO Write to NVIC ISER Register at {:#X}: {:#X}", addr, data);
+            
+            // TODO: Implement the actual enabling of interrupts if needed
+            
+            // return Ok(());
+        }
+        
+        // log::warn!("Unhandled MMIO write to {:#X}: {:#X}", addr, data);
+    
 
         self.on_access_debug(
             AccessTarget::Mmio,

@@ -25,6 +25,7 @@ pub mod memory;
 pub use arch::*;
 pub use hook::basic_block::{get_next_basic_block_hook, set_next_basic_block_hook};
 pub use interrupt::request_interrupt_injection;
+pub use interrupt::request_interrupt_injection_imm;
 pub use qcontrol::{MemoryBlock, QemuStateControl};
 pub use qemu::{drop, init_qemu, request_stop, run, set_signal_handler, QemuStopReason};
 pub use snapshot::{MemorySnapshot, MmioRewound, Snapshot};
@@ -64,6 +65,18 @@ pub trait QemuCallback {
     fn on_read(&mut self, pc: Address, addr: Address, size: u8) -> Result<u64>;
     /// on MMIO write
     fn on_write(&mut self, pc: Address, addr: Address, data: u64, size: u8) -> Result<()>;
+    // {
+    //     if addr == 0xE000E100 {
+    //         log::info!("MMIO Write to NVIC ISER Register at {:#X}: {:#X}", addr, data);
+            
+    //         // TODO: Implement the actual enabling of interrupts if needed
+            
+    //         return Ok(());
+    //     }
+        
+    //     log::warn!("Unhandled MMIO write to {:#X}: {:#X}", addr, data);
+    //     Ok(())
+    // }
 
     /// on RAM read
     fn on_ram_read(&mut self, pc: Address, addr: Address, data: u64, size: u8) -> Result<()>;
@@ -80,6 +93,10 @@ pub trait QemuCallback {
 
     /// QEMU abort (crash)
     fn on_abort(&mut self) -> Result<()>;
+    // fn on_write(&mut self, _pc: Address, addr: Address, data: u64, _size: u8) -> Result<()> { 
+    //     log::warn!("Unhandled MMIO write to {:#X}: {:#X}", addr, data);
+    //     Ok(())
+    // }
 }
 
 pub fn qcontrol<'a>() -> &'a QemuStateControl {

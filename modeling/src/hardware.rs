@@ -40,6 +40,19 @@ pub struct Hardware<I: Input + Debug> {
     input: Option<I>,
     access_log: Vec<InputContext>,
     ticker: USize,
+    ticker_rtc1: USize,
+    ticker_rtc2: USize,
+    event_en_nrf0:USize,
+    event_en_nrf1:USize,
+    event_en_nrf2:USize,
+    event_en_nrf3:USize,
+    event_en_nrf4:USize,
+    egu_event_check0:USize,
+    egu_event_check1:USize,
+    egu_event_check2:USize,
+    egu_event_check3:USize,
+
+    // 0x40011504
 }
 
 #[derive(Debug, Clone)]
@@ -60,6 +73,17 @@ impl<I: Input + Debug> Hardware<I> {
             input: None,
             access_log: vec![],
             ticker: 0,
+            ticker_rtc1: 0,
+            ticker_rtc2: 0,
+            event_en_nrf0:0,
+            event_en_nrf1:0,
+            event_en_nrf2:0,
+            event_en_nrf3:0,
+            event_en_nrf4:0,
+            egu_event_check0:0,
+            egu_event_check1:0,
+            egu_event_check2:0,
+            egu_event_check3:0,
         }
     }
 
@@ -69,6 +93,18 @@ impl<I: Input + Debug> Hardware<I> {
 
         self.input = Some(input);
         self.ticker = 0 ;
+        self.ticker_rtc1 = 0;
+        self.ticker_rtc2 = 0;
+        self.event_en_nrf0=0;
+        self.event_en_nrf1=0;
+        self.event_en_nrf2=0;
+        self.event_en_nrf3=0;
+        self.event_en_nrf4=0;
+        self.egu_event_check0=0;
+        self.egu_event_check1=0;
+        self.egu_event_check2=0;
+        self.egu_event_check3=0;
+
     }
 
     pub fn modeling(&self) -> &Modeling {
@@ -112,8 +148,56 @@ impl<I: Input + Debug> Hardware<I> {
             let ticker_pre_update = self.ticker.clone();
             self.ticker += 10;
             return Ok(Some((ticker_pre_update, true)));
+        }else if context.mmio().addr() == 0x40011504{
+            // log::info!("Ticker Access: {}", self.ticker);
+            let ticker_pre_update = self.ticker_rtc1.clone();
+            self.ticker_rtc1 += 10;
+            return Ok(Some((ticker_pre_update, true)));
+        } 
+        else if context.mmio().addr() == 0x40024000{
+            // log::info!("Ticker Access: {}", self.ticker);
+            let ticker_pre_update = self.ticker_rtc2.clone();
+            self.ticker_rtc2 += 10;
+            return Ok(Some((ticker_pre_update, true)));   
         }
-
+        // Hadle manually timer irq enent enable
+        else if context.mmio().addr() == 0x40008304{
+            let event_read_en0 = self.event_en_nrf0.clone();
+            return Ok(Some((event_read_en0, true))); 
+        }
+        else if context.mmio().addr() == 0x40009304{
+            let event_read_en1 = self.event_en_nrf1.clone();
+            return Ok(Some((event_read_en1, true))); 
+        }
+        else if context.mmio().addr() == 0x4000A304{
+            let event_read_en2 = self.event_en_nrf2.clone();
+            return Ok(Some((event_read_en2, true))); 
+        }
+        else if context.mmio().addr() == 0x4001A304{
+            let event_read_en3 = self.event_en_nrf3.clone();
+            return Ok(Some((event_read_en3, true))); 
+        }
+        else if context.mmio().addr() == 0x4001B304{
+            let event_read_en4 = self.event_en_nrf4.clone();
+            return Ok(Some((event_read_en4, true))); 
+        }
+        // Hadle egu event check
+        else if context.mmio().addr() == 0x4001413C{
+            let event_check0 = self.egu_event_check0.clone();
+            return Ok(Some((event_check0, true))); 
+        }
+        else if context.mmio().addr() == 0x4001410C{
+            let event_check1 = self.egu_event_check1.clone();
+            return Ok(Some((event_check1, true))); 
+        }
+        else if context.mmio().addr() == 0x40014100{
+            let event_check2 = self.egu_event_check2.clone();
+            return Ok(Some((event_check2, true))); 
+        }
+        else if context.mmio().addr() == 0x40014108{
+            let event_check3 = self.egu_event_check3.clone();
+            return Ok(Some((event_check3, true))); 
+        }
         // unwrap input file
         let input = self.input.as_mut().expect("input file missing");
 
@@ -283,6 +367,28 @@ impl<I: Input + Debug> Hardware<I> {
             // TODO: overlapping initial_values with values != 0 can cause issues
             // this should never happen with fuzzware models, but a warning/error would be nice
             self.memory.write(mmio.addr(), data, size);
+        }
+        // handle timer event enable
+        if context.mmio().addr() == 0x40008304 {
+            self.event_en_nrf0 = data;
+        }else if context.mmio().addr() == 0x40009304 {
+            self.event_en_nrf1 = data;
+        }else if context.mmio().addr() == 0x4000A304 {
+            self.event_en_nrf2 = data;
+        }else if context.mmio().addr() == 0x4001A304 {
+            self.event_en_nrf3 = data;
+        }else if context.mmio().addr() == 0x4001B304 {
+            self.event_en_nrf4 = data;
+        }
+        // handle egu event check
+        else if context.mmio().addr() == 0x4001413C {
+            self.egu_event_check0 = data;
+        }else if context.mmio().addr() == 0x4001410C {
+            self.egu_event_check2 = data;
+        }else if context.mmio().addr() == 0x40014100 {
+            self.egu_event_check3 = data;
+        }else if context.mmio().addr() == 0x40014108 {
+            self.egu_event_check3 = data;
         }
         log::trace!("[WRITE] {:x?} data: {:x}", context, data);
     }

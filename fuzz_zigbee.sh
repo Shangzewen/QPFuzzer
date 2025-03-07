@@ -18,7 +18,7 @@ cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- \
     fuzz \
     --statistics \
     --archive-dir $CORPUS_FOLDER \
-    | tee $TARGET_ZEPHYR/log-fuzzing.txt >/dev/null
+    | tee $TARGET_ZEPHYR/log-fuzzing2.txt >/dev/null
 
 # cd target-zephyr/runs/
 # tar -I zstd -xf Hoedur.corpus.tar.zst

@@ -18,6 +18,7 @@ pub fn main(api) {
 
     //  ------------ Test udp Socket ---------------
     api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
+    // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::send_socket_data("hello"));
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
 
     //  ------------ Hook Link Layer Packets ------------
@@ -154,6 +155,8 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
+        // Normal case need to sart the transmission at here
+        common::send_socket_data("hello");
         // enable the data_connection_flag for fuzzing from scrach
         cfg.data_connection = false;
       });
