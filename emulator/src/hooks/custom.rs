@@ -18,7 +18,7 @@ use endiannezz::Primitive;
 use frametracer::AccessType;
 use modeling::{hardware::Interrupt, mmio::aligned};
 use parking_lot::{const_mutex, Mutex};
-use qemu_rs::{memory::MemoryType, qcontrol, qcontrol_mut, Address, MmioAddress, Register, USize};
+use qemu_rs::{memory::MemoryType, qcontrol, qcontrol_mut, Address, MmioAddress, Register, USize, register_basic_block_hook};
 use rune::{
     macros::{quote, FormatArgs, MacroContext, Quote, TokenStream},
     parse::Parser,
@@ -415,7 +415,7 @@ impl HookScript {
                     && api.interrupt.is_empty()
                     && api.memory_access.is_empty())
             {
-                log::warn!(
+                log::info!(
                     "Script {:?} added debug hooks while not in debug-mode, these hooks will not be executed",
                     script_path(script, &sources)
                 );
@@ -423,7 +423,7 @@ impl HookScript {
 
             // warn when basic block hooks are present in non-trace run
             if !trace && !api.basic_block.is_empty() {
-                log::warn!(
+                log::info!(
                     "Script {:?} added basic block hooks while not in trace-mode, these hooks will not be executed",
                     script_path(script, &sources)
                 );
@@ -431,7 +431,7 @@ impl HookScript {
 
             // warn when instruction hooks are present in non-trace run
             if !trace && !api.instruction.is_empty() {
-                log::warn!(
+                log::info!(
                     "Script {:?} added instruction hooks while not in trace-mode, these hooks will not be executed",
                     script_path(script, &sources)
                 );
@@ -752,6 +752,8 @@ impl ScriptApi {
      */
     fn on_basic_block(&mut self, pc: Option<Address>, function: Function) {
         log::debug!("api.on_basic_block({:x?}, {})", pc, function.type_hash());
+        register_basic_block_hook(pc);
+        
         self.basic_block
             .entry(BasicBlockFilter { pc })
             .or_default()

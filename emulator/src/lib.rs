@@ -235,7 +235,7 @@ impl<I: Input + Debug> EmulatorData<I> {
         });
 
         let relevant_edges = self.relevant_edges;
-        // log::info!("Relevant Edges: {relevant_edges}");
+        log::info!("Relevant Edges: {relevant_edges}");
 
         Ok(ExecutionResult {
             counts: self.counts.clone(),
@@ -533,35 +533,35 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
         // if pc == 0x684d0
         // nrf_egu_event_clear
         // if pc == 0x0001bad0
-        if pc == 0x00019444
-        {
-            // let cpu_state = qemu_rs::qcontrol();
-            // Register
-            let r0_addr=qcontrol().register(Register::R0);
-            let target_irq_num = (r0_addr >> 12) & 0x000001FF;
-            log::info!("This is target irq num: (0x{target_irq_num:08X})");
-            let dec_targer_irq_num = target_irq_num as i32;
-            log::info!("This is target irq num: ({dec_targer_irq_num})");
-            //TODO: enable IRQ
-            let irq_address = 0xe000e100 + ((target_irq_num >> 5) << 2);
-            log::info!("This is target irq_address: (0x{irq_address:08X})");
+        // if pc == 0x00019444
+        // {
+        //     // let cpu_state = qemu_rs::qcontrol();
+        //     // Register
+        //     let r0_addr=qcontrol().register(Register::R0);
+        //     let target_irq_num = (r0_addr >> 12) & 0x000001FF;
+        //     log::info!("This is target irq num: (0x{target_irq_num:08X})");
+        //     let dec_targer_irq_num = target_irq_num as i32;
+        //     log::info!("This is target irq num: ({dec_targer_irq_num})");
+        //     //TODO: enable IRQ
+        //     let irq_address = 0xe000e100 + ((target_irq_num >> 5) << 2);
+        //     log::info!("This is target irq_address: (0x{irq_address:08X})");
             
 
-            let irq_value = 1 << (target_irq_num & 0x1F);
-            log::info!("This is target irq_value: (0x{irq_value:08X})");
-            // let exe_inter = Exception::from(dec_targer_irq_num);
-            // let exe_inter = Exception::from(20);
-            //qemu_rs::qcontrol().nvic_exception().
-            // let result_on_write =qemu_rs::QemuCallback::on_write(self, pc, irq_address, irq_value, 4);
-            // log::info!("This is the result_on_write {result_on_write:?}");
-            // let result_on_read =qemu_rs::QemuCallback::on_read(self, pc, irq_address,4);
-            // log::info!("This is the result_on_read {result_on_read:?}");
-            // let result = qemu_rs::qcontrol_mut().write(irq_address, irq_value);
-            // // qemu_rs::qcontrol_mut().write_from(address, data)
-            // log::info!("This is the result {result:?}");
-            // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x8)));
-            // log::info!("This is r0 address: (0x{r0_addr:08X})");
-        }
+        //     let irq_value = 1 << (target_irq_num & 0x1F);
+        //     log::info!("This is target irq_value: (0x{irq_value:08X})");
+        //     // let exe_inter = Exception::from(dec_targer_irq_num);
+        //     // let exe_inter = Exception::from(20);
+        //     //qemu_rs::qcontrol().nvic_exception().
+        //     // let result_on_write =qemu_rs::QemuCallback::on_write(self, pc, irq_address, irq_value, 4);
+        //     // log::info!("This is the result_on_write {result_on_write:?}");
+        //     // let result_on_read =qemu_rs::QemuCallback::on_read(self, pc, irq_address,4);
+        //     // log::info!("This is the result_on_read {result_on_read:?}");
+        //     // let result = qemu_rs::qcontrol_mut().write(irq_address, irq_value);
+        //     // // qemu_rs::qcontrol_mut().write_from(address, data)
+        //     // log::info!("This is the result {result:?}");
+        //     // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x8)));
+        //     // log::info!("This is r0 address: (0x{r0_addr:08X})");
+        // }
 
         // TODO::IRQ Handler for zigbee
 
@@ -569,15 +569,33 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
         let new_edge = qemu_rs::coverage::add_basic_block(pc as u64);
 
         // if new_edge && (pc == 0x1C528 || pc == 0x1C51C || pc == 0x1772C || pc == 0x178F4 || pc == 0x178A4 || pc == 0x17C50) {
-        if new_edge && (pc == 0x1BAA4 ) {
+        if new_edge {
 
             // self.relevant_edges += 1;
             match pc {
                 // relevant edge for zigbee
-                0x1BAA4 => {
+                0x1ba98 => {
                     self.relevant_edges += 10;
                     log::info!("Relevant Edge: egu_task_trigger (0x{pc:08X})");
                 },
+                0x1a8b8 => { // nrf_802154_core_transmit
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: nrf_802154_core_transmit (0x{pc:08X})");
+                },
+                0x1a830 => { // nrf_802154_core_receive
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: nrf_802154_core_receive (0x{pc:08X})");
+                },
+                0x1d950 => { // irq_handler_sync
+                    self.relevant_edges += 50;
+                    log::info!("Relevant Edge: irq_handler_sync (0x{pc:08X})");
+                },
+                0x94092 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: rx_timeslot_started_callback (0x{pc:08X})");
+                },
+                // 
+                // 
                 // relevant edge for ble
                 // 0x1b620 => {
                 //     self.relevant_edges += 100;

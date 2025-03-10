@@ -1,7 +1,8 @@
-use std::sync::atomic::Ordering;
+use std::{ops::Add, sync::atomic::Ordering};
 
-use log::Level;
+use log::{logger, Level};
 use qemu_sys::{tcg::TcgCallback, tcg_function};
+use once_cell::sync::OnceCell;
 
 use crate::{
     coverage,
@@ -13,6 +14,7 @@ use crate::{
 };
 
 static mut NEXT_BASIC_BLOCK_HOOK: u64 = 0;
+static mut BASIC_BLOCK_HOOKS: Vec<u64> = Vec::new();
 
 pub fn set_next_basic_block_hook(bb_count: u64) {
     log::trace!("set_next_basic_block_hook(bb_count = {})", bb_count);
@@ -71,6 +73,13 @@ tcg_function! {
     pub(crate) fn basic_block_hook(pc: u64) {
         let next_hook = unsafe { NEXT_BASIC_BLOCK_HOOK.wrapping_sub(1) };
         unsafe { NEXT_BASIC_BLOCK_HOOK = next_hook };
+
+        unsafe {
+            if (BASIC_BLOCK_HOOKS.contains(&pc)){
+                basic_block_hook_extended(pc);
+                return;
+            }
+        }
 
         if next_hook == 0 {
             basic_block_hook_extended(pc);
@@ -146,5 +155,14 @@ pub(super) fn register_hooks() {
 
     unsafe {
         qemu_sys::tb_start_hook = Some(tb_start_hook_rs);
+    }
+}
+
+pub fn register_basic_block_hook(pc: Option<Address>){
+    unsafe {
+        if let Some(addr) = pc {
+            BASIC_BLOCK_HOOKS.push(u64::from(addr));
+            log::info!("register_basic_block_hook: {addr:08X} registered!");
+        }        
     }
 }

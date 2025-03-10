@@ -44,17 +44,20 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("zigbee_enable")?), |_| log::info!("===========zigbee_enable=========="));
     // api.on_instruction(Some(symbolizer::resolve("process_channel")?), |_| log::info!("===========process_channel=========="));
     // api.on_instruction(Some(symbolizer::resolve("timer_handler")?), |_| log::info!("===========timer_handler=========="));
-    api.on_instruction(Some(symbolizer::resolve("frame_transmit")?), |_| log::info!("===========frame_transmit=========="));
-    api.on_instruction(Some(symbolizer::resolve("nrf_802154_core_transmit")?), |_| log::info!("===========nrf_802154_core_transmit=========="));
-    api.on_instruction(Some(symbolizer::resolve("tx_init")?), |_| log::info!("===========tx_init=========="));
-    api.on_instruction(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
-    api.on_instruction(Some(symbolizer::resolve("rx_init")?), |_| log::info!("===========rx_init=========="));
-    api.on_instruction(Some(symbolizer::resolve("nrf_raal_init")?), |_| log::info!("===========nrf_raal_init=========="));
-    
+    // api.on_basic_block(Some(symbolizer::resolve("mpsl_init")?), |_| log::info!("===========mpsl_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("frame_transmit")?), |_| log::info!("===========frame_transmit=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_transmit")?), |_| log::info!("===========nrf_802154_core_transmit=========="));
+    api.on_basic_block(Some(symbolizer::resolve("tx_init")?), |_| log::info!("===========tx_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
+    api.on_basic_block(Some(symbolizer::resolve("rx_init")?), |_| log::info!("===========rx_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_raal_init")?), |_| log::info!("===========nrf_raal_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("rx_timeslot_started_callback")?), |_| log::info!("===========rx_timeslot_started_callback=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_receive")?), |_| log::info!("===========nrf_802154_core_receive=========="));
+
     //  return 1 for timeslot_is_granted only when tx_init was called
     // api.on_instruction(Some(symbolizer::resolve("tx_init")?), |_| memory::write_u8(0x20008ae7, 1));
-    api.on_instruction(Some(0x0001caf0), |_| log::info!("===========Am I reaching here??=========="));
-    api.on_instruction(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========Am I reaching here??=========="));
+    // api.on_basic_block(Some(0x0001caf0), |_| log::info!("===========Am I reaching here??=========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync=========="));
     // api.on_instruction(Some(0x1d982), |_| register::write("r3",0x0)?);
     // api.on_instruction(Some(0x1d982), |_| register::read("r3")?);
     
@@ -66,7 +69,7 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
     // api.on_instruction(Some(symbolizer::resolve("zb_mac_send_beacon_request_command")?), |_| log::info!("===========zb_mac_send_beacon_request_command=========="));
 
-    // api.on_instruction(Some(0x1baa4), |_| log::info!("===========nrf_egu_task_trigger==========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_egu_task_trigger")?), |_| log::info!("===========nrf_egu_task_trigger==========="));
     // api.on_instruction(Some(symbolizer::resolve("nrf_egu_task_trigger")?), |_| register::read("pc")?);
    
     // force to start steering at the begining
@@ -83,7 +86,7 @@ pub fn main(api) {
     // api.on_instruction(Some(0x0000233e), |_| register::write("r0",0x0)?);
     // api.on_instruction(Some(0x0001911c), |_| register::read("r0")?);
     // patch prority function mpsl
-    api.on_instruction(Some(0x000008c0), |_| memory::write_u16(0x20000f68,0x0569)?);
+    // api.on_basic_block(Some(0x000008c0), |_| memory::write_u16(0x20000f68,0x0569)?);
     // test irq number 1
     // api.on_instruction(Some(0xa30e), |_| register::write("r3",0x01)?);
     // api.on_instruction(Some(0x0001911c), |_| register::read("r3")?);
@@ -117,7 +120,7 @@ pub fn main(api) {
     
       // TX
       // need to +1 for the address in r0 to shift right for one byte to get the real data
-      api.on_instruction(Some(symbolizer::resolve("tx_init")?), 
+      api.on_basic_block(Some(symbolizer::resolve("tx_init")?), 
                 |_| handle_link_layer_packet(cfg, register::read("r0")?, 1));
       // RX
       // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), 
@@ -301,10 +304,7 @@ pub fn main(api) {
   // }
 
   fn apply_patches() {
-    common::patch_function("z_tick_sleep", arm::RETURN);
-    // common::patch_function("mpsl_init", arm::RETURN_0);
-    // common::patch_function("mpsl_fem_init", arm::RETURN_0);
-    // common::patch_function("mpsl_lib_init_internal", arm::RETURN_0);
+    // common::patch_function("z_tick_sleep", arm::RETURN);
     common::patch_function("CC_PalMutexCreate", arm::RETURN_0);
     common::patch_function("CC_PalPowerSaveModeSelect", arm::RETURN_0);
     common::patch_function("cc_mbedtls_platform_zeroize", arm::RETURN);
@@ -314,7 +314,6 @@ pub fn main(api) {
     common::patch_function("z_impl_device_is_ready", arm::RETURN_1);
     common::patch_function("z_impl_entropy_get_entropy", arm::RETURN_0);
     common::patch_function("delay_machine_code.0", arm::RETURN_1);
-    common::patch_function("arch_cpu_atomic_idle", arm::RETURN);
     common::patch_function("nrfy_pwm_int_init", arm::RETURN);
     common::patch_function("pinctrl_configure_pins", arm::RETURN_0);
     common::patch_function("nrf_clock_is_running", arm::RETURN_1);
@@ -322,7 +321,6 @@ pub fn main(api) {
     common::patch_function("pinctrl_apply_state", arm::RETURN_0);
     common::patch_function("pm_device_driver_init", arm::RETURN_0);
     common::patch_function("is_tx_ready", arm::RETURN_1);
-    // common::patch_function("set_cc", arm::RETURN_0);
     common::patch_function("log_output_process", arm::RETURN);
     common::patch_function("nrf_event_readback", arm::RETURN);
     common::patch_function("zb_trace_msg_port_vl", arm::RETURN_0);
@@ -333,69 +331,37 @@ pub fn main(api) {
     // -----------------------------------------------------------
     common::patch_function("nrf_egu_event_check", arm::RETURN_1);
     common::patch_function("nrf_egu_int_enable_check", arm::RETURN_1);
-    common::patch_function("mpsl_clock_hfclk_request", arm::RETURN_0);
+    common::patch_function("mpsl_temperature_get", arm::RETURN_(112));
     common::patch_function("rand_get", arm::RETURN_0);
     common::patch_function("zb_random_seed", arm::RETURN_2);
     common::patch_function("nrf_timer_event_check", arm::RETURN_1);
     common::patch_function("timeslot_is_granted", arm::RETURN_1);
     common::patch_function("remaining_timeslot_time_is_enough_for_crit_sect", arm::RETURN_1);
-    // common::patch_function("sym_NFDFVOR5BUFND4TNTGYIYR4ARXJRXWSQ4PVFUKY", arm::RETURN_1);
-    
-    // common::patch_function("sym_FYHKZOVAJN6VDDHY43FT7PF4YLRDHWRTEWHFG6I", arm::RETURN_0);
-    // common::patch_function("receive_frame_abort", arm::RETURN);
-    // common::patch_function("zb_osif_disable_all_inter", arm::RETURN);
-    // common::patch_function("sym_DCDRLVBT43ANSLX3KNDZ4TST3Z3CVWXAQQUSXQQ", arm::RETURN);
-    // common::patch_function("sym_S2UAPMFVIQXDUOA6CV7GJMB33TYHEUH5D6LHO5Q", arm::RETURN);
 
-
-    // force sym_4PX37LW4KIUYQZ73JWLPH5GAGIRWAKTV3E6F62Q to return 0
-    // common::patch_address(0x0000233e, [0x01, 0x28]);
-    
     
     // force the loop to enter steering 
     common::patch_address(0x000266a2, [0x01, 0x2b]);
-    // force to branch to radio_irq_handler
-    // common::patch_address(0x0000237c, [0x1b,0xf0,0xf8,0xfa]);
-    //force the nef_802154_radio_irq_handler() first condition to return false for nre)egu_int_able_check
-    // common::patch_address(0x0001d982, [0x01, 0x2b]);
     // patch the timer check to froce the meulation think the timeslot time left 
-    // is enough for the transmiation
     common::patch_function("nrf_raal_timeslot_request", arm::RETURN_1);
     // force to make sure the current prority is high enough
-    common::patch_function("is_state_allowed_for_prio", arm::RETURN_1);
+    // common::patch_function("is_state_allowed_for_prio", arm::RETURN_1);
     // -----------------------------------------------------------
 
-
-    // --------------------------TODO
     common::patch_function("zb_nvram_load", arm::RETURN);
     common::patch_function("zb_nvram_write_dataset", arm::RETURN);
     common::patch_function("zb_nvram_dataset_is_supported", arm::RETURN_0);
     common::patch_function("nrf_802154_random_init", arm::RETURN_0);
-    common::patch_function("sym_76IVKPQMZOZ7IXNJTGMWOSIWIVCASAX3TTNHN7I", arm::RETURN_0);
+    common::patch_function("sym_76IVKPQMZOZ7IXNJTGMWOSIWIVCASAX3TTNHN7I", arm::RETURN_1); // Read LFCLKSTAT 0x40000418
     common::patch_function("rng_pool_get", arm::RETURN_1);
     // common::patch_function("nrf_802154_queue_is_empty", arm::RETURN_0);
-
-
-
     // common::patch_function("active_vector_priority_is_high", arm::RETURN_1);
 
-    common::patch_address(0x0000b732, arm::NOP);
-    common::patch_address(0x0000c612, arm::NOP);
-    common::patch_address(0x0000ca4a, arm::NOP);
-    common::patch_address(0x00016d6a, arm::NOP);
-    common::patch_address(0x0001756a, arm::NOP);
-    common::patch_address(0x00017b3a, arm::NOP);
     
     common::patch_function("qspi_nor_init", arm::RETURN_0);
     common::patch_function("settings_subsys_init", arm::RETURN_0);
     common::patch_function("nrfx_gpiote_0_irq_handler", arm::RETURN);
 
-    // common::patch_function("lll_preempt_calc", arm::RETURN_0); // **
-
-    // common::patch_function("isr_race", arm::RETURN);
-  
-    // Fix memcmp on scan_req addr check
-    // brach to _swi_irq_handler 0x00092f7a
+    // nrf_egu_task_trigger - Force branch to _swi_irq_handler
     common::patch_address(0x0001bac0, [0x77, 0xf0, 0x5b, 0xfa]);
     common::patch_address(0x0001bac8, [0x00, 0xbf]);
     

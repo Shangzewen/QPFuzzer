@@ -23,7 +23,7 @@ pub mod coverage;
 pub mod memory;
 
 pub use arch::*;
-pub use hook::basic_block::{get_next_basic_block_hook, set_next_basic_block_hook};
+pub use hook::basic_block::{get_next_basic_block_hook, set_next_basic_block_hook, register_basic_block_hook};
 pub use interrupt::request_interrupt_injection;
 pub use interrupt::request_interrupt_injection_imm;
 pub use qcontrol::{MemoryBlock, QemuStateControl};

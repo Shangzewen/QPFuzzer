@@ -5,7 +5,7 @@ interrupt:
   mode: fuzzed
   trigger:
     on-infinite-sleep: false
-    interval: 1000
+    interval: 500
     custom:
       - name: idle_interrupt
         symbol: arch_cpu_idle
@@ -37,9 +37,13 @@ memory_maps:
     address: 0x20000000
     size: 0x100000
     type: ram
+  - name: mmio
+    address: 0x10000000
+    size: 0x10000000
+    type: mmio
   - name: text
     address: 0x0000000
-    size: 0x20000000
+    size: 0x10000000
     type: rom
     file:
       path: zephyr.bin

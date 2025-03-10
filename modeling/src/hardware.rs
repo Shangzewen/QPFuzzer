@@ -39,7 +39,7 @@ pub struct Hardware<I: Input + Debug> {
     memory: Memory,
     input: Option<I>,
     access_log: Vec<InputContext>,
-    ticker: USize,
+    ticker_rtc0: USize,
     ticker_rtc1: USize,
     ticker_rtc2: USize,
     event_en_nrf0:USize,
@@ -72,7 +72,7 @@ impl<I: Input + Debug> Hardware<I> {
             memory: Memory::new(),
             input: None,
             access_log: vec![],
-            ticker: 0,
+            ticker_rtc0: 0,
             ticker_rtc1: 0,
             ticker_rtc2: 0,
             event_en_nrf0:0,
@@ -92,7 +92,7 @@ impl<I: Input + Debug> Hardware<I> {
         debug_assert!(self.access_log.is_empty());
 
         self.input = Some(input);
-        self.ticker = 0 ;
+        self.ticker_rtc0 = 0 ;
         self.ticker_rtc1 = 0;
         self.ticker_rtc2 = 0;
         self.event_en_nrf0=0;
@@ -143,21 +143,24 @@ impl<I: Input + Debug> Hardware<I> {
     ) -> Result<Option<(USize, bool)>> {
 
         // Handle manually specified timers
-        if context.mmio().addr() == 0x4000b504 {
+        if context.mmio().addr() == 0x4000b104 {
+            return Ok(Some((0, true)));
+        }
+        else if context.mmio().addr() == 0x4000b504 {
             // log::info!("Ticker Access: {}", self.ticker);
-            let ticker_pre_update = self.ticker.clone();
-            self.ticker += 10;
+            let ticker_pre_update = self.ticker_rtc0.clone();
+            self.ticker_rtc0 += 1;
             return Ok(Some((ticker_pre_update, true)));
         }else if context.mmio().addr() == 0x40011504{
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc1.clone();
-            self.ticker_rtc1 += 10;
+            self.ticker_rtc1 += 1;
             return Ok(Some((ticker_pre_update, true)));
         } 
         else if context.mmio().addr() == 0x40024000{
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc2.clone();
-            self.ticker_rtc2 += 10;
+            self.ticker_rtc2 += 1;
             return Ok(Some((ticker_pre_update, true)));   
         }
         // Hadle manually timer irq enent enable
