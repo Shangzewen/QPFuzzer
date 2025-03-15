@@ -14,7 +14,7 @@ members = [
     "modeling",
     "qemu-build",
     "qemu-rs",
-    "qemu-sys",
+    "qemu-sys", "radio",
     "scripts/test_python_rust", "scripts/test_rust", "scripts/unix_socket"]
 
 [profile.release]

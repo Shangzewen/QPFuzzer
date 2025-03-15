@@ -58,6 +58,8 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("tx_init")?), |_| memory::write_u8(0x20008ae7, 1));
     // api.on_basic_block(Some(0x0001caf0), |_| log::info!("===========Am I reaching here??=========="));
     api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), |_| log::info!("===========nrf_802154_trx_receive_buffer_set=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), |_| register::read("r0")?);
     // api.on_instruction(Some(0x1d982), |_| register::write("r3",0x0)?);
     // api.on_instruction(Some(0x1d982), |_| register::read("r3")?);
     
@@ -123,8 +125,8 @@ pub fn main(api) {
       api.on_basic_block(Some(symbolizer::resolve("tx_init")?), 
                 |_| handle_link_layer_packet(cfg, register::read("r0")?, 1));
       // RX
-      // api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), 
-      //           |_| handle_link_layer_packet(cfg, register::read("r0")?, 0));
+      api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), 
+                |_| handle_link_layer_packet(cfg, register::read("r0")?, 0));
       
   }
   fn handle_link_layer_packet(cfg, pkt_buf_addr, direction) {
@@ -158,126 +160,74 @@ pub fn main(api) {
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" TX Pkt. Bytes: {}", pkt_hex);
     }
+    else {
+      if cfg.log_details {
+        log::info!("<============> RX PKT <============>");
+      }
+      let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
+      log::info!("Pkt Raw: {}",rx_pdu);
+      let test_str = "";
+
+      // // ADV Channel
+      // if cfg.data_connection == false {
+      //   if cfg.sequence == 0 {
+      //     // Scan Request
+      //     // rx_pdu = common::get_adv_rpl_data();
+      //     rx_pdu = common:: get_rx_data();
+      //     log::info!("RX adv: {}", rx_pdu);
+      //   }
+      //   else if cfg.sequence >= 1 {
+      //     log::info!("RX adv: {}", rx_pdu);
+
+      //     // rx_pdu = common::get_adv_rpl_data();
+      //     rx_pdu = common:: get_rx_data();
+
+      //     cfg.data_connection = true; // Switch to data channel
+      //   }
+      //   else {
+      //     cfg.sequence = cfg.sequence + 1;
+      //     return;
+      //   }
+      // }
+      // else {
+      //   // set initial flag
+      //   if cfg.initial_pdu_flag == true{
+      //     cfg.initial_pdu_flag = false;
+      //     // rx_pdu = common::get_empty_pdu_data();
+      //     rx_pdu = common:: get_rx_data();
+
+      //     // log::info!("<============> initial_empty_pdu received <============>");
+      //   }
+      //   else{
+      //     // rx_pdu = common::get_data_rpl_data();
+      //     rx_pdu = common:: get_rx_data();
+
+      //     log::info!("RX data pdu: {}", rx_pdu);
+      //     //  log::info!("<============> rx_pdu received <============>");
+      //   }
+      // }
+
+      cfg.sequence = cfg.sequence + 1;
+      
+      let data = common::decode_hex(rx_pdu)?;
+      // log::info!("Pkt Raw: {}",data);
+      for (i, v) in data.iter().enumerate() {
+        memory::write_u8(pkt_buf_addr + i, v);
+      }
+
+      // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
+      // log::info!("RX <--- {}", pkt_summary);
+      let pkt_data = memory_read_buffer(pkt_buf_addr, 29);
+      let pkt_hex = common::encode_hex(pkt_data);
+      log::info!(" RX Pkt. Bytes: {}", pkt_hex);
+      if cfg.log_details {
+          log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
+          log::info!("Pkt. Length: {}", data[1]);
+          log::info!("Pkt. Bytes: {}", rx_pdu);
+        }
+    }
   }
 
-
-  // fn handle_link_layer_packet(cfg, pkt_buf_addr, direction) {
-  //   // let pkt_hex = "";
-
-  //   if (direction == 1) {
-  //     if cfg.log_details {
-  //       log::info!("<============> TX PKT <============>");
-  //     }
-  //     let pkt_hdr = memory::read_u8(pkt_buf_addr)?;
-  //     let pdu_length = memory::read_u8(pkt_buf_addr+1)?;
-  //     if (pdu_length == 0 && pkt_hdr == 0) {return;}
-  //     if (pdu_length == 0)
-  //     {
-  //       cfg.pkt_length = pdu_length + 3;
-  //     }
-  //     else{
-  //       cfg.pkt_length = pdu_length + 1;
-  //     }
-  //     // println!("This is pkt_length {}", cfg.pkt_length);
-  //     // if (cfg.pkt_length > 20){
-  //     //   cfg.data_connection = false;
-  //     //   log::info!("Received adv packet!");
-  //     // }else{
-  //     //   cfg.data_connection = true;
-  //     //   log::info!("Received data packet!");
-
-  //     // }
-  //     let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
-  //     let pkt_hex = common::encode_hex(pkt_data);
-  //     log::info!(" TX Pkt. Bytes: {}", pkt_hex);
-
-  //     let pkt_summary = common::parse_packet("ble", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
-  //     if pkt_summary.contains("BTLE_ADV_IND") {
-  //       // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
-  //       if cfg.adv_ind_flag == false {
-  //         cfg.adv_ind_flag = true;
-  //         common::update_tx_data(pkt_hex);
-  //       }
-  //       else{
-  //         return
-  //       }
-  //     }
-  //     else{
-  //       common::update_tx_data(pkt_hex);
-  //     }
-  //     if cfg.log_details {
-  //       log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-  //       log::info!("Pkt. Length: {}", cfg.pkt_length);
-  //       log::info!("Pkt. Bytes: {}", pkt_hex);
-  //       log::info!("Pkt. Bytes: {}", pkt_hex);
-
-  //     }
-
-  //     log::info!("TX ---> {}", pkt_summary);
-  //   }
-  //   else {
-  //     if cfg.log_details {
-  //       log::info!("<============> RX PKT <============>");
-  //     }
-  //     let rx_pdu = "";
-  //     let test_str = "";
-
-  //     // ADV Channel
-  //     if cfg.data_connection == false {
-  //       if cfg.sequence == 0 {
-  //         // Scan Request
-  //         // rx_pdu = common::get_adv_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-  //         log::info!("RX adv: {}", rx_pdu);
-  //       }
-  //       else if cfg.sequence >= 1 {
-  //         log::info!("RX adv: {}", rx_pdu);
-
-  //         // rx_pdu = common::get_adv_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         cfg.data_connection = true; // Switch to data channel
-  //       }
-  //       else {
-  //         cfg.sequence = cfg.sequence + 1;
-  //         return;
-  //       }
-  //     }
-  //     else {
-  //       // set initial flag
-  //       if cfg.initial_pdu_flag == true{
-  //         cfg.initial_pdu_flag = false;
-  //         // rx_pdu = common::get_empty_pdu_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         // log::info!("<============> initial_empty_pdu received <============>");
-  //       }
-  //       else{
-  //         // rx_pdu = common::get_data_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         log::info!("RX data pdu: {}", rx_pdu);
-  //         //  log::info!("<============> rx_pdu received <============>");
-  //       }
-  //     }
-
-  //     cfg.sequence = cfg.sequence + 1;
-      
-  //     let data = common::decode_hex(rx_pdu)?;
-  //     for (i, v) in data.iter().enumerate() {
-  //       memory::write_u8(pkt_buf_addr + i, v);
-  //     }
-
-  //     let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
-  //     log::info!("RX <--- {}", pkt_summary);
-
-  //     if cfg.log_details {
-  //         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-  //         log::info!("Pkt. Length: {}", data[1]);
-  //         log::info!("Pkt. Bytes: {}", rx_pdu);
-  //       }
-  //   }
-  // }
 
   // // fn print_symbol_name(pc) {
   // //   if let Ok(symbol_name) = symbolizer::lookup(pc) {
@@ -320,7 +270,7 @@ pub fn main(api) {
     common::patch_function("z_nrf_clock_control_lf_on", arm::RETURN);
     common::patch_function("pinctrl_apply_state", arm::RETURN_0);
     common::patch_function("pm_device_driver_init", arm::RETURN_0);
-    common::patch_function("is_tx_ready", arm::RETURN_1);
+    // common::patch_function("is_tx_ready", arm::RETURN_1);
     common::patch_function("log_output_process", arm::RETURN);
     common::patch_function("nrf_event_readback", arm::RETURN);
     common::patch_function("zb_trace_msg_port_vl", arm::RETURN_0);
@@ -329,7 +279,7 @@ pub fn main(api) {
     common::patch_function("temp_nrf5_mpsl_sample_fetch", arm::RETURN_0);
     common::patch_function("light_bulb_set_brightness", arm::RETURN);
     // -----------------------------------------------------------
-    common::patch_function("nrf_egu_event_check", arm::RETURN_1);
+    // common::patch_function("nrf_egu_event_check", arm::RETURN_1);
     common::patch_function("nrf_egu_int_enable_check", arm::RETURN_1);
     common::patch_function("mpsl_temperature_get", arm::RETURN_(112));
     common::patch_function("rand_get", arm::RETURN_0);
@@ -340,7 +290,7 @@ pub fn main(api) {
 
     
     // force the loop to enter steering 
-    common::patch_address(0x000266a2, [0x01, 0x2b]);
+    // common::patch_address(0x000266a2, [0x01, 0x2b]);
     // patch the timer check to froce the meulation think the timeslot time left 
     common::patch_function("nrf_raal_timeslot_request", arm::RETURN_1);
     // force to make sure the current prority is high enough
@@ -362,8 +312,8 @@ pub fn main(api) {
     common::patch_function("nrfx_gpiote_0_irq_handler", arm::RETURN);
 
     // nrf_egu_task_trigger - Force branch to _swi_irq_handler
-    common::patch_address(0x0001bac0, [0x77, 0xf0, 0x5b, 0xfa]);
-    common::patch_address(0x0001bac8, [0x00, 0xbf]);
+    // common::patch_address(0x0001bac0, [0x77, 0xf0, 0x5b, 0xfa]);
+    // common::patch_address(0x0001bac8, [0x00, 0xbf]);
     
     // Branch to radio handler
     // Force zb_zdo_joined return 0
