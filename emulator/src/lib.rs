@@ -235,8 +235,9 @@ impl<I: Input + Debug> EmulatorData<I> {
         });
 
         let relevant_edges = self.relevant_edges;
-        log::info!("Relevant Edges: {relevant_edges}");
-
+        if (self.relevant_edges >0){
+            log::info!("Relevant Edges: {relevant_edges}");
+        }
         Ok(ExecutionResult {
             counts: self.counts.clone(),
             hardware: self
@@ -593,6 +594,10 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                 0x94092 => { // rx_timeslot_started_callback
                     self.relevant_edges += 100;
                     log::info!("Relevant Edge: rx_timeslot_started_callback (0x{pc:08X})");
+                },
+                0x8dd54 => { // nrf5_iface_init
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: nrf5_iface_init (0x{pc:08X})");
                 },
                 // 
                 // 

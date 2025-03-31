@@ -22,6 +22,7 @@ itertools = "0.10.5"
 libc = "0.2.142"
 log = "0.4.17"
 qemu-rs = { path = "../qemu-rs" }
+radio = { path = "../radio" }
 serde = { version = "1.0.162", features = ["derive", "rc"] }
 serde_yaml = "0.8.26"
 tar = "0.4.38"
