@@ -5,7 +5,7 @@ use std::io::{self, BufRead, BufReader, Write as IoWrite};
 use std::thread;
 use anyhow::{Context, Result};
 use parking_lot::Mutex;
-use qemu_rs::{Address, USize};
+use qemu_rs::{Address, USize, register_basic_block_hook};
 use rune::Module;
 use std::net::{SocketAddr, UdpSocket};
 
@@ -59,6 +59,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["get_empty_pdu_data"], get_empty_pdu_data)?;
     module.function(&["get_data_rpl_data"], get_data_rpl_data)?;
     module.function(&["parse_packet"], parse_packet)?;
+    module.function(&["register_basic_block"], register_basic_block)?;
 
     Ok(module)
 }
@@ -465,15 +466,15 @@ fn get_rx_data() -> String {
 fn clear_tx_data(){
     tx_data.lock().clear();
     // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
-    if flagdata.lock().clone() == "1" {
-        flagdata.lock().clear();
-        // flagdata.lock().push_str("0");
-        tx_data.lock().push_str("0500A0320D");
-    }else{
-        tx_data.lock().push_str("602324D25A24D25A02010607030D180F1805181107F0DEBC9A785634127856341278563412387D62");
-    }
-    // println!("This is tx_data_buffer_after_push: {}",tx_data.lock().clone());
-    log::info!("Start from beagining, update tx_buffer")
+    // if flagdata.lock().clone() == "1" {
+    //     flagdata.lock().clear();
+    //     // flagdata.lock().push_str("0");
+    //     tx_data.lock().push_str("0500A0320D");
+    // }else{
+    //     tx_data.lock().push_str("602324D25A24D25A02010607030D180F1805181107F0DEBC9A785634127856341278563412387D62");
+    // }
+    // // println!("This is tx_data_buffer_after_push: {}",tx_data.lock().clone());
+    // log::info!("Start from beagining, update tx_buffer")
 }
 
 fn get_empty_pdu_data() -> String {
@@ -483,4 +484,8 @@ fn get_empty_pdu_data() -> String {
 fn update_rx_data(rx: String) {
     rx_data.lock().clear();
     rx_data.lock().push_str(&rx);
+}
+
+fn register_basic_block(address: Address) {
+    register_basic_block_hook(Some(address));
 }
