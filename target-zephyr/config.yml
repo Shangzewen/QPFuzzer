@@ -39,23 +39,23 @@ memory_maps:
       path: zephyr.bin
 
 
-debug_hooks:
-  - symbol: printk
-    type: printf
-  - symbol: assert_print
-    type: printf
-  - symbol: vprintk
-    type: sprintf
-  - symbol: vfprintf
-    type: sprintf-va-list
-  - symbol: print_formatted
-    type: sprintf
-  - symbol: z_impl_z_log_msg_simple_create_0
-    type: sprintf2
-  - symbol: z_impl_z_log_msg_simple_create_1
-    type: sprintf2
-  - symbol: z_impl_z_log_msg_simple_create_2
-    type: sprintf2
+# debug_hooks:
+#   - symbol: printk
+#     type: printf
+#   - symbol: assert_print
+#     type: printf
+#   - symbol: vprintk
+#     type: sprintf
+#   - symbol: vfprintf
+#     type: sprintf-va-list
+#   - symbol: print_formatted
+#     type: sprintf
+#   - symbol: z_impl_z_log_msg_simple_create_0
+#     type: sprintf2
+#   - symbol: z_impl_z_log_msg_simple_create_1
+#     type: sprintf2
+#   - symbol: z_impl_z_log_msg_simple_create_2
+#     type: sprintf2
 
 exit_hooks:
   - name: arch_system_halt

@@ -12,13 +12,13 @@ export CORPUS_FOLDER=$TARGET_ZEPHYR/runs
 
 
 cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- \
-    --config $TARGET/config.yml \
+    --config $TARGET_ZEPHYR/config.yml \
     --hook $HOOK_FILE \
-    --trace \
+    --debug \
     fuzz \
     --statistics \
     --archive-dir $CORPUS_FOLDER \
-    | tee $TARGET/log-fuzzing.txt >/dev/null
+    | tee $TARGET_ZEPHYR/log-fuzzing.txt
 
 # cd target-zephyr/runs/
 # tar -I zstd -xf Hoedur.corpus.tar.zst

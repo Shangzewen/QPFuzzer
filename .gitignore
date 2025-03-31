@@ -17,3 +17,5 @@ log.txt
 target-zephyr/runs/
 
 target-zephyr/zephyr.lock~
+
+target-zigbee/runs/
