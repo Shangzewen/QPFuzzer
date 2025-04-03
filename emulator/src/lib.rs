@@ -598,6 +598,14 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                 0x8dd54 => { // nrf5_iface_init
                     self.relevant_edges += 100;
                     log::info!("Relevant Edge: nrf5_iface_init (0x{pc:08X})");
+                },                
+                0x265e0 => {
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: bdb_network_steering_machine (0x{pc:08X})");
+                },
+                0x8fb82 => {
+                    self.relevant_edges += 10;
+                    log::info!("Relevant Edge: start_network_steering (0x{pc:08X})");
                 },
                 // 
                 // 

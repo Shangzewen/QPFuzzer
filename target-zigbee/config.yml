@@ -5,7 +5,7 @@ interrupt:
   mode: fuzzed
   trigger:
     on-infinite-sleep: false
-    interval: 500
+    interval: 2000
     custom:
       - name: idle_interrupt
         symbol: arch_cpu_idle

@@ -2,8 +2,10 @@ use std::{borrow::Cow, fmt::Debug, io::Write, mem, ops::Shr};
 
 use anyhow::{Context, Result};
 use common::FxHashMap;
-use qemu_rs::{Address, Exception, MmioAddress, USize};
+use qemu_rs::{Address, Exception, MmioAddress, USize, request_interrupt_injection};
 use radio::radio as radio_model;
+use radio::rtc as rtc_model;
+
 
 use crate::{
     input::{
@@ -41,6 +43,8 @@ pub struct Hardware<I: Input + Debug> {
     input: Option<I>,
     access_log: Vec<InputContext>,
     radio: radio_model::Radio,
+    rtc0: rtc_model::Rtc0,
+    rtc1: rtc_model::Rtc1,
     ticker_rtc0: USize,
     ticker_rtc1: USize,
     ticker_rtc2: USize,
@@ -78,6 +82,8 @@ impl<I: Input + Debug> Hardware<I> {
             input: None,
             access_log: vec![],
             radio: radio_model::Radio::new(),
+            rtc0: rtc_model::Rtc0::new(),
+            rtc1: rtc_model::Rtc1::new(),
             ticker_rtc0: 0,
             ticker_rtc1: 0,
             ticker_rtc2: 0,
@@ -159,18 +165,18 @@ impl<I: Input + Debug> Hardware<I> {
         else if context.mmio().addr() == 0x4000b504 {
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc0.clone();
-            self.ticker_rtc0 += 1;
+            self.ticker_rtc0 += 2;
             return Ok(Some((ticker_pre_update, true)));
         }else if context.mmio().addr() == 0x40011504{
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc1.clone();
-            self.ticker_rtc1 += 1;
+            self.ticker_rtc1 += 2;
             return Ok(Some((ticker_pre_update, true)));
         } 
-        else if context.mmio().addr() == 0x40024000{
+        else if context.mmio().addr() == 0x40024504{
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc2.clone();
-            self.ticker_rtc2 += 1;
+            self.ticker_rtc2 += 2;
             return Ok(Some((ticker_pre_update, true)));   
         }
         // Hadle manually timer irq enent enable
@@ -215,10 +221,10 @@ impl<I: Input + Debug> Hardware<I> {
             let event_check4 = self.egu_event_check4.clone();
             return Ok(Some((event_check4, true))); 
         }
-        else if context.mmio().addr() == 0x40014000{
-            let event_task_trigger0 = self.egu_task_trigger0.clone();
-            return Ok(Some((event_task_trigger0, true))); 
-        }
+        // else if context.mmio().addr() == 0x40014000{
+        //     let event_task_trigger0 = self.egu_task_trigger0.clone();
+        //     return Ok(Some((event_task_trigger0, true))); 
+        // }
         else if (context.mmio().addr()) >= 0x40001000 && (context.mmio().addr())<= 0x40001628{
             // calling radio model to handler radio event
             let radio_base = 0x40001000 ;
@@ -227,6 +233,22 @@ impl<I: Input + Debug> Hardware<I> {
             log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", radio_offset, read_register_value);
             return Ok(Some((read_register_value,true)));
         }
+        // else if (context.mmio().addr()) >= 0x4000b000 && (context.mmio().addr())<= 0x4000b54c{
+        //     // calling rtc0 model to handler rtc0 event
+        //     let rtc0_base = 0x4000b000 ;
+        //     let rtc0_offset = context.mmio().addr() - rtc0_base;
+        //     let read_register_value = self.rtc0.read_register(rtc0_offset);
+        //     log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", rtc0_offset, read_register_value);
+        //     return Ok(Some((read_register_value,true)));
+        // }
+        // else if (context.mmio().addr()) >= 0x40011000 && (context.mmio().addr())<= 0x4001154c{
+        //     // calling rtc1 model to handler rtc1 event
+        //     let rtc1_base = 0x40011000 ;
+        //     let rtc1_offset = context.mmio().addr() - rtc1_base;
+        //     let read_register_value = self.rtc1.read_register(rtc1_offset);
+        //     log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", rtc1_offset, read_register_value);
+        //     return Ok(Some((read_register_value,true)));
+        // }
         // unwrap input file
         let input = self.input.as_mut().expect("input file missing");
 
@@ -410,19 +432,35 @@ impl<I: Input + Debug> Hardware<I> {
             self.event_en_nrf4 = data;
         }
         // handle egu event check
-        else if context.mmio().addr() == 0x4001413C {
+        else if context.mmio().addr() == 0x4001403C {
             self.egu_event_check0 = data;
-        }else if context.mmio().addr() == 0x4001410C {
+            if (data == 1){
+                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
+            }
+        }else if context.mmio().addr() == 0x4001400C {
             self.egu_event_check1 = data;
-        }else if context.mmio().addr() == 0x40014100 {
-            self.egu_event_check2 = data;
-        }else if context.mmio().addr() == 0x40014108 {
-            self.egu_event_check3 = data;
-        }else if context.mmio().addr() == 0x40014104 {
-            self.egu_event_check4 = data;
+            if (data == 1){
+                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
+            }
         }else if context.mmio().addr() == 0x40014000 {
-            self.egu_task_trigger0 = data;
+            self.egu_event_check2 = data;
+            if (data == 1){
+                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
+            }
+        }else if context.mmio().addr() == 0x40014008 {
+            self.egu_event_check3 = data;
+            if (data == 1){
+                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
+            }
+        }else if context.mmio().addr() == 0x40014004 {
+            self.egu_event_check4 = data;
+            if (data == 1){
+                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
+            }
         }
+        // else if context.mmio().addr() == 0x40014000 {
+        //     self.egu_task_trigger0 = data;
+        // }
         else if (context.mmio().addr()) >= 0x40001000 && (context.mmio().addr())<= 0x40001628{
             // calling radio model to handler radio event
             let radio_base = 0x40001000 ;
@@ -430,6 +468,20 @@ impl<I: Input + Debug> Hardware<I> {
             self.radio.write_register(radio_offset, data);
             log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", radio_offset, data);
         }
+        // else if (context.mmio().addr()) >= 0x4000b000 && (context.mmio().addr())<= 0x4000b54c{
+        //     // calling rtc0 model to handler rtc0 event
+        //     let rtc0_base = 0x4000b000 ;
+        //     let rtc0_offset = context.mmio().addr() - rtc0_base;
+        //     self.rtc0.write_register(rtc0_offset, data);
+        //     log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", rtc0_offset, data);
+        // }
+        // else if (context.mmio().addr()) >= 0x40011000 && (context.mmio().addr())<= 0x4001154c{
+        //     // calling rtc1 model to handler rtc1 event
+        //     let rtc1_base = 0x40011000 ;
+        //     let rtc1_offset = context.mmio().addr() - rtc1_base;
+        //     self.rtc1.write_register(rtc1_offset, data);
+        //     log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", rtc1_offset, data);
+        // }
         log::trace!("[WRITE] {:x?} data: {:x}", context, data);
     }
 

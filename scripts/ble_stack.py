@@ -49,7 +49,7 @@ def parse_ble_packet(
 
     # CYAN for TX, Yellow for RX (Injected)
     color = Fore.CYAN if direction == DIR_TX else Fore.GREEN
-    extra = "" if direction == DIR_TX else f" {Fore.YELLOW}[INJECTED]"
+    extra = "" if direction == DIR_TX else f" {Fore.YELLOW}[FUZZER INJECTED]"
 
     if show_pkt:
         ble_pkt.show()

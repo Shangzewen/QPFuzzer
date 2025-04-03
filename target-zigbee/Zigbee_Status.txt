@@ -1,0 +1,17 @@
+Most update input file 
+./target-zigbee/good_input/input-6174.bin
+
+Facing problems:
+line 0x7a17a at function zb_mlme_scan_step will 
+schedule the zb_mac_send_beacon_request_command 
+it was successfuly called but never executed
+
+the zb_mac_send_beacon_request_command was scheduled 
+by function zb_schedule_tx_cb and added to a queue 
+which supposed to be poped by zb_sched_loop_iteration
+but zb_sched_loop_iteration never execute after zb_mlme_scan_step
+
+probabily because of the timer issue
+
+tempraely solved it by force the 7a17a brach to 
+zb_mac_send_beacon_request_command instead of zb_schedule_tx_cb
