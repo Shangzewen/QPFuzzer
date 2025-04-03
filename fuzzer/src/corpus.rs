@@ -99,7 +99,7 @@ impl Corpus {
             Some(id) => self.inputs.get_mut(&id),
             None => None,
         };
-        log::info!("This is the parnet input id: {:?}", result.input.parent());
+        // log::info!("This is the parnet input id: {:?}", result.input.parent());
 
         // process result (updates local and global feature frequencies)
         let mut uniq_features = FxHashSet::default();
@@ -137,7 +137,7 @@ impl Corpus {
                 Entry::Vacant(_) if schedule => {
                     // new unique feature found
                     uniq_features.insert(feature);
-                    log::info!("This is the unique feature logged: {:?}",feature);
+                    // log::info!("This is the unique feature logged: {:?}",feature);
                 }
                 _ => {}
             }
@@ -160,10 +160,10 @@ impl Corpus {
                 .filter(|feature| !unscheduled_features.contains(feature))
                 .collect();
         }
-        log::info!("This is the base_input_unique_features: {:?}",base_input_uniq_features);
+        // log::info!("This is the base_input_unique_features: {:?}",base_input_uniq_features);
         // input contains rare features => keep
         let result_kind = if !uniq_features.is_empty() {
-            log::info!("CorpusResultKind::NewCoverage");
+            // log::info!("CorpusResultKind::NewCoverage");
             CorpusResultKind::NewCoverage
         } else {
             match &base_input {
@@ -173,11 +173,11 @@ impl Corpus {
                         && result.read_count() < base.result.read_count()
                         && result.stop_reason() == base.result.stop_reason() =>
                 {
-                    log::info!("CorpusResultKind::ShorterInput");
+                    // log::info!("CorpusResultKind::ShorterInput");
                     CorpusResultKind::ShorterInput
                 }
                 _ => {
-                    log::info!("CorpusResultKind::Uninteresting");
+                    // log::info!("CorpusResultKind::Uninteresting");
                     CorpusResultKind::Uninteresting
                 },
             }

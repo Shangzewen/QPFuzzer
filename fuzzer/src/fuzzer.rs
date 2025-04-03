@@ -647,8 +647,8 @@ impl Fuzzer {
         import: bool,
     ) -> Result<Option<InputResult>> {
         let input = &result.hardware.input;
-        log::info!("This is the input id: {} when process result start.", input.id());
-        log::info!("This is the stop reason: {:?} for input: {} ",result.stop_reason.clone(), input.id());
+        // log::info!("This is the input id: {} when process result start.", input.id());
+        // log::info!("This is the stop reason: {:?} for input: {} ",result.stop_reason.clone(), input.id());
         let mut statistics_info = self.statistics.enabled().then(|| {
             StatisticsInfo::from_input(input, result.stop_reason.clone(), self.mutation_log.len())
         });
@@ -727,7 +727,7 @@ impl Fuzzer {
                 Some(result)
             }
             CorpusResult::Uninteresting(result) => {
-                log::info!("This is the id for the uninteresting input: {}", result.file().id());
+                // log::info!("This is the id for the uninteresting input: {}", result.file().id());
                 Some(result)
             },
         };
