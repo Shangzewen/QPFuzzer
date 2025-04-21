@@ -9,7 +9,7 @@ use std::{
     time::{Duration, Instant},
     usize,
 };
-
+use udpsocket::udp_socket;
 use anyhow::{Context, Result};
 use arch::{ArchEmulator, ArchEmulatorSnapshot};
 use common::{
@@ -47,6 +47,7 @@ mod fuzzware;
 mod hooks;
 mod interrupt;
 mod limits;
+pub mod udpsocket;
 
 pub mod archive;
 
@@ -258,6 +259,54 @@ impl<I: Input + Debug> EmulatorData<I> {
 
     fn stop(&mut self, reason: StopReason) {
         log::debug!("stop(reason = {:x?})", reason);
+        println!("This is the stop reason: {:?}", reason);
+        match &reason {
+            StopReason::Crash { pc, ra, exception } => {
+                let msg = format!("Stop:Crash at PC={:#x}, RA={:#x}, Exception={:?}", pc, ra, exception);
+                // let _ = udp_socket(&msg);
+                if let Err(e) = udp_socket(&msg) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+            },
+            StopReason::ExitHook => {
+                let msg = "Stop:ExitHook".to_string();
+                // let _ = udp_socket(&msg);
+                if let Err(e) = udp_socket(&msg) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+            },
+            StopReason::NonExecutable { pc } => {
+                let msg = format!("Stop:NonExecutable at PC={:#x}", pc);
+                // let _ = udp_socket(&msg);
+                if let Err(e) = udp_socket(&msg) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+            },
+            StopReason::RomWrite { pc, addr } => {
+                let msg = format!("Stop:RomWrite at PC={:#x}, Addr={:#x}", pc, addr);
+                // let _ = udp_socket(&msg);
+                if let Err(e) = udp_socket(&msg) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+            },
+            StopReason::Panic => {
+                let msg = "Stop:Panic".to_string();
+                // let _ = udp_socket(&msg);
+                if let Err(e) = udp_socket(&msg) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+                
+            },
+            // the match case required to implement all different cases, the following will ingore the rest unimplemnetd cases
+            _ => {
+                // Ignore all other variants
+            }
+     
+        };
+    
+        // if let Err(e) = udp_socket(message) {
+        //     eprintln!("Failed to send UDP message: {}", e);
+        // }
         self.stop = Some(reason);
         qemu_rs::request_stop();
     }
@@ -398,6 +447,10 @@ impl<I: Input + Debug> EmulatorData<I> {
 
         if exception.is_fatal() {
             self.stop(StopReason::Crash { pc, ra, exception });
+            match udp_socket("Crash") {
+                Ok(_) => println!("Message sent successfully."),
+                Err(e) => eprintln!("Failed to send message: {}", e),
+            }
             log::debug!("fatal exception {} at {:#x?} detected", exception, pc);
         }
 
@@ -660,7 +713,12 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
 
     fn on_exit(&mut self, pc: Address) -> Result<()> {
         self.on_exit_debug(pc)?;
-
+        // println!("================Detect a exithook===============");
+        // Handle exithook case
+        // match udp_socket("Exithook") {
+        //     Ok(_) => println!("Message sent successfully."),
+        //     Err(e) => eprintln!("Failed to send message: {}", e),
+        // }
         self.stop(StopReason::ExitHook);
 
         Ok(())

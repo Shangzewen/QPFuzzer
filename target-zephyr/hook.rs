@@ -183,6 +183,7 @@ pub fn main(api) {
         cfg.pkt_length = pdu_length + 3;
       }
       else{
+        // this pdu_length should plus 2 to make sure the data pdu buffer has enough bytes which matched the length itself
         cfg.pkt_length = pdu_length + 1;
       }
       // println!("This is pkt_length {}", cfg.pkt_length);
@@ -197,8 +198,13 @@ pub fn main(api) {
       let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" TX Pkt. Bytes: {}", pkt_hex);
-
       let pkt_summary = common::parse_packet("ble", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
+      // zmq tx transmition
+      if pkt_summary.contains("BTLE_ADV"){
+        common::zmq_transmit_receive(pkt_hex,"00",0);
+      }else{
+        common::zmq_transmit_receive(pkt_hex,"00",1);
+      }
       if pkt_summary.contains("BTLE_ADV_IND") {
         // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
         if cfg.adv_ind_flag == false {
@@ -227,9 +233,11 @@ pub fn main(api) {
         log::info!("<============> RX PKT <============>");
       }
       let rx_pdu = "";
+      let fuzzed_msg = "";
       let test_str = "";
 
       // ADV Channel
+      // Zmq RX transmition
       if cfg.data_connection == false {
         if cfg.sequence == 0 {
           // Scan Request
@@ -246,6 +254,7 @@ pub fn main(api) {
           cfg.sequence = cfg.sequence + 1;
           return;
         }
+        fuzzed_msg = common::zmq_transmit_receive(rx_pdu,"01",0);
       }
       else {
         // set initial flag
@@ -258,15 +267,27 @@ pub fn main(api) {
           rx_pdu = common::get_data_rpl_data();
           log::info!("RX data pdu: {}", rx_pdu);
           //  log::info!("<============> rx_pdu received <============>");
+          fuzzed_msg = common::zmq_transmit_receive(rx_pdu,"01",1);
+
         }
       }
 
       cfg.sequence = cfg.sequence + 1;
-      
-      let data = common::decode_hex(rx_pdu)?;
+      // let fuzzed_msg = common::zmq_transmit_receive(rx_pdu,"01",1);
+      // fuzzed_msg.truncate(fuzzed_msg.len()-6);
+      // let fuzzed_msg_clean = !format("{}{}",&fuzzed_msg[43..]);
+      log::info!("fuzzed msg {}",fuzzed_msg);
+      log::info!("rx pdu     {}",rx_pdu);
+      // let data = common::decode_hex(rx_pdu)?;
+      let data = common::decode_hex(fuzzed_msg)?;
       for (i, v) in data.iter().enumerate() {
         memory::write_u8(pkt_buf_addr + i, v);
       }
+
+      // memory::write_u8(pkt_buf_addr + data.len() + 1, 0x00); // Check 1
+      // let pkt_hex = common::encode_hex(memory_read_buffer(pkt_buf_addr, data.len()+1));
+      // log::info!("==== RAW: {}", pkt_hex);
+
 
       let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
       log::info!("RX <--- {}", pkt_summary);
@@ -284,7 +305,9 @@ pub fn main(api) {
   //     log::info!("0x{:08x}: {}", pc, symbol_name);
   //   }
   // }
-
+  // fn clean_fuzzed_msg (fuzzed_msg:String)->String{
+  //   fuzzed
+  // }
   fn memory_read_buffer(addr, length) {
     let pkt_data = [];
       for idx in 0..length {
