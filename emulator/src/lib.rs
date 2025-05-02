@@ -264,35 +264,55 @@ impl<I: Input + Debug> EmulatorData<I> {
             StopReason::Crash { pc, ra, exception } => {
                 let msg = format!("Stop:Crash at PC={:#x}, RA={:#x}, Exception={:?}", pc, ra, exception);
                 // let _ = udp_socket(&msg);
-                if let Err(e) = udp_socket(&msg) {
+                if let Err(e) = udp_socket(&msg,6666) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+                // Notify the fuzzer about the crash
+                if let Err(e) = udp_socket("Crash",9000) {
                     eprintln!("Failed to send UDP message: {}", e);
                 }
             },
             StopReason::ExitHook => {
                 let msg = "Stop:ExitHook".to_string();
                 // let _ = udp_socket(&msg);
-                if let Err(e) = udp_socket(&msg) {
+                if let Err(e) = udp_socket(&msg,6666) {
                     eprintln!("Failed to send UDP message: {}", e);
                 }
+                // Notify the fuzzer about the crash
+                // if let Err(e) = udp_socket("Crash",9000) {
+                //     eprintln!("Failed to send UDP message: {}", e);
+                // }
             },
             StopReason::NonExecutable { pc } => {
                 let msg = format!("Stop:NonExecutable at PC={:#x}", pc);
                 // let _ = udp_socket(&msg);
-                if let Err(e) = udp_socket(&msg) {
+                if let Err(e) = udp_socket(&msg,6666) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+                // Notify the fuzzer about the crash
+                if let Err(e) = udp_socket("Crash",9000) {
                     eprintln!("Failed to send UDP message: {}", e);
                 }
             },
             StopReason::RomWrite { pc, addr } => {
                 let msg = format!("Stop:RomWrite at PC={:#x}, Addr={:#x}", pc, addr);
                 // let _ = udp_socket(&msg);
-                if let Err(e) = udp_socket(&msg) {
+                if let Err(e) = udp_socket(&msg,6666) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+                // Notify the fuzzer about the crash
+                if let Err(e) = udp_socket("Crash",9000) {
                     eprintln!("Failed to send UDP message: {}", e);
                 }
             },
             StopReason::Panic => {
                 let msg = "Stop:Panic".to_string();
                 // let _ = udp_socket(&msg);
-                if let Err(e) = udp_socket(&msg) {
+                if let Err(e) = udp_socket(&msg,6666) {
+                    eprintln!("Failed to send UDP message: {}", e);
+                }
+                // Notify the fuzzer about the crash
+                if let Err(e) = udp_socket("Crash",9000) {
                     eprintln!("Failed to send UDP message: {}", e);
                 }
                 
@@ -447,7 +467,7 @@ impl<I: Input + Debug> EmulatorData<I> {
 
         if exception.is_fatal() {
             self.stop(StopReason::Crash { pc, ra, exception });
-            match udp_socket("Crash") {
+            match udp_socket("Crash",6666) {
                 Ok(_) => println!("Message sent successfully."),
                 Err(e) => eprintln!("Failed to send message: {}", e),
             }
