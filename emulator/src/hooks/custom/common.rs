@@ -384,14 +384,15 @@ fn generate_data_rpl() -> PyResult<()> {
         // println!("This is flag want: {}",flag_want);
 
         let result = handle_data.call1((py_byte_data, flag_want))?;
-        if flag2.lock().clone() == "0" {
-            flag2.lock().clear();
-            flag2.lock().push_str("1");
-        } else {
-            flag2.lock().clear();
-            flag2.lock().push_str("0");
-        }
-
+        // if flag2.lock().clone() == "0" {
+        //     flag2.lock().clear();
+        //     flag2.lock().push_str("1");
+        // } else {
+        //     flag2.lock().clear();
+        //     flag2.lock().push_str("0");
+        // }
+        // Extract the Python tuple: (bytes, flag)
+        // let (py_bytes, py_flag): (&PyBytes, &str) = result.extract()?;
         // Extract the result as a PyBytes (assuming the return value is also a byte string)
         let bytes_string =  std::str::from_utf8(result.extract()?)?;
         pdu_data.lock().clear();
@@ -414,6 +415,10 @@ fn get_tx_data() -> String {
     tx_data.lock().clone()
 }
 
+fn update_flag2(flg: &str){
+    flag2.lock().clear();
+    flag2.lock().push_str(flg);
+}
 fn clear_tx_data(){
     tx_data.lock().clear();
     // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
