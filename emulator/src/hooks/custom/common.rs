@@ -57,6 +57,8 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["get_data_rpl_data"], get_data_rpl_data)?;
     module.function(&["parse_packet"], parse_packet)?;
     module.function(&["zmq_transmit_receive"], zmq_transmit_receive)?;
+    module.function(&["reset_empty_pdu_flag"], reset_empty_pdu_flag)?;
+    
 
     Ok(module)
 }
@@ -473,9 +475,9 @@ fn get_tx_data() -> String {
     tx_data.lock().clone()
 }
 
-fn update_flag2(flg: &str){
+fn reset_empty_pdu_flag(){
     flag2.lock().clear();
-    flag2.lock().push_str(flg);
+    flag2.lock().push_str("0");
 }
 fn clear_tx_data(){
     tx_data.lock().clear();
