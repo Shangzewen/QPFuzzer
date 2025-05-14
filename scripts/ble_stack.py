@@ -221,7 +221,7 @@ def generate_reply_adv(pkt):
             AdvA=ble_packet[BTLE_ADV_IND].AdvA, ScanA=master_addr
         )
         # rpl_pkt.show()
-        # print(hexlify(bytes(rpl_pkt)))
+        # print("Hello!!!!!!!!!!!!!!!!!!!!!",hexlify(bytes(rpl_pkt)))
         send_pkt_summary = rpl_pkt.summary()
 
         return hexlify(bytes(rpl_pkt)), ble_packet[BTLE_ADV].PDU_type, send_pkt_summary
@@ -252,10 +252,13 @@ def generate_reply_adv(pkt):
 
 def handle_adv(data):
     reuslt_rx = parse_ble_packet(data,0,False)
+    raw_pdu = unhexlify(data)
+    # get pdu length
+    print(f'Expected Length: {int(raw_pdu[1])}, Recv RX: {len(raw_pdu[2:])}')
     print("RX <---------------------"+reuslt_rx)
     received_msg = data.decode()
     print(f"Rceived Message: {str(received_msg)}")
-    print (f"Rceived raw data: {data}") 
+    # print (f"Rceived raw data: {data}") 
 
     try:
         rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))

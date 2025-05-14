@@ -13,6 +13,7 @@ use lazy_static::lazy_static;
 use pyo3::prelude::*; // Import PyO3 functionality
 use pyo3::sync::GILOnceCell;
 use pyo3::types::PyBytes; // PyBytes to handle byte strings
+use pyo3::types::{PyTuple};
 
 use super::memory_write;
 use crate::hooks::Symbolizer;
@@ -393,13 +394,70 @@ fn generate_data_rpl() -> PyResult<()> {
         // }
         // Extract the Python tuple: (bytes, flag)
         // let (py_bytes, py_flag): (&PyBytes, &str) = result.extract()?;
+        // Convert the returned bytes to Rust string (if needed)
+        // let bytes_string = std::str::from_utf8(py_bytes.as_bytes())?;
+        // let py_tuple = result.downcast::<PyTuple>()?;
+        // let flag_obj = py_tuple.get_item(1)?;
+        // let hex_obj = py_tuple.get_item(0)?;
+        // let flag: String = flag_obj.extract()?; // Extract as Rust String
         // Extract the result as a PyBytes (assuming the return value is also a byte string)
         let bytes_string =  std::str::from_utf8(result.extract()?)?;
+        // println!("This is flag want: {}",flag);
+        // println!("This is hex_String: {}",bytes_string);
         pdu_data.lock().clear();
         pdu_data.lock().push_str(&bytes_string);
+        // flag2.lock().clear();
+        // flag2.lock().push_str(&flag);
+
         Ok(())
     })
 }
+// handling empty_pdu situation
+// fn generate_data_rpl() -> PyResult<()> {
+//     // Initialize the Python interpreter
+//     Python::with_gil(|py| {
+//         // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
+//         let module = bt_module(py);
+
+//         // Prepare the byte data you want to pass to the `handle_data` function
+//         let input_data = get_tx_data();
+//         // println!("This is input data: {}",input_data);
+//         let py_byte_data = PyBytes::new_bound(py, input_data.as_bytes());
+//         let handle_data = module.getattr("handle_data")?;
+//         // Call the 'handle_data' function with the byte data
+//         // let result = module.call1("handle_data", (PyBytes::new(py, input_data),))?;
+//         let flag_want = flag2.lock().clone();
+
+//         // println!("This is flag want: {}",flag_want);
+
+//         let result = handle_data.call1((py_byte_data, flag_want))?;
+//         // if flag2.lock().clone() == "0" {
+//         //     flag2.lock().clear();
+//         //     flag2.lock().push_str("1");
+//         // } else {
+//         //     flag2.lock().clear();
+//         //     flag2.lock().push_str("0");
+//         // }
+//         // Extract the Python tuple: (bytes, flag)
+//         // let (py_bytes, py_flag): (&PyBytes, &str) = result.extract()?;
+//         // Convert the returned bytes to Rust string (if needed)
+//         // let bytes_string = std::str::from_utf8(py_bytes.as_bytes())?;
+//         let py_tuple = result.downcast::<PyTuple>()?;
+//         let flag_obj = py_tuple.get_item(1)?;
+//         let hex_obj = py_tuple.get_item(0)?;
+//         let flag: String = flag_obj.extract()?; // Extract as Rust String
+//         // Extract the result as a PyBytes (assuming the return value is also a byte string)
+//         let bytes_string =  std::str::from_utf8(hex_obj.extract()?)?;
+//         println!("This is flag want: {}",flag);
+//         println!("This is hex_String: {}",bytes_string);
+//         pdu_data.lock().clear();
+//         pdu_data.lock().push_str(&bytes_string);
+//         flag2.lock().clear();
+//         flag2.lock().push_str(&flag);
+
+//         Ok(())
+//     })
+// }
 
 fn get_adv_rpl_data() -> String {
     _ = generate_adv_rpl();

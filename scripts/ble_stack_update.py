@@ -292,7 +292,7 @@ def handle_data(data, flag2):
         rpl, pkt_t, p_summary, flag_want = generate_reply_data(str(received_msg), flag2)
         result_tx = parse_ble_packet(rpl,1,True)
         print("TX --------------------->"+result_tx)
-        return rpl
+        return rpl, flag_want
     except Exception as e:
         print(f"There is an error occured: {e}")
         traceback.print_exc()
