@@ -1,0 +1,34 @@
+# install rust toolchain
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+# install dependencies like build-essential
+sudo apt update
+sudo apt install build-essential libssl-dev pkg-config curl
+sudo apt install libglib2.0-dev
+
+# Install Ninja
+sudo apt install ninja-build
+
+# Install pixman
+sudo apt-get update
+sudo apt-get install libpixman-1-dev
+
+# Install python3 dev
+sudo apt-get install python3.12-dev
+
+# Intsall pachelf
+sudo apt-get install patchelf
+
+# Install Linker lib
+sudo apt-get install lld
+
+# Install venv module
+sudo apt install python3.12-venv
+
+# set up virtual env
+python3 -m venv venv
+source ./venv/bin/activate 
+
+#INstal python lib
+pip3 install colorama scapy

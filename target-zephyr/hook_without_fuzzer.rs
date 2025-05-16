@@ -30,7 +30,7 @@ pub fn main(api) {
               pkt_length: 0
             };
     hook_link_layer(api, cfg);
-    common::send_socket_data("session");
+    // common::send_socket_data("session");
 
     //  ------------ Print Logs ------------
     // Exit Hooks
@@ -61,7 +61,6 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
     
     // BLE Interrupts
-    // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
@@ -154,6 +153,8 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
+        // rest the flag for empty pdu reply
+        common::reset_empty_pdu_flag();
         // enable the data_connection_flag for fuzzing from scrach
         cfg.data_connection = false;
       });
@@ -279,7 +280,7 @@ pub fn main(api) {
       log::info!("fuzzed msg {}",fuzzed_msg);
       log::info!("rx pdu     {}",rx_pdu);
       // let data = common::decode_hex(rx_pdu)?;
-      let data = common::decode_hex(fuzzed_msg)?;
+      let data = common::decode_hex(rx_pdu)?;
       for (i, v) in data.iter().enumerate() {
         memory::write_u8(pkt_buf_addr + i, v);
       }

@@ -29,8 +29,8 @@ pub fn main(api) {
               initial_pdu_flag:true,
               pkt_length: 0
             };
-
     hook_link_layer(api, cfg);
+    common::send_socket_data("session");
 
     //  ------------ Print Logs ------------
     // Exit Hooks
@@ -41,10 +41,10 @@ pub fn main(api) {
 
 
     // BLE Setup
-    // api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| log::info!("===========bt_enable=========="));
-    // api.on_instruction(Some(symbolizer::resolve("cts_init")?), |_| log::info!("===========cts_init=========="));
-    // api.on_instruction(Some(symbolizer::resolve("settings_load")?), |_| log::info!("===========settings_load=========="));
-    // api.on_instruction(Some(symbolizer::resolve("bt_le_adv_start")?), |_| log::info!("===========bt_le_adv_start=========="));
+    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| log::info!("===========bt_enable=========="));
+    api.on_instruction(Some(symbolizer::resolve("cts_init")?), |_| log::info!("===========cts_init=========="));
+    api.on_instruction(Some(symbolizer::resolve("settings_load")?), |_| log::info!("===========settings_load=========="));
+    api.on_instruction(Some(symbolizer::resolve("bt_le_adv_start")?), |_| log::info!("===========bt_le_adv_start=========="));
 
     // BLE HCI
     // api.on_instruction(Some(0x6b94), |_| log::info!("--> bt_hci_cmd_send_sync"));
@@ -61,7 +61,6 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
     
     // BLE Interrupts
-    // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
@@ -154,6 +153,7 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
+        common::reset_empty_pdu_flag();
         // enable the data_connection_flag for fuzzing from scrach
         cfg.data_connection = false;
       });

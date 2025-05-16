@@ -14,7 +14,8 @@ export PREFIX_INPUT=$TARGET_ZEPHYR/inputs/sm_pairing_req.bin
 
 
 count=0
-while [ $count -lt 100 ]; do
+# while [ $count -lt 100 ]; do
+while [ true ]; do
     echo "Run #$count"
     cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- \
         --config $TARGET/config.yml \
