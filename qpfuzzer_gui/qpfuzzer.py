@@ -28,7 +28,7 @@ def remove_ansi_codes(text):
 # will run a command and update the output_widget for the terminal output
 def run_terminal_command(command, output_markdown1):
     global process
-    process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,cwd='/home/asset/qpfuzzer_ble')
+    process = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,cwd='/home/asset/qpfuzzer')
     conv = Ansi2HTMLConverter()
     
     # for line in process.stdout:
@@ -60,10 +60,10 @@ async def fuzz():
     command = ['/bin/bash','fuzz.sh']
     threading.Thread(target=run_terminal_command, args=(command, output_markdown1), daemon=True).start()
     notifyer.spinner = True
-    notifyer.message = f'Starting Fuzzing Process'
+    notifyer.message = f'Starting Emu-Exploring Process'
     await asyncio.sleep(5)
     notifyer.spinner = False
-    notifyer.message = 'Fuzzing Started'
+    notifyer.message = 'Emu-Exploring Started'
     await asyncio.sleep(2)
     notifyer.dismiss()
 
@@ -75,7 +75,7 @@ async def on_stop_command():
         try:
             process.terminate()  # Attempt to terminate the subprocess
             os.system('pkill -f hoedur-arm')
-            notifyer.message = 'Fuzzing Stopped'
+            notifyer.message = 'Emu-Exploring Stopped'
             await asyncio.sleep(2)
             notifyer.dismiss()
             process.wait(timeout=2)  # Wait for up to 5 seconds for the process to terminate
@@ -104,7 +104,7 @@ with ui.column().classes('h-screen w-full items-center gap-4'):
 
             # add the fuzz button to start the fuzzing process
             with ui.row().classes('items-center gap-4'):
-                ui.button('Fuzz', on_click=fuzz)
+                ui.button('Emulate', on_click=fuzz)
                 ui.button('Stop', on_click=on_stop_command)
         with ui.column().classes("items-center justify-center"):
             ui.label('State Machine').style('color: red ; font-size: 18px; font-weight: bold;')
