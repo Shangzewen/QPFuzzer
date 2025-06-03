@@ -37,7 +37,7 @@ use qemu_rs::{
 };
 use serde::{Deserialize, Serialize};
 use variant_count::VariantCount;
-
+use std::collections::HashSet as hashset;
 pub use qemu_rs::Address;
 
 mod arch;
@@ -69,6 +69,10 @@ pub struct ExecutionResult<I: Input + Debug> {
     pub stop_reason: StopReason,
     pub bugs: Option<Vec<Bug>>,
     pub relevant_edges: u16,
+    pub unique_basic_blocks: u16,
+    pub unique_basic_block_vec_ref: hashset<u64> ,
+    pub unique_basic_block_vec_sess: hashset<u64>,
+    pub execu_counter: i32,
 }
 
 impl<I: Input + Debug> fmt::Display for ExecutionResult<I> {
@@ -159,6 +163,10 @@ pub(crate) struct EmulatorData<I: 'static + Input + Debug> {
     input_limits: Option<EmulatorLimits>,
     debug: EmulatorDebugData,
     relevant_edges: u16,
+    unique_basic_blocks: u16,
+    unique_basic_block_vec_ref: hashset<u64>,
+    unique_basic_block_vec_sess: hashset<u64>,
+    execu_counter: i32,
 }
 
 impl<I: Input + Debug> EmulatorData<I> {
@@ -184,7 +192,11 @@ impl<I: Input + Debug> EmulatorData<I> {
             limits,
             input_limits: None,
             debug,
-            relevant_edges: 0
+            relevant_edges: 0,
+            unique_basic_blocks: 0,
+            unique_basic_block_vec_ref: hashset::new(),
+            unique_basic_block_vec_sess: hashset::new(),
+            execu_counter: 0,
         }
     }
 
@@ -212,7 +224,11 @@ impl<I: Input + Debug> EmulatorData<I> {
         self.execution_start = Some(Instant::now());
         // Clear relevant edges
         self.relevant_edges = 0;
-
+        // Clear the unique basic blocks
+        self.unique_basic_blocks = 0;
+        self.unique_basic_block_vec_ref.clear();
+        self.unique_basic_block_vec_sess.clear();
+        // self.execu_counter = 1;
         Ok(())
     }
 
@@ -235,10 +251,20 @@ impl<I: Input + Debug> EmulatorData<I> {
             Some(QemuStopReason::Shutdown) => StopReason::Shutdown,
             _ => StopReason::Abort,
         });
-
-        let relevant_edges = self.relevant_edges;
-        log::info!("Relevant Edges: {relevant_edges}");
-
+        self.execu_counter = self.execu_counter + 1;
+        let flag_execu = self.execu_counter % 2;
+        // the post run will be called twice for each individual file execution including initialization and execution, ignore the first call
+        if flag_execu == 0{
+            log::info!("flag_execu: {flag_execu}");
+            let relevant_edges = self.relevant_edges;
+            log::info!("Relevant Edges: {relevant_edges}");
+            let unique_basic_blocks = self.unique_basic_blocks;
+            log::info!("unique_basic_blocks: {unique_basic_blocks}");
+            let unique_basic_block_vec_ref = &self.unique_basic_block_vec_ref;
+            log::info!("unique_basic_block_vec_ref: {unique_basic_block_vec_ref:?}");
+            let unique_basic_block_vec_sess = &self.unique_basic_block_vec_sess;
+            log::info!("unique_basic_block_vec_sess: {unique_basic_block_vec_sess:?}");
+        }
         Ok(ExecutionResult {
             counts: self.counts.clone(),
             hardware: self
@@ -253,7 +279,11 @@ impl<I: Input + Debug> EmulatorData<I> {
                     .context("Missing execution start time")?,
             stop_reason,
             bugs,
-            relevant_edges: self.relevant_edges
+            relevant_edges: self.relevant_edges,
+            unique_basic_blocks: self.unique_basic_blocks,
+            unique_basic_block_vec_sess: self.unique_basic_block_vec_sess.clone(),
+            unique_basic_block_vec_ref: self.unique_basic_block_vec_ref.clone(),
+            execu_counter: self.execu_counter
         })
     }
 
@@ -610,7 +640,8 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
         let new_edge = qemu_rs::coverage::add_basic_block(pc as u64);
 
         if new_edge {
-
+            self.unique_basic_blocks += 1;
+            self.unique_basic_block_vec_ref.insert(pc as u64);
             // self.relevant_edges += 1;
             match pc {
                 // relevant edge for zigbee
