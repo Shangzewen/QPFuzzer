@@ -1,6 +1,8 @@
 use std::net::UdpSocket;
 
-use common::hashbrown::HashSet;
+// use common::hashbrown::HashSet;
+use std::collections::HashSet;
+
 
 pub fn udp_socket(message: &str, port: u16) -> std::io::Result<()> {
     // Bind the socket to a local address
@@ -16,10 +18,14 @@ pub fn udp_socket(message: &str, port: u16) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn calcu_branch_path(hashset_ref:HashSet<u64>, hashset_sess:HashSet<u64>)-> i32{
+pub fn calcu_branch_path(vec_ref:&Vec<u64>, vec_sess:&Vec<u64>)-> i32{
     let mut diff: i32 = 0;
-    for x in hashset_ref.difference(&hashset_sess){
-        diff = diff +1
+    for (idx,ele) in vec_sess.iter().enumerate(){
+        if ele != &vec_ref[idx]{
+            let diff_value = vec_sess.len() - idx;
+            diff = diff_value as i32;
+            break;
+        }        
     }
     return diff;
 }
