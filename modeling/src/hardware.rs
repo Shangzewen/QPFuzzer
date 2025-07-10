@@ -2,10 +2,7 @@ use std::{borrow::Cow, fmt::Debug, io::Write, mem, ops::Shr};
 
 use anyhow::{Context, Result};
 use common::FxHashMap;
-use qemu_rs::{Address, Exception, MmioAddress, USize, request_interrupt_injection};
-use radio::radio as radio_model;
-use radio::rtc as rtc_model;
-
+use qemu_rs::{Address, Exception, MmioAddress, USize};
 
 use crate::{
     input::{
@@ -42,9 +39,6 @@ pub struct Hardware<I: Input + Debug> {
     memory: Memory,
     input: Option<I>,
     access_log: Vec<InputContext>,
-    radio: radio_model::Radio,
-    rtc0: rtc_model::Rtc0,
-    rtc1: rtc_model::Rtc1,
     ticker_rtc0: USize,
     ticker_rtc1: USize,
     ticker_rtc2: USize,
@@ -53,13 +47,10 @@ pub struct Hardware<I: Input + Debug> {
     event_en_nrf2:USize,
     event_en_nrf3:USize,
     event_en_nrf4:USize,
-    egu_task_trigger0:USize,
     egu_event_check0:USize,
     egu_event_check1:USize,
     egu_event_check2:USize,
     egu_event_check3:USize,
-    egu_event_check4:USize,
-
 
     // 0x40011504
 }
@@ -81,9 +72,6 @@ impl<I: Input + Debug> Hardware<I> {
             memory: Memory::new(),
             input: None,
             access_log: vec![],
-            radio: radio_model::Radio::new(),
-            rtc0: rtc_model::Rtc0::new(),
-            rtc1: rtc_model::Rtc1::new(),
             ticker_rtc0: 0,
             ticker_rtc1: 0,
             ticker_rtc2: 0,
@@ -92,12 +80,10 @@ impl<I: Input + Debug> Hardware<I> {
             event_en_nrf2:0,
             event_en_nrf3:0,
             event_en_nrf4:0,
-            egu_task_trigger0:0,
             egu_event_check0:0,
             egu_event_check1:0,
             egu_event_check2:0,
             egu_event_check3:0,
-            egu_event_check4:0,
         }
     }
 
@@ -114,12 +100,10 @@ impl<I: Input + Debug> Hardware<I> {
         self.event_en_nrf2=0;
         self.event_en_nrf3=0;
         self.event_en_nrf4=0;
-        self.egu_task_trigger0=0;
         self.egu_event_check0=0;
         self.egu_event_check1=0;
         self.egu_event_check2=0;
         self.egu_event_check3=0;
-        self.egu_event_check4=0;
 
     }
 
@@ -173,7 +157,7 @@ impl<I: Input + Debug> Hardware<I> {
             self.ticker_rtc1 += 2;
             return Ok(Some((ticker_pre_update, true)));
         } 
-        else if context.mmio().addr() == 0x40024504{
+        else if context.mmio().addr() == 0x40024000{
             // log::info!("Ticker Access: {}", self.ticker);
             let ticker_pre_update = self.ticker_rtc2.clone();
             self.ticker_rtc2 += 2;
@@ -217,38 +201,6 @@ impl<I: Input + Debug> Hardware<I> {
             let event_check3 = self.egu_event_check3.clone();
             return Ok(Some((event_check3, true))); 
         }
-        else if context.mmio().addr() == 0x40014104{
-            let event_check4 = self.egu_event_check4.clone();
-            return Ok(Some((event_check4, true))); 
-        }
-        // else if context.mmio().addr() == 0x40014000{
-        //     let event_task_trigger0 = self.egu_task_trigger0.clone();
-        //     return Ok(Some((event_task_trigger0, true))); 
-        // }
-        else if (context.mmio().addr()) >= 0x40001000 && (context.mmio().addr())<= 0x40001628{
-            // calling radio model to handler radio event
-            let radio_base = 0x40001000 ;
-            let radio_offset = context.mmio().addr() - radio_base;
-            let read_register_value = self.radio.read_register(radio_offset);
-            log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", radio_offset, read_register_value);
-            return Ok(Some((read_register_value,true)));
-        }
-        // else if (context.mmio().addr()) >= 0x4000b000 && (context.mmio().addr())<= 0x4000b54c{
-        //     // calling rtc0 model to handler rtc0 event
-        //     let rtc0_base = 0x4000b000 ;
-        //     let rtc0_offset = context.mmio().addr() - rtc0_base;
-        //     let read_register_value = self.rtc0.read_register(rtc0_offset);
-        //     log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", rtc0_offset, read_register_value);
-        //     return Ok(Some((read_register_value,true)));
-        // }
-        // else if (context.mmio().addr()) >= 0x40011000 && (context.mmio().addr())<= 0x4001154c{
-        //     // calling rtc1 model to handler rtc1 event
-        //     let rtc1_base = 0x40011000 ;
-        //     let rtc1_offset = context.mmio().addr() - rtc1_base;
-        //     let read_register_value = self.rtc1.read_register(rtc1_offset);
-        //     log::trace!("[READ_REGISTER FROM] {:x?} data: {:x}", rtc1_offset, read_register_value);
-        //     return Ok(Some((read_register_value,true)));
-        // }
         // unwrap input file
         let input = self.input.as_mut().expect("input file missing");
 
@@ -432,56 +384,15 @@ impl<I: Input + Debug> Hardware<I> {
             self.event_en_nrf4 = data;
         }
         // handle egu event check
-        else if context.mmio().addr() == 0x4001403C {
+        else if context.mmio().addr() == 0x4001413C {
             self.egu_event_check0 = data;
-            if (data == 1){
-                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
-            }
-        }else if context.mmio().addr() == 0x4001400C {
-            self.egu_event_check1 = data;
-            if (data == 1){
-                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
-            }
-        }else if context.mmio().addr() == 0x40014000 {
+        }else if context.mmio().addr() == 0x4001410C {
             self.egu_event_check2 = data;
-            if (data == 1){
-                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
-            }
-        }else if context.mmio().addr() == 0x40014008 {
+        }else if context.mmio().addr() == 0x40014100 {
             self.egu_event_check3 = data;
-            if (data == 1){
-                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
-            }
-        }else if context.mmio().addr() == 0x40014004 {
-            self.egu_event_check4 = data;
-            if (data == 1){
-                qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x24)));
-            }
+        }else if context.mmio().addr() == 0x40014108 {
+            self.egu_event_check3 = data;
         }
-        // else if context.mmio().addr() == 0x40014000 {
-        //     self.egu_task_trigger0 = data;
-        // }
-        else if (context.mmio().addr()) >= 0x40001000 && (context.mmio().addr())<= 0x40001628{
-            // calling radio model to handler radio event
-            let radio_base = 0x40001000 ;
-            let radio_offset = context.mmio().addr() - radio_base;
-            self.radio.write_register(radio_offset, data);
-            log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", radio_offset, data);
-        }
-        // else if (context.mmio().addr()) >= 0x4000b000 && (context.mmio().addr())<= 0x4000b54c{
-        //     // calling rtc0 model to handler rtc0 event
-        //     let rtc0_base = 0x4000b000 ;
-        //     let rtc0_offset = context.mmio().addr() - rtc0_base;
-        //     self.rtc0.write_register(rtc0_offset, data);
-        //     log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", rtc0_offset, data);
-        // }
-        // else if (context.mmio().addr()) >= 0x40011000 && (context.mmio().addr())<= 0x4001154c{
-        //     // calling rtc1 model to handler rtc1 event
-        //     let rtc1_base = 0x40011000 ;
-        //     let rtc1_offset = context.mmio().addr() - rtc1_base;
-        //     self.rtc1.write_register(rtc1_offset, data);
-        //     log::trace!("[WRITE_REGISTER] {:x?} data: {:x}", rtc1_offset, data);
-        // }
         log::trace!("[WRITE] {:x?} data: {:x}", context, data);
     }
 

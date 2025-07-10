@@ -4,7 +4,8 @@ source venv/bin/activate
 export PATH="/home/asset/.cargo/bin:$PATH" 
 export TARGET_ZEPHYR=target-zigbee
 
-export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
+# export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
+export HOOK_FILE=$TARGET_ZEPHYR/hook_ref.rs
 # export PREFIX_INPUT=$TARGET/inputs/prefix-adv.bin
 # export PREFIX_INPUT_2=$TARGET/inputs/feature_req_rsp.bin
 export CORPUS_FOLDER=$TARGET_ZEPHYR/runs

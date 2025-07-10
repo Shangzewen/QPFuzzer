@@ -40,32 +40,44 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("nrf5_init")?), |_| log::info!("===========nrf5_init=========="));
     // api.on_instruction(Some(symbolizer::resolve("net_init")?), |_| log::info!("===========net_init=========="));
     
-    // api.on_instruction(Some(symbolizer::resolve("main")?), |_| log::info!("===========main=========="));
-    // api.on_instruction(Some(symbolizer::resolve("zigbee_enable")?), |_| log::info!("===========zigbee_enable=========="));
-    // api.on_instruction(Some(symbolizer::resolve("process_channel")?), |_| log::info!("===========process_channel=========="));
-    // api.on_instruction(Some(symbolizer::resolve("timer_handler")?), |_| log::info!("===========timer_handler=========="));
-    // api.on_basic_block(Some(symbolizer::resolve("mpsl_init")?), |_| log::info!("===========mpsl_init=========="));
+    api.on_instruction(Some(symbolizer::resolve("zb_mlme_reset_request_sync")?), |_| log::info!("===========zb_mlme_reset_request_sync=========="));
+    api.on_instruction(Some(symbolizer::resolve("zb_mlme_scan_request")?), |_| log::info!("===========zb_mlme_scan_request=========="));
+    api.on_instruction(Some(symbolizer::resolve("zb_mac_send_beacon_request_command")?), |_| log::info!("===========zb_mac_send_beacon_request_command=========="));
+    api.on_instruction(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_nlme_join_request")?), |_| log::info!("===========zb_nlme_join_request=========="));
     api.on_basic_block(Some(symbolizer::resolve("frame_transmit")?), |_| log::info!("===========frame_transmit=========="));
     api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_transmit")?), |_| log::info!("===========nrf_802154_core_transmit=========="));
     api.on_basic_block(Some(symbolizer::resolve("tx_init")?), |_| log::info!("===========tx_init=========="));
     api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
     api.on_basic_block(Some(symbolizer::resolve("rx_init")?), |_| log::info!("===========rx_init=========="));
-    api.on_basic_block(Some(symbolizer::resolve("nrf_raal_init")?), |_| log::info!("===========nrf_raal_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_timer_alarm_handler")?), |_| log::info!("===========zb_timer_alarm_handler=========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_osif_zboss_timer_tick")?), |_| log::info!("===========zb_osif_zboss_timer_tick=========="));
     api.on_basic_block(Some(symbolizer::resolve("rx_timeslot_started_callback")?), |_| log::info!("===========rx_timeslot_started_callback=========="));
     api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_receive")?), |_| log::info!("===========nrf_802154_core_receive=========="));
 
     //  return 1 for timeslot_is_granted only when tx_init was called
-    // api.on_instruction(Some(symbolizer::resolve("tx_init")?), |_| memory::write_u8(0x20008ae7, 1));
+    // force the p_result of swi_sleep return true
+    api.on_basic_block(Some(symbolizer::resolve("swi_sleep")?), |_| memory::write_u8(0x2000a687, 1));
+    // force the p_result of swi_receive return true
+    api.on_basic_block(Some(symbolizer::resolve("swi_receive")?), |_| memory::write_u8(0x20009dff, 1));
+
+
     // api.on_basic_block(Some(0x0001caf0), |_| log::info!("===========Am I reaching here??=========="));
+    api.on_basic_block(Some(symbolizer::resolve("bdb_network_steering_machine")?), |_| log::info!("===========bdb_network_steering_machine=========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mac_send_beacon_request_command")?), |_| log::info!("===========zb_mac_send_beacon_request_command=========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
+    api.on_basic_block(Some(symbolizer::resolve("k_work_init")?), |_| log::info!("===========k_work_init=========="));
+    api.on_basic_block(Some(symbolizer::resolve("start_network_steering")?), |_| log::info!("===========start_network_steering=========="));
+
     api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync=========="));
     api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), |_| log::info!("===========nrf_802154_trx_receive_buffer_set=========="));
-    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), |_| register::read("r0")?);
+    // api.on_basic_block(Some(0x420a6), |_| register::read("r0")?);
     // api.on_instruction(Some(0x1d982), |_| register::write("r3",0x0)?);
     // api.on_instruction(Some(0x1d982), |_| register::read("r3")?);
     
-    // api.on_instruction(Some(0x26106), |_| log::info!("===========2bdb_network_steering_start_scan=========="));
-    // api.on_instruction(Some(0x2628a), |_| log::info!("===========bdb_network_steering_not_on_network=========="));
-    // api.on_instruction(Some(0x26226), |_| log::info!("===========bdb_network_steering_start_scan=========="));
+    api.on_instruction(Some(0x26106), |_| log::info!("===========2bdb_network_steering_start_scan=========="));
+    api.on_instruction(Some(0x2628a), |_| log::info!("===========bdb_network_steering_not_on_network=========="));
+    api.on_instruction(Some(0x26226), |_| log::info!("===========bdb_network_steering_start_scan=========="));
 
 
     // api.on_instruction(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
@@ -160,72 +172,72 @@ pub fn main(api) {
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" TX Pkt. Bytes: {}", pkt_hex);
     }
-    else {
-      if cfg.log_details {
-        log::info!("<============> RX PKT <============>");
-      }
-      let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
-      log::info!("Pkt Raw: {}",rx_pdu);
-      let test_str = "";
+  //   else {
+  //     if cfg.log_details {
+  //       log::info!("<============> RX PKT <============>");
+  //     }
+  //     let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
+  //     log::info!("Pkt Raw: {}",rx_pdu);
+  //     let test_str = "";
 
-      // // ADV Channel
-      // if cfg.data_connection == false {
-      //   if cfg.sequence == 0 {
-      //     // Scan Request
-      //     // rx_pdu = common::get_adv_rpl_data();
-      //     rx_pdu = common:: get_rx_data();
-      //     log::info!("RX adv: {}", rx_pdu);
-      //   }
-      //   else if cfg.sequence >= 1 {
-      //     log::info!("RX adv: {}", rx_pdu);
+  //     // // ADV Channel
+  //     // if cfg.data_connection == false {
+  //     //   if cfg.sequence == 0 {
+  //     //     // Scan Request
+  //     //     // rx_pdu = common::get_adv_rpl_data();
+  //     //     rx_pdu = common:: get_rx_data();
+  //     //     log::info!("RX adv: {}", rx_pdu);
+  //     //   }
+  //     //   else if cfg.sequence >= 1 {
+  //     //     log::info!("RX adv: {}", rx_pdu);
 
-      //     // rx_pdu = common::get_adv_rpl_data();
-      //     rx_pdu = common:: get_rx_data();
+  //     //     // rx_pdu = common::get_adv_rpl_data();
+  //     //     rx_pdu = common:: get_rx_data();
 
-      //     cfg.data_connection = true; // Switch to data channel
-      //   }
-      //   else {
-      //     cfg.sequence = cfg.sequence + 1;
-      //     return;
-      //   }
-      // }
-      // else {
-      //   // set initial flag
-      //   if cfg.initial_pdu_flag == true{
-      //     cfg.initial_pdu_flag = false;
-      //     // rx_pdu = common::get_empty_pdu_data();
-      //     rx_pdu = common:: get_rx_data();
+  //     //     cfg.data_connection = true; // Switch to data channel
+  //     //   }
+  //     //   else {
+  //     //     cfg.sequence = cfg.sequence + 1;
+  //     //     return;
+  //     //   }
+  //     // }
+  //     // else {
+  //     //   // set initial flag
+  //     //   if cfg.initial_pdu_flag == true{
+  //     //     cfg.initial_pdu_flag = false;
+  //     //     // rx_pdu = common::get_empty_pdu_data();
+  //     //     rx_pdu = common:: get_rx_data();
 
-      //     // log::info!("<============> initial_empty_pdu received <============>");
-      //   }
-      //   else{
-      //     // rx_pdu = common::get_data_rpl_data();
-      //     rx_pdu = common:: get_rx_data();
+  //     //     // log::info!("<============> initial_empty_pdu received <============>");
+  //     //   }
+  //     //   else{
+  //     //     // rx_pdu = common::get_data_rpl_data();
+  //     //     rx_pdu = common:: get_rx_data();
 
-      //     log::info!("RX data pdu: {}", rx_pdu);
-      //     //  log::info!("<============> rx_pdu received <============>");
-      //   }
-      // }
+  //     //     log::info!("RX data pdu: {}", rx_pdu);
+  //     //     //  log::info!("<============> rx_pdu received <============>");
+  //     //   }
+  //     // }
 
-      cfg.sequence = cfg.sequence + 1;
+  //     cfg.sequence = cfg.sequence + 1;
       
-      let data = common::decode_hex(rx_pdu)?;
-      // log::info!("Pkt Raw: {}",data);
-      for (i, v) in data.iter().enumerate() {
-        memory::write_u8(pkt_buf_addr + i, v);
-      }
+  //     let data = common::decode_hex(rx_pdu)?;
+  //     // log::info!("Pkt Raw: {}",data);
+  //     for (i, v) in data.iter().enumerate() {
+  //       memory::write_u8(pkt_buf_addr + i, v);
+  //     }
 
-      // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
-      // log::info!("RX <--- {}", pkt_summary);
-      let pkt_data = memory_read_buffer(pkt_buf_addr, 29);
-      let pkt_hex = common::encode_hex(pkt_data);
-      log::info!(" RX Pkt. Bytes: {}", pkt_hex);
-      if cfg.log_details {
-          log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-          log::info!("Pkt. Length: {}", data[1]);
-          log::info!("Pkt. Bytes: {}", rx_pdu);
-        }
-    }
+  //     // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
+  //     // log::info!("RX <--- {}", pkt_summary);
+  //     let pkt_data = memory_read_buffer(pkt_buf_addr, 29);
+  //     let pkt_hex = common::encode_hex(pkt_data);
+  //     log::info!(" RX Pkt. Bytes: {}", pkt_hex);
+  //     if cfg.log_details {
+  //         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
+  //         log::info!("Pkt. Length: {}", data[1]);
+  //         log::info!("Pkt. Bytes: {}", rx_pdu);
+  //       }
+  //   }
   }
 
 
@@ -274,17 +286,19 @@ pub fn main(api) {
     common::patch_function("log_output_process", arm::RETURN);
     common::patch_function("nrf_event_readback", arm::RETURN);
     common::patch_function("zb_trace_msg_port_vl", arm::RETURN_0);
-    common::patch_function("zb_schedule_alarm", arm::RETURN_0);
+    // common::patch_function("zb_schedule_alarm", arm::RETURN_0);
     common::patch_function("nrf_uarte_event_check", arm::RETURN_1);
     common::patch_function("temp_nrf5_mpsl_sample_fetch", arm::RETURN_0);
     common::patch_function("light_bulb_set_brightness", arm::RETURN);
     // -----------------------------------------------------------
     // common::patch_function("nrf_egu_event_check", arm::RETURN_1);
-    common::patch_function("nrf_egu_int_enable_check", arm::RETURN_1);
+    // common::patch_function("nrf_egu_int_enable_check", arm::RETURN_1);
+    // Force the timer interrupt enable check retrun 1 but probabily need to implement another model to handle
+    // common::patch_function("nrf_timer_int_enable_check", arm::RETURN_0);
     common::patch_function("mpsl_temperature_get", arm::RETURN_(112));
     common::patch_function("rand_get", arm::RETURN_0);
-    common::patch_function("zb_random_seed", arm::RETURN_2);
-    common::patch_function("nrf_timer_event_check", arm::RETURN_1);
+    // common::patch_function("zb_random_seed", arm::RETURN_2);
+    // common::patch_function("nrf_timer_event_check", arm::RETURN_1);
     common::patch_function("timeslot_is_granted", arm::RETURN_1);
     common::patch_function("remaining_timeslot_time_is_enough_for_crit_sect", arm::RETURN_1);
 
@@ -302,19 +316,35 @@ pub fn main(api) {
     common::patch_function("zb_nvram_dataset_is_supported", arm::RETURN_0);
     common::patch_function("nrf_802154_random_init", arm::RETURN_0);
     common::patch_function("sym_76IVKPQMZOZ7IXNJTGMWOSIWIVCASAX3TTNHN7I", arm::RETURN_1); // Read LFCLKSTAT 0x40000418
-    common::patch_function("rng_pool_get", arm::RETURN_1);
-    // common::patch_function("nrf_802154_queue_is_empty", arm::RETURN_0);
-    // common::patch_function("active_vector_priority_is_high", arm::RETURN_1);
-
-    
+    common::patch_function("rng_pool_get", arm::RETURN_1);    
+    common::patch_function("thread_is_sliceable", arm::RETURN_0);
     common::patch_function("qspi_nor_init", arm::RETURN_0);
     common::patch_function("settings_subsys_init", arm::RETURN_0);
     common::patch_function("nrfx_gpiote_0_irq_handler", arm::RETURN);
-
+    // Patch the is_state_allowed_for_prio to make sure the rx_init enter buffer_preparation
+    // common::patch_function("is_state_allowed_for_prio", arm::RETURN_1);
+    // zigbee_schedule_alarm - Force to match zboss_tid 
+    // and enter zb_schedule_app_alarmS
+    // common::patch_address(0x00015e20, [0x01, 0x2b]);
+    // common::patch_address(0x00015e2e, [0x00, 0x2b]);
+    // -----------------------Fix Egu behaviour---------------------
     // nrf_egu_task_trigger - Force branch to _swi_irq_handler
     // common::patch_address(0x0001bac0, [0x77, 0xf0, 0x5b, 0xfa]);
     // common::patch_address(0x0001bac8, [0x00, 0xbf]);
+    // Patch the cpsid function to make sure the irq can be injected
+    common::patch_address(0x0001bb7e, [0x00, 0xbf]);
+    // Set the scan status to active-scan
+    // common::patch_address(0x0007a16e, [0x00, 0xbf]);
+    // Instead of set up a callback for zb_mac_send_beacon_request_command
+    // force to brach it straight
+    // common::patch_address(0x0007a17a, [0x00, 0xf0, 0x57, 0xfa]);
+    // force the start_steering to be started lets see
+    common::patch_address(0x000266a2, [0x01, 0x2b]);
+
     
+
+    
+
     // Branch to radio handler
     // Force zb_zdo_joined return 0
     // common::patch_address(0x24efe, arm::NOP);

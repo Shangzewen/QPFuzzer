@@ -16,7 +16,8 @@
         {
             "label": "GDB Run Input",
             "type": "shell",
-            "command": "GDB=1 ./run-input-zigbee.sh target-zigbee/runs/input/input-1203246.bin",
+            // "command": "GDB=1 ./run-input-zigbee.sh target-zigbee/good_input/multi-beacon-commu.bin",
+            "command": "GDB=1 ./run-input-zigbee.sh target-zigbee/runs/input/input-530063.bin",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -41,7 +42,7 @@
             "label": "GDB Run Post Input",
             "type": "shell",
             // "command": "GDB=1 ./run-postinput.sh ./target-zephyr/runs/input/input-548.bin ",
-            "command": "GDB=1 ./run-input.sh ./target-zephyr/runs/input/input-6899.bin",
+            "command": "GDB=1 ./run-input.sh ./target-zephyr/runs/input/input-71455.bin",
             
             "group": {
                 "kind": "build",
@@ -55,7 +56,7 @@
             "label": "GDB Run New Post Input",
             "type": "shell",
             // "command": "GDB=1 ./run-postinput.sh target-zephyr/runs/input/input-202738.bin",
-            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/target-zephyr/runs/input/input-71651.bin",
+            "command": "GDB=1 ./run-postinput.sh ./target-zephyr/target-zephyr/runs/input/input-68160.bin",
             "group": {
                 "kind": "build",
                 "isDefault": false

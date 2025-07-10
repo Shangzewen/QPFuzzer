@@ -3,8 +3,9 @@ board:
 
 interrupt:
   mode: fuzzed
+  # mode: round-robin
   trigger:
-    on-infinite-sleep: false
+    on-infinite-sleep: true
     interval: 2000
     custom:
       - name: idle_interrupt
@@ -16,7 +17,11 @@ interrupt:
   # there is a offset of 0x10 for the isrtable in binary ninja and the real offset, need to + 0x10
   # allowlist:
   #   - 0x10
-  #   - 0x16
+  #   - 0x11
+  #   - 0x18
+  #   - 0x1b
+  #   - 0x1a
+  #   - 0x19
   #   - 0x1b
   #   - 0x1c
   #   - 0x1d

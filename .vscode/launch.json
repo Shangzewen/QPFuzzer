@@ -83,9 +83,9 @@
             "name": "QEMU Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/interval-500-fuzzed-clock-10t/zephyr.elf",
+            "program": "${workspaceFolder}/target-zigbee/zephyr.elf",
             "MIMode": "gdb",
-            "cwd": "${workspaceFolder}/interval-500-fuzzed-clock-10t",
+            "cwd": "${workspaceFolder}/target-zigbee",
             "stopAtConnect": false,
             // "preLaunchTask": "GDB Run Input",
             "setupCommands": [

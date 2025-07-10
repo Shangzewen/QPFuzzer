@@ -34,6 +34,7 @@ def run_terminal_command(command, output_markdown1):
     # for line in process.stdout:
         # output_markdown.set_content(output_markdown.content + line.strip() + '\n')  # Append new output
     for line in process.stdout:
+        # print(line)
         if 'RX' in line and 'PKT' not in line:
             # clean_line = remove_ansi_codes(line.strip())
             clean_line = conv.convert(line, full=False)

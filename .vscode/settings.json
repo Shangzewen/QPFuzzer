@@ -1,4 +1,7 @@
 {
     "workbench.editor.enablePreview": false,
-    "workbench.editor.wrapTabs": true
+    "workbench.editor.wrapTabs": true,
+    "files.associations": {
+        "random": "c"
+    }
 }

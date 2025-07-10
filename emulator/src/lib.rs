@@ -67,6 +67,7 @@ pub struct ExecutionResult<I: Input + Debug> {
     pub stop_reason: StopReason,
     pub bugs: Option<Vec<Bug>>,
     pub relevant_edges: u16,
+    // pub basic_block_counts: u16,
 }
 
 impl<I: Input + Debug> fmt::Display for ExecutionResult<I> {
@@ -157,6 +158,8 @@ pub(crate) struct EmulatorData<I: 'static + Input + Debug> {
     input_limits: Option<EmulatorLimits>,
     debug: EmulatorDebugData,
     relevant_edges: u16,
+    // basic_block_counts: usize,
+    g_izb_data: i32,
 }
 
 impl<I: Input + Debug> EmulatorData<I> {
@@ -182,7 +185,10 @@ impl<I: Input + Debug> EmulatorData<I> {
             limits,
             input_limits: None,
             debug,
-            relevant_edges: 0
+            relevant_edges: 0,
+            // basic_block_counts: 0,
+            g_izb_data: 0
+
         }
     }
 
@@ -210,6 +216,9 @@ impl<I: Input + Debug> EmulatorData<I> {
         self.execution_start = Some(Instant::now());
         // Clear relevant edges
         self.relevant_edges = 0;
+        // Clear basic_block_counts
+        // self.basic_block_counts = 0;
+        self.g_izb_data = 0;
 
         Ok(())
     }
@@ -513,6 +522,40 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
             // skip rewound basic block
             return Ok(());
         }
+        if((self.counts.basic_block)%1000 == 0){
+        //     // self.on_ram_write(pc, addr, data, size)
+        //     // increment the g_izb counter for the timer 2 every 1000 blocks
+            let g_izb_addr =0x20007768; 
+        //     // if let Ok(res) = qcontrol().read::<u32, 4>(g_izb_addr) {
+        //     //     let res_n = res + 1;
+        //     //     let result_counter_incremnt = qemu_rs::qcontrol_mut().write(g_izb_addr, res_n);
+        //     //     qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
+        //     //     // log::info!("This is the result {result_counter_incremnt:?}");
+        //     //     // log::info!("This is the g_izb_data {res_n:?}");
+        //     // }
+            self.g_izb_data += 1;
+            let g_izb_data_copy = self.g_izb_data;
+            let result = qemu_rs::qcontrol_mut().write(g_izb_addr, g_izb_data_copy);
+        //     // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
+        //     // log::info!("This is the g_izb_data {g_izb_data_copy:?}");
+            
+
+        }
+        // gzib handlling 
+        // if((self.counts.basic_block - self.basic_block_counts)>1000){
+        //     self.basic_block_counts = self.counts.basic_block;
+        //     // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
+        //     // log::info!("Inject interrupt");
+        //     let g_izb_addr =0x20007768; 
+        //     self.g_izb_data += 1;
+        //     let g_izb_data_copy = self.g_izb_data;
+        //     let result = qemu_rs::qcontrol_mut().write(g_izb_addr, g_izb_data_copy);
+        //     log::info!("This is the g_izb_data {g_izb_data_copy:?}");
+
+        // }
+        // self.counts.basic_block;
+        // self.on_ram_write(pc, addr, data, size)
+    
 
         // update basic block count (and may stop execution when limits are reached)
         self.update_basic_block_count_inner(true)?;
@@ -591,9 +634,9 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                     self.relevant_edges += 50;
                     log::info!("Relevant Edge: irq_handler_sync (0x{pc:08X})");
                 },
-                0x94092 => { // rx_timeslot_started_callback
+                0x87542 => { // rx_timeslot_started_callback
                     self.relevant_edges += 100;
-                    log::info!("Relevant Edge: rx_timeslot_started_callback (0x{pc:08X})");
+                    log::info!("Relevant Edge: z_thread_entry (0x{pc:08X})");
                 },
                 0x8dd54 => { // nrf5_iface_init
                     self.relevant_edges += 100;
@@ -604,8 +647,36 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                     log::info!("Relevant Edge: bdb_network_steering_machine (0x{pc:08X})");
                 },
                 0x8fb82 => {
-                    self.relevant_edges += 10;
+                    self.relevant_edges += 100;
                     log::info!("Relevant Edge: start_network_steering (0x{pc:08X})");
+                },
+                0x24f30 => {
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: bdb_commissioning_signal (0x{pc:08X})");
+                },
+                0x8b4a4 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: tc_rx_handler (0x{pc:08X})");
+                },
+                0x8b488 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: submit_to_queue (0x{pc:08X})");
+                },
+                0x6a5788 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: zdo_handle_nlme_network_discovery_confirm (0x{pc:08X})");
+                },
+                0x6aa00 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: zb_nlme_network_discovery_confirm (0x{pc:08X})");
+                },
+                0x52ba4 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: zb_mlme_scan_confirm (0x{pc:08X})");
+                },
+                0x79f84 => { // rx_timeslot_started_callback
+                    self.relevant_edges += 100;
+                    log::info!("Relevant Edge: zb_mlme_scan_step (0x{pc:08X})");
                 },
                 // 
                 // 
