@@ -99,12 +99,6 @@ pub fn main(api) {
     // --------------------------------------------------------------------------
     // api.on_basic_block(Some(symbolizer::resolve("nrf_egu_task_trigger")?), |_| log::info!("===========nrf_egu_task_trigger==========="));
     // api.on_basic_block(Some(symbolizer::resolve("submit_to_queue")?), |_| log::info!("===========submit_to_queue=========="));
-    // api.on_instruction(Some(0x00004074), |_| register::write("r3",0x10)?);
-    // api.on_instruction(Some(0x00004076), |_| register::write("r3",0x10)?);
-    // api.on_instruction(Some(0x00004080), |_| register::write("r3",0x10)?);
-    // api.on_instruction(Some(0x0000407c), |_| register::write("r3",0x10)?);
-    // api.on_instruction(Some(0x00004078), |_| register::write("r3",0x10)?);
-    // api.on_instruction(Some(0x4080), |_| register::read("r2")?);
     // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_frame_parser_src_addr_type_get")?), |_| register::read("r0")?);
     // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_frame_parser_src_addr_type_get")?), |_| memory::read_u8(0x2000B02C));
     // Assoiate
@@ -115,29 +109,6 @@ pub fn main(api) {
     api.on_basic_block(Some(symbolizer::resolve("zdo_join_to_nwk_descr")?), |_| log::info!("===========zdo_join_to_nwk_descr==========="));
     api.on_basic_block(Some(symbolizer::resolve("zdo_commissioning_join_via_scanlist")?), |_| log::info!("===========zdo_commissioning_join_via_scanlist=========="));
 
-    // clear the scan left times and fore it to join from the scan list
-    // api.on_instruction(Some(0x0006a6a8), |_| register::write("r3",0x0)?);
-    // api.on_instruction(Some(0x0006a6aa), |_| register::write("r3",0x0)?);
-    // api.on_instruction(Some(0x0006a6ae), |_| register::write("r3",0x0)?);
-    // api.on_instruction(Some(0x00004078), |_| register::write("r3",0x10)?);
-    // force to start steering at the begining
-    // api.on_instruction(Some(0x000266a2), |_| register::write("r3",0x01)?);
-    // api.on_instruction(Some(0x000266a2), |_| register::read("r3")?);
-    // api.on_instruction(Some(0x000266a2), |_| log::info!("2"));
-    // common::patch_address(0x000266a2, [0x01, 0x2b]);
-    //  patched the timeslot_is_granted() function to return 1
-    // api.on_instruction(Some(0x0001911c), |_| register::write("r3",0x01)?);
-    // api.on_instruction(Some(0x0001911c), |_| register::read("r3")?);
-    //  patched the nrf_raal_time_slot_request() function to return 1
-    // api.on_instruction(Some(0x00003ce0), |_| register::write("r0",0x00)?);
-    // api.on_instruction(Some(0x00003ce0), |_| register::read("r0")?);
-    // api.on_instruction(Some(0x0000233e), |_| register::write("r0",0x0)?);
-    // api.on_instruction(Some(0x0001911c), |_| register::read("r0")?);
-    // patch prority function mpsl
-    // api.on_basic_block(Some(0x000008c0), |_| memory::write_u16(0x20000f68,0x0569)?);
-    // test irq number 1
-    // api.on_instruction(Some(0xa30e), |_| register::write("r3",0x01)?);
-    // api.on_instruction(Some(0x0001911c), |_| register::read("r3")?);
   }
   fn print_symbol_name(pc, is_interrupt, isr_number) {
     match symbolizer::lookup(pc)
@@ -198,7 +169,7 @@ pub fn main(api) {
         cfg.pkt_length = pdu_length + 3;
       }
       else{
-        cfg.pkt_length = pdu_length + 1;
+        cfg.pkt_length = pdu_length;
       }
       // println!("This is pkt_length {}", cfg.pkt_length);
       // if (cfg.pkt_length > 20){
@@ -212,6 +183,19 @@ pub fn main(api) {
       let pkt_data = memory_read_buffer(pkt_buf_addr+1, cfg.pkt_length);
 
       let pkt_hex = common::encode_hex(pkt_data);
+      // cfg.sequence == 1 beacon req received 
+      // cfg.sequence == 2 Assoation req received 
+      if pkt_hex == "030800ffffffff070000"{
+        log::info!("Beacon Req");
+        cfg.sequence = 1
+      }
+      else if pkt_hex == "23c80182b50000ffff007098905a36cef4018e0000"{
+        log::info!("Assoation Req");
+        cfg.sequence = 2
+      }
+      else{
+        cfg.sequence = 0
+      }
       log::info!(" TX Pkt. Bytes: {}", pkt_hex);
       // log::info!(" TX PK. Bytes: {}", pkt_hex);
     }
@@ -219,9 +203,24 @@ pub fn main(api) {
       if cfg.log_details {
         log::info!("<============> RX PKT <============>");
       }
-      let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
+      // let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
+      let rx_pdu = "";
+      match cfg.sequence {
+        // 0 => rx_pdu = "830cf37a7d65de2800000000000c2aba95",
+        1 => rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179",
+        // 2 => {
+          // log::info!("-------------- ANCHOR POINT -------------");
+          // cfg.data_connection = true;
+          // rx_pdu = "0900";
+          // },
+        2 => rx_pdu = "060200010000", // ACK with seq number of 01
+        // 6 => rx_pdu = "0306000c0800000000", // LL_VERSION_IND
+        // 6 => rx_pdu = "03090014fb004808fb004808", // LL_LENGTH_REQ
+        _ => rx_pdu = "060200010000",
+      }
+      // let test_str = "";
       log::info!("Pkt Raw: {}",rx_pdu);
-      let test_str = "";
+
 
   //     // // ADV Channel
   //     // if cfg.data_connection == false {
@@ -262,8 +261,8 @@ pub fn main(api) {
   //     //   }
   //     // }
 
-      cfg.sequence = cfg.sequence + 1;
-      
+      // cfg.sequence = cfg.sequence + 1;
+
       let data = common::decode_hex(rx_pdu)?;
       // log::info!("Pkt Raw: {}",data);
       for (i, v) in data.iter().enumerate() {
@@ -272,7 +271,10 @@ pub fn main(api) {
 
       // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
       // log::info!("RX <--- {}", pkt_summary);
-      let pkt_data = memory_read_buffer(pkt_buf_addr, 29);
+      // let pkt_len 
+      let pdu_length = memory::read_u8(pkt_buf_addr)?;
+      log::info!("This is pdu length {}",pdu_length);
+      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length+1);
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" RX Pkt. Bytes: {}", pkt_hex);
       if cfg.log_details {
