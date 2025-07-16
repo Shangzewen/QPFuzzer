@@ -189,7 +189,8 @@ pub fn main(api) {
         log::info!("Beacon Req");
         cfg.sequence = 1
       }
-      else if pkt_hex == "23c80182b50000ffff007098905a36cef4018e0000"{
+      // else if pkt_hex == "23c80182b50000ffff007098905a36cef4018e0000"{
+      else if pkt_hex.contains("8e"){
         log::info!("Assoation Req");
         cfg.sequence = 2
       }
@@ -216,7 +217,7 @@ pub fn main(api) {
         2 => rx_pdu = "060200010000", // ACK with seq number of 01
         // 6 => rx_pdu = "0306000c0800000000", // LL_VERSION_IND
         // 6 => rx_pdu = "03090014fb004808fb004808", // LL_LENGTH_REQ
-        _ => rx_pdu = "060200010000",
+        _ => rx_pdu = "",
       }
       // let test_str = "";
       log::info!("Pkt Raw: {}",rx_pdu);
