@@ -588,7 +588,15 @@ fn zmq_transmit_receive(hex_str: &str,event:&str,pkt_type:usize) -> String{
     let access_adr_adv = "d6be898e";
     let access_adr_data = "7083329a";
     let crc = "000000";
-    let header_base = "061c0002c06a060a01031d00005ef50000";
+    let mut header_base = "";
+    if (event == "00"){
+        header_base = "061c0002c06a060a01031d00005ef50000";
+    }
+    else if (event == "01"){
+        header_base = "061c0002c06a060a03031d00005ef50000";
+
+    }
+    // let header_base = "061c0002c06a060a01031d00005ef50000";
     // let event = "01";
     // let pkt_str = format!("{}{}{}{}{}",event,header_base,access_adr_data,hex_str,crc);
     let pkt_str = construct_pkt(header_base, hex_str, crc, event, access_adr_adv, access_adr_data, pkt_type);
