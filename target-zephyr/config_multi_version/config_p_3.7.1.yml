@@ -1,0 +1,71 @@
+board:
+  init_nsvtor: 0x00000
+
+interrupt:
+  mode: fuzzed
+  # mode: round-robin
+  trigger:
+    on-infinite-sleep: false
+    interval: 500
+    # interval: 1000
+    custom:
+      - name: idle_interrupt
+        symbol: arch_cpu_idle
+      - name: atomic_interrupt
+        symbol: arch_cpu_atomic_idle
+  # allowlist:
+  #   # - 0x0E #
+  #   - 0x11 # radio_nrf5_isr * rtc_nrf_isr * 
+  #   # - 0x0B # rtc0_nrf5_isr
+  #   # - 0x1D # 
+  #   - 0x10 # nrfx_isr *
+  #   - 0x1B # rtc0_nrf5_isr
+  #   - 0x28 # swi_lll_nrf5_isr
+
+
+memory_maps:
+  - name: mmio
+    address: 0x40000000
+    size: 0x20000000
+    type: mmio
+  - name: ram
+    address: 0x20000000
+    size: 0x100000
+    type: ram
+  - name: text
+    address: 0x0000000
+    size: 0x20000000
+    type: rom
+    file:
+      path: zephyr_p_3.7.1.bin
+
+debug_hooks:
+  - symbol: printk
+    type: printf
+  - symbol: assert_print
+    type: printf
+  - symbol: vprintk
+    type: sprintf
+  - symbol: vfprintf
+    type: sprintf-va-list
+  - symbol: print_formatted
+    type: sprintf
+  - symbol: z_impl_z_log_msg_simple_create_0
+    type: sprintf2
+  - symbol: z_impl_z_log_msg_simple_create_1
+    type: sprintf2
+  - symbol: z_impl_z_log_msg_simple_create_2
+    type: sprintf2
+
+exit_hooks:
+  - name: arch_system_halt
+    symbol: arch_system_halt
+  - name: z_do_kernel_oops
+    symbol: z_do_kernel_oops
+  - name: z_fatal_error
+    symbol: z_fatal_error
+  - name: z_arm_fault
+    symbol: z_arm_fault
+
+symbols:
+  - zephyr_p_3.7.1.elf
