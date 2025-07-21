@@ -227,7 +227,7 @@ pub fn main(api) {
 
       }
 
-      log::info!("TX ---> {}", pkt_summary);
+      // log::info!("TX ---> {}", pkt_summary);
     }
     else {
       if cfg.log_details {
@@ -291,7 +291,7 @@ pub fn main(api) {
 
 
       let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
-      log::info!("RX <--- {}", pkt_summary);
+      // log::info!("RX <--- {}", pkt_summary);
 
       if cfg.log_details {
           log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);

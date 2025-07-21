@@ -43,7 +43,7 @@ def generate_reply_data(data):
 # verison_ind
 # generate_reply_data("06190002c06a060a01031d00005ef500007083329a0b060c0df1050000000000")
 # Scan Rsp
-generate_reply_data("06360002c06a060a01271d00005ef50000d6be898e60230000000000c002010607030d180f1805181107f0debc9a785634127856341278563400000000")
+# generate_reply_data("06360002c06a060a01271d00005ef50000d6be898e60230000000000c002010607030d180f1805181107f0debc9a785634127856341278563400000000")
 
 # generate_reply_data("061f0002c06a060a01031d00005ef50000d6be898e830cf37a7d65de280000000000c0000000")
 
@@ -51,3 +51,53 @@ generate_reply_data("06360002c06a060a01271d00005ef50000d6be898e60230000000000c00
 # LL_VERSION_IND example (Bluetooth 5.0, Ericsson, SubVer 1)
 # AA = d6be898e, Header = 03 (LLID=3, Len=6), Payload = 0d (OpCode) 09 (VersNr 5.0) 0000 (CompID Ericsson) 0001 (SubVersNr)
 # generate_reply_data("d6be898e03060d0900000001")
+
+def gen_conn_req():
+    master_addr = "28:de:65:7d:7a:f3"
+    # rpl_pkt = (
+    #     BTLE_DATA()
+    #     / L2CAP_Hdr()
+    #     / SM_Hdr()
+    #     / SM_Pairing_Request(
+    #         iocap=0x04,
+    #         oob=0,
+    #         authentication=0x09,
+    #         max_key_size=16,
+    #         initiator_key_distribution=0x07,
+    #         responder_key_distribution=0x07,
+    #     )
+    # )
+    # rpl_pkt = BTLE_ADV(RxAdd=1) / BTLE_CONNECT_REQ(
+    #         InitA=master_addr,
+    #         AdvA="c0:00:00:00:00:00",
+    #         AA=0x7083329A,
+    #         crc_init=0x9C9A17,
+    #         win_size=2,
+    #         win_offset=1,
+    #         interval=1,
+    #         latency=0,
+    #         timeout=0x64,
+    #         chM=0x7CFFFFFFFF,
+    #         SCA=0,
+    #         hop=5,
+    #     )
+    rpl_pkt = (
+            BTLE_DATA(SN=0, NESN=1)
+            / BTLE_CTRL()
+            / LL_FEATURE_REQ(feature_set="le_encryption+le_data_len_ext")
+        )
+    rpl_pkt.show()
+        # print(hexlify(bytes(rpl_pkt)))
+        # dt_flag = 1
+    return hexlify(bytes(rpl_pkt))
+
+# def pkt_raw():
+#     raw_pkt = "7b070300040002f700"
+#     pkt = BTLE_DATA(unhexlify(raw_pkt))
+#     pkt.show()
+pkt_byte = gen_conn_req()
+print(pkt_byte.decode())
+# print("020b07000600dc2c0009100707")
+raw_pkt = "560914fb004808fb004808"
+pkt = BTLE_DATA(unhexlify(raw_pkt))
+pkt.show()

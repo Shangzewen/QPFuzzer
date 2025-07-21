@@ -30,7 +30,7 @@ pub fn main(api) {
               pkt_length: 0
             };
     hook_link_layer(api, cfg);
-    common::send_socket_data("session");
+    // common::send_socket_data("session");
 
     //  ------------ Print Logs ------------
     // Exit Hooks
@@ -153,7 +153,7 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
-        common::reset_empty_pdu_flag();
+        // common::reset_empty_pdu_flag();
         // enable the data_connection_flag for fuzzing from scrach
         cfg.data_connection = false;
       });
@@ -226,7 +226,7 @@ pub fn main(api) {
 
       }
 
-      log::info!("TX ---> {}", pkt_summary);
+      // log::info!("TX ---> {}", pkt_summary);
     }
     else {
       if cfg.log_details {
@@ -290,7 +290,7 @@ pub fn main(api) {
 
 
       let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
-      log::info!("RX <--- {}", pkt_summary);
+      // log::info!("RX <--- {}", pkt_summary);
 
       if cfg.log_details {
           log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
