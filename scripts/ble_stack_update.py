@@ -260,7 +260,7 @@ def handle_adv(data):
     raw_pdu = unhexlify(data)
     # get pdu length
     print(f'Expected Length: {int(raw_pdu[1])}, Recv RX: {len(raw_pdu[2:])}')
-    print("RX <---------------------"+reuslt_rx)
+    print("TX <---------------------"+reuslt_rx)
     received_msg = data.decode()
     print(f"Rceived Message: {str(received_msg)}")
     # print (f"Rceived raw data: {data}") 
@@ -268,7 +268,7 @@ def handle_adv(data):
     try:
         rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
         result_tx = parse_ble_packet(rpl,1,False)
-        print("TX --------------------->"+result_tx)
+        print("RX --------------------->"+result_tx)
         return rpl
     except Exception as e:
         print(f"There is an error occured: {e}")

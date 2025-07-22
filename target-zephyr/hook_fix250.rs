@@ -9,8 +9,6 @@ struct State {
   adv_ind_flag,
   initial_pdu_flag,
   pkt_length,
-  tx,
-  rx,
 }
 
 pub fn main(api) {
@@ -21,7 +19,6 @@ pub fn main(api) {
     //  ------------ Test udp Socket ---------------
     api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| common::running_socket_background());
     // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
-
     //  ------------ Hook Link Layer Packets ------------
     let cfg = State {
               sequence: 0,
@@ -29,12 +26,10 @@ pub fn main(api) {
               log_details: false,
               adv_ind_flag: false,
               initial_pdu_flag:true,
-              pkt_length: 0,
-	      tx: true,
-	      rx: false
+              pkt_length: 0
             };
     hook_link_layer(api, cfg);
-    //common::send_socket_data("session");
+    // common::send_socket_data("session");
 
     //  ------------ Print Logs ------------
     // Exit Hooks
@@ -45,31 +40,28 @@ pub fn main(api) {
 
 
     // BLE Setup
-     api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| log::info!("===========bt_enable=========="));
-     api.on_instruction(Some(symbolizer::resolve("lll_adv_scan_req_check")?), |_| log::info!("===========lll_adv_scan_req_check=========="));
-    // api.on_instruction(Some(symbolizer::resolve("settings_load")?), |_| log::info!("===========settings_load=========="));
-     api.on_instruction(Some(symbolizer::resolve("bt_le_adv_start")?), |_| log::info!("===========bt_le_adv_start=========="));
-    // api.on_instruction(Some(symbolizer::resolve("bt_le_adv_start")?), |_| cfg.data_connection = false);
+    api.on_instruction(Some(symbolizer::resolve("bt_enable")?), |_| log::info!("===========bt_enable=========="));
+    // api.on_instruction(Some(symbolizer::resolve("cts_init")?), |_| log::info!("===========cts_init=========="));
+    api.on_instruction(Some(symbolizer::resolve("settings_load")?), |_| log::info!("===========settings_load=========="));
+    api.on_instruction(Some(symbolizer::resolve("bt_le_adv_start")?), |_| log::info!("===========bt_le_adv_start=========="));
+
     // BLE HCI
-    // api.on_instruction(Some(0x5e70), |_| log::info!("--> bt_hci_cmd_send_sync"));
-    // api.on_instruction(Some(0x7f1e), |_| log::info!("--> bt_conn_tx_processor->bt_send"));
-    // api.on_instruction(Some(0x7f38), |_| log::info!("--> hci_tx_thread->bt_send FAIL"));
+    api.on_instruction(Some(0x6b94), |_| log::info!("--> bt_hci_cmd_send_sync"));
+    api.on_instruction(Some(0x7498), |_| log::info!("--> hci_tx_thread->bt_send"));
+    api.on_instruction(Some(0x74a6), |_| log::info!("--> hci_tx_thread->bt_send FAIL"));
     
     // BLE Periodic Timers
-    // api.on_instruction(Some(symbolizer::resolve("ticker_start_ext")?), |_| log::info!("===========ticker_start_ext==========="));
-    // api.on_instruction(Some(symbolizer::resolve("radio_isr_set")?), |_| log::info!("===========radio_isr_set==========="));
+    api.on_instruction(Some(symbolizer::resolve("ticker_start_ext")?), |_| log::info!("===========ticker_start_ext==========="));
+    api.on_instruction(Some(symbolizer::resolve("radio_isr_set")?), |_| log::info!("===========radio_isr_set==========="));
     // api.on_instruction(Some(symbolizer::resolve("rtc0_nrf5_isr")?), |_| log::info!("===========rtc0_nrf5_isr==========="));
     // api.on_instruction(Some(symbolizer::resolve("ticker_cb")?), |_| log::info!("===========ticker_cb==========="));
 
     // BLE Advertisement
-    // api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_radio")?), |_| log::info!("===========isr_radio==========="));
-    // api.on_instruction(Some(0x1a194), |_| log::info!("===========passed the radio enable checking!==========="));
+    api.on_instruction(Some(symbolizer::resolve("lll_adv_prepare")?), |_| log::info!("===========lll_adv_prepare==========="));
     
     // BLE Interrupts
-    // api.on_instruction(Some(symbolizer::resolve("rx_demux_rx")?), |_| log::info!("===========rx_demux_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("ull_cp_rx")?), |_| log::info!("===========ull_cp_rx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
+    api.on_instruction(Some(symbolizer::resolve("ull_conn_rx")?), |_| log::info!("===========ull_conn_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("pdu_validate_version_ind")?), |_| log::info!("===========pdu_validate_version_ind==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_rr_rx")?), |_| log::info!("===========llcp_rr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("llcp_lr_rx")?), |_| log::info!("===========llcp_lr_rxllcp_lr_rx==========="));
@@ -95,38 +87,36 @@ pub fn main(api) {
     // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| log::info!("===========send_pairing_rsp==========="));
     // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| register::read("pc")?);
     // api.on_instruction(Some(0x0000ca70), |_| log::info!("===========smp_send==========="));
-    // api.on_instruction(Some(0x0000ca70), |_| register::read("pc")?);
+    api.on_instruction(Some(0x00001a80), |_| register::read("r0")?);
     //SM pairing 
     // api.on_instruction(Some(symbolizer::resolve("smp_pairing_req")?), |_| log::info!("===========smp_pairing_req==========="));
     // api.on_instruction(Some(symbolizer::resolve("smp_pairing_rsp")?), |_| log::info!("===========smp_pairing_rsp==========="));
     // api.on_instruction(Some(symbolizer::resolve("send_pairing_rsp")?), |_| log::info!("===========send_pairing_rsp==========="));
     // api.on_instruction(Some(0x0000ca70), |_| log::info!("===========smp_send==========="));
-    api.on_instruction(Some(symbolizer::resolve("z_log_msg_simple_create_0")?), |_| log::info!("===========z_log_msg_simple_create_0==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_log_msg_simple_create_0")?), |_| log::info!("===========z_log_msg_simple_create_0==========="));
     
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_rx_sched")?), |_| log::info!("===========ull_rx_sched==========="));
     api.on_instruction(Some(symbolizer::resolve("ull_rx_put")?), |_| log::info!("===========ull_rx_put==========="));
-    // api.on_instruction(Some(symbolizer::resolve("ll_rx_sched")?), |_| log::info!("===========ll_rx_sched==========="));
+    api.on_instruction(Some(symbolizer::resolve("ll_rx_sched")?), |_| log::info!("===========ll_rx_sched==========="));
     // api.on_instruction(Some(symbolizer::resolve("mayfly_run")?), |_| log::info!("===========mayfly_run==========="));
     // api.on_instruction(Some(0x00016632), |_| log::info!("--> enter condition!!!"));
     // api.on_instruction(Some(0x00016624), |_| memory::write_u8(0x20002410,1)?);
-    api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| register::read("r0")?);
-    api.on_instruction(Some(symbolizer::resolve("rp_comm_tx_proxy")?), |_| log::info!("===========rp_comm_tx_proxy==========="));
-    api.on_instruction(Some(symbolizer::resolve("llcp_tx_enqueue")?), |_| log::info!("===========llcp_tx_enqueue==========="));
-    api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
-    api.on_instruction(Some(0x0000f7ce), |_| register::read("r3")?);
-    api.on_instruction(Some(0x0000f7e2), |_| register::read("r4")?);
-    api.on_instruction(Some(0x00014420), |_| log::info!("===========rp_comm_send_rsp==========="));
-    api.on_instruction(Some(symbolizer::resolve("rp_comm_execute_fsm")?), |_| log::info!("===========rp_comm_execute_fsm==========="));
+    // api.on_instruction(Some(0x0001662e), |_| memory::read_u8(0x20002410)?);
+    // api.on_instruction(Some(symbolizer::resolve("rp_comm_tx_proxy")?), |_| log::info!("===========rp_comm_tx_proxy==========="));
+    // api.on_instruction(Some(symbolizer::resolve("llcp_tx_enqueue")?), |_| log::info!("===========llcp_tx_enqueue==========="));
+    // api.on_instruction(Some(symbolizer::resolve("ull_tx_q_enqueue_ctrl")?), |_| log::info!("===========ull_tx_q_enqueue_ctrl==========="));
+    // api.on_instruction(Some(), |_| log::info!("===========rp_comm_send_rsp==========="));
+    
     // api.on_instruction(Some(symbolizer::resolve("_isr_wrapper")?), |_| log::info!("===========_isr_wrapper==========="));
-    // api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
+    api.on_instruction(Some(symbolizer::resolve("isr_tx")?), |_| log::info!("===========isr_tx==========="));
+    api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_rx")?), |_| log::info!("===========lll_conn_isr_rx==========="));
     // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
     // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
     // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
     // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
 
-    // api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
+    api.on_instruction(Some(symbolizer::resolve("lll_conn_isr_tx")?), |_| log::info!("===========lll_conn_isr_tx==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_done")?), |_| log::info!("===========isr_done==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_race")?), |_| log::info!("===========isr_race==========="));
     // api.on_instruction(Some(symbolizer::resolve("isr_abort")?), |_| log::info!("===========isr_abort==========="));
@@ -154,6 +144,7 @@ pub fn main(api) {
       }
     }
   }
+
   fn hook_link_layer(api, cfg){
       // Reset state before every run
       api.on_prepare_run(||{
@@ -161,47 +152,20 @@ pub fn main(api) {
         cfg.adv_ind_flag = false;
         cfg.initial_pdu_flag = true;
         common::clear_tx_data();
+        // rest the flag for empty pdu reply
+        common::reset_empty_pdu_flag();
         // enable the data_connection_flag for fuzzing from scrach
         cfg.data_connection = false;
       });
-     // if (cfg.tx == true){
-     //     cfg.rx = true;
-     //     cfg.tx = false;
-     //     api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), 
-     //             |_| handle_link_layer_packet(cfg, register::read("r0")?, 1));
-     // }else if (cfg.rx == true){
-     //     cfg.rx = false;
-     //     cfg.tx = true;
-     //     api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), 
-     //             |_| handle_link_layer_packet(cfg, register::read("r0")?, 0)); 
-     // }
+    
       // TX
       api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), 
                 |_| handle_link_layer_packet(cfg, register::read("r0")?, 1));
       // RX
       api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), 
                 |_| handle_link_layer_packet(cfg, register::read("r0")?, 0));
-        
-    }
-  //fn hook_link_layer(api, cfg){
-      // Reset state before every run
-  //    api.on_prepare_run(||{
-  //      cfg.sequence = 0;
-  //      cfg.adv_ind_flag = false;
-  //      cfg.initial_pdu_flag = true;
-  //      common::clear_tx_data();
-  //      // enable the data_connection_flag for fuzzing from scrach
-  //      cfg.data_connection = false;
-  //    });
-  //  
-  //    // TX
-  //    api.on_instruction(Some(symbolizer::resolve("radio_pkt_tx_set")?), 
- //               |_| handle_link_layer_packet(cfg, register::read("r0")?, 1));
-   //   // RX
-  //    api.on_instruction(Some(symbolizer::resolve("radio_pkt_rx_set")?), 
-  //              |_| handle_link_layer_packet(cfg, register::read("r0")?, 0));
-  //    
- // }
+      
+  }
 
 
   fn handle_link_layer_packet(cfg, pkt_buf_addr, direction) {
@@ -242,10 +206,7 @@ pub fn main(api) {
       //   common::zmq_transmit_receive(pkt_hex,"00",1);
       // }
       if pkt_summary.contains("BTLE_ADV_IND") {
-          // cfg.data_connection = false;
-          // cfg.initial_pdu_flag = true;
-          // cfg.sequence = 0;
-          //// log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
+        // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
         if cfg.adv_ind_flag == false {
           cfg.adv_ind_flag = true;
           common::update_tx_data(pkt_hex);
@@ -257,19 +218,6 @@ pub fn main(api) {
       else{
         common::update_tx_data(pkt_hex);
       }
-       // common::update_tx_data(pkt_hex);
-        // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
-//        if cfg.adv_ind_flag == false {
-//          cfg.adv_ind_flag = true;
-//          common::update_tx_data(pkt_hex);
-//        }
-//        else{
-//          return
-//        }
-//     }
-//      else{
-//        common::update_tx_data(pkt_hex);
-//      }
       if cfg.log_details {
         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
         log::info!("Pkt. Length: {}", cfg.pkt_length);
@@ -330,9 +278,8 @@ pub fn main(api) {
       // let fuzzed_msg_clean = !format("{}{}",&fuzzed_msg[43..]);
       log::info!("fuzzed msg {}",fuzzed_msg);
       log::info!("rx pdu     {}",rx_pdu);
-      // Comment when combine with u-fuzz
+      // let data = common::decode_hex(rx_pdu)?;
       let data = common::decode_hex(rx_pdu)?;
-      // let data = common::decode_hex(fuzzed_msg)?;
       for (i, v) in data.iter().enumerate() {
         memory::write_u8(pkt_buf_addr + i, v);
       }
@@ -408,8 +355,7 @@ pub fn main(api) {
     // common::patch_address(0x1a408, arm::MOV(2,1));
   
     // Fix isr_radio - Check if isr_cb is not NULL
-    //common::patch_address(0x1a19c, [0x04, 0x34, 0x00, 0x20]);
-    common::patch_address(0x1a18e, arm::NOP);
+    common::patch_address(0x19c96, arm::NOP);
   
     // Force RX to be successfull (Optional it seems)
     common::patch_function("radio_has_disabled", arm::RETURN_1);
@@ -427,11 +373,10 @@ pub fn main(api) {
     common::patch_function("lll_preempt_calc", arm::RETURN_0); // **
 
     common::patch_function("isr_race", arm::RETURN);
-  
+    common::patch_function("set_absolute_alarm", arm::RETURN);
     // Fix memcmp on scan_req addr check
-    common::patch_address(0x00019370, [0x4f, 0xf0, 0x20, 0x00]);
+    common::patch_address(0x00018e76, [0x4f, 0xf0, 0x20, 0x00]);
     // Fix memcmp on adv_ind addr check
-    common::patch_address(0x0001944c, [0x4f, 0xf0, 0x20, 0x00]);
-    // common::patch_address(0x000121ac, arm::NOP);
-    common::patch_address(0x00019dde, [0x01, 0x20]);
+    common::patch_address(0x00018f36, [0x4f, 0xf0, 0x20, 0x00]);
+    common::patch_address(0x000197b8, [0x02, 0x20]);
   }
