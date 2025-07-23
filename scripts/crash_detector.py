@@ -5,6 +5,14 @@ import signal
 from subprocess import Popen, PIPE
 import multiprocessing
 import socket
+
+def get_time_diff(time1, time2):
+    time1_split_pre = time1.split(":")
+    # time1_split_after = time1_split_pre[1].split(":")
+    time2_split_pre = time2.split(":")
+    # time2_split_after = time2_split_pre[1].split(":")
+    time_diff = (int(time1_split_pre[0]) - int(time2_split_pre[0]))*3600 + (int(time1_split_pre[1]) - int(time2_split_pre[1]))*60 + (int(time1_split_pre[2])-int(time2_split_pre[2]))
+    return str(time_diff)
 def get_pid(cmd):
     pid_lst = []
     proc = Popen(cmd, stdout=PIPE, shell=True)
@@ -14,7 +22,7 @@ def get_pid(cmd):
     pid_lst = out.split('\n')
     pid_lst.remove('')
     return pid_lst
-def listern_to_fuzzer(file_name_t,file_name_o):
+def listern_to_fuzzer(file_name_t,file_name_o,initial_time):
     # crash_flag = False
     # localIP = "10.13.210.82"
     localIP = "127.0.0.1"
@@ -38,14 +46,18 @@ def listern_to_fuzzer(file_name_t,file_name_o):
             #  crash_flag = True
             print("-------------------------------------------Fuzzer Signal-------------------------------------------------------------")
             time_log = (time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))+"\n"
+            time_log_hms = (time.strftime("%H:%M:%S", time.gmtime()))+"\n"
             crash_reason = message.decode('utf-8')
             crash_reason2 = '---------------------------------------------- '+ crash_reason + ' ---------------------------------------------'
             print(message.decode('utf-8'))
             append_to_file(file_name_t,time_log)
             append_to_file(file_name_t,crash_reason2)
+            append_to_file(file_name_t,get_time_diff(time_log_hms,initial_time))
+
             append_to_file(file_name_o,"[------------------------------Crash------------------------]")
             append_to_file(file_name_o,time_log)
             append_to_file(file_name_o,crash_reason2)
+            # print(get_time_diff(time_log_hms,initial_time))
             print('---------------------------------------------------------RE-STARTING--------------------------------------------------------------')
             # return clientMsg
         # print(clientMsg)
@@ -210,13 +222,14 @@ def run_server_gdb(f_name_t,f_name_o):
     # print('---------------------------------------------------------RE-STARTING--------------------------------------------------------------')
     
 if __name__ == '__main__':
+    initial_time = time.strftime("%H:%M:%S", time.gmtime())
     f_name_t = create_timestamp_log()
     print("log file created with name: "+f_name_t+"\n")
     f_name_o = create_output_log()
     print("log file created with name: "+f_name_o + "\n")
     time.sleep(0.5)
     # print("??????????????????????/")
-    listern_to_fuzzer(f_name_t,f_name_o)
+    listern_to_fuzzer(f_name_t,f_name_o,initial_time)
     # run_client(f_name_o)
     
     # while True:
