@@ -27,9 +27,9 @@ def runner(input_file_path, input_files, socket, ip, port):
 
         # log Crash message
         for line in process1.stdout:
-            print(line, end='')
             if "Result: Crash" in line or "Hit exit hook" in line:
                 # process the string with the target parten
+                print(line, end='')
                 match_crash = re.search(r'(Crash\s*\{[^}]+\})', line)
                 match_exithooh = re.search(r'(ExitHook\s*\{[^}]+\})',line)
                 if match_crash:
