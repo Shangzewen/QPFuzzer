@@ -43,9 +43,12 @@ def get_files_in_container(container, path):
         return []
     path_file_list = [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
     file_list = []
-    for ele in path_file_list:
+    file_dictionary = {}
+    for idx, ele in enumerate(path_file_list):
         file_list.append((ele.split("/")[-1]).split(".")[0])
-    print(file_list)
+        file_dictionary[idx] = (ele.split("/")[-1]).split(".")[0]
+    # print(file_list)
+    print(f"{Fore.RED}This is the exploit dictonary: {Style.RESET_ALL}",file_dictionary)
     return file_list
 
 
@@ -56,7 +59,7 @@ if __name__ == "__main__":
     container_name = "strange_ellis"
     # file list conatins all target exploits
     input_files = get_files_in_container(container_name, "/home/user/U-Fuzz/modules/exploits/ble_v350")
-    print(input_files)
+    print(f"{Fore.RED}This is the exploit list: {Style.RESET_ALL}",input_files)
     exploit_name = input_files[counter_exploit]
     cmd = "cd ./U-Fuzz && sudo bin/ble_realtime_fuzzer --exploit="+exploit_name
     data_received = ""
@@ -78,8 +81,8 @@ if __name__ == "__main__":
             bufsize=1   # Line-buffered
         )
 
-        # # Print each line as it's received
-        for line in process1.stdout:
-            print(line, end='')  # already includes newline
+        # # Print each line as it's received for debugging
+        # for line in process1.stdout:
+        #     print(line, end='')  # already includes newline
         process1.wait()
         # time.sleep(2)
