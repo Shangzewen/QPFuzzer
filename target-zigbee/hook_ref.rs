@@ -108,6 +108,13 @@ pub fn main(api) {
     api.on_basic_block(Some(symbolizer::resolve("nwk_association_join")?), |_| log::info!("===========nwk_association_join==========="));
     api.on_basic_block(Some(symbolizer::resolve("zdo_join_to_nwk_descr")?), |_| log::info!("===========zdo_join_to_nwk_descr==========="));
     api.on_basic_block(Some(symbolizer::resolve("zdo_commissioning_join_via_scanlist")?), |_| log::info!("===========zdo_commissioning_join_via_scanlist=========="));
+    // After assoication request
+    api.on_basic_block(Some(symbolizer::resolve("mac_association_req_sent")?), |_| log::info!("===========mac_association_req_sent==========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mac_assoc_send_data_req_alarm")?), |_| log::info!("===========zb_mac_assoc_send_data_req_alarm==========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mac_assoc_send_data_req")?), |_| log::info!("===========zb_mac_assoc_send_data_req==========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mac_get_indirect_data")?), |_| log::info!("===========zb_mac_get_indirect_data==========="));
+    api.on_basic_block(Some(symbolizer::resolve("zb_mlme_send_data_req_done")?), |_| log::info!("===========zb_mlme_send_data_req_done==========="));
+
 
   }
   fn print_symbol_name(pc, is_interrupt, isr_number) {
@@ -275,7 +282,7 @@ pub fn main(api) {
       // let pkt_len 
       let pdu_length = memory::read_u8(pkt_buf_addr)?;
       log::info!("This is pdu length {}",pdu_length);
-      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length+1);
+      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length);
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" RX Pkt. Bytes: {}", pkt_hex);
       if cfg.log_details {
@@ -510,6 +517,8 @@ pub fn main(api) {
     common::patch_function("are_preconditions_met", arm::RETURN_1);
     common::patch_function("nrf_802154_pib_promiscuous_get", arm::RETURN_1);
     common::patch_function("ns_to_net_ptp_time", arm::RETURN_1);
+    // force the state_transition for collision avodiance state to be always successful
+    common::patch_function("csma_ca_state_set", arm::RETURN_1);
     // ignore radio_state_check for receive_buffer_missing_buffer_set 
     common::patch_address(0x0001c94c, arm::NOP);
     // -------------------------------------------------------------------------------
