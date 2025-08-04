@@ -96,6 +96,15 @@ pub fn main(api) {
     // api.on_instruction(Some(0x00004070), |_| register::write("r3",0x10)?);
     // --------------------------bypass the ns time less than 0 assert()new--------------------------------
     api.on_basic_block(Some(0x6777c), |_| register::write("r0",0x1)?);
+
+    // api.on_basic_block(Some(0x16c3a), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c3c), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c3e), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c40), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c42), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c48), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c4a), |_| register::write("r3",0x0)?);
+
     // --------------------------------------------------------------------------
     // api.on_basic_block(Some(symbolizer::resolve("nrf_egu_task_trigger")?), |_| log::info!("===========nrf_egu_task_trigger==========="));
     // api.on_basic_block(Some(symbolizer::resolve("submit_to_queue")?), |_| log::info!("===========submit_to_queue=========="));
@@ -221,7 +230,7 @@ pub fn main(api) {
           // cfg.data_connection = true;
           // rx_pdu = "0900";
           // },
-        2 => rx_pdu = "060200010000", // ACK with seq number of 01
+        2 => rx_pdu = "050200010000", // ACK with seq number of 01
         // 6 => rx_pdu = "0306000c0800000000", // LL_VERSION_IND
         // 6 => rx_pdu = "03090014fb004808fb004808", // LL_LENGTH_REQ
         _ => rx_pdu = "",
@@ -282,7 +291,8 @@ pub fn main(api) {
       // let pkt_len 
       let pdu_length = memory::read_u8(pkt_buf_addr)?;
       log::info!("This is pdu length {}",pdu_length);
-      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length);
+      // need to -1 for the pdu_length since the first bytes is the length itself which is a extra bytes
+      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length-1);
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" RX Pkt. Bytes: {}", pkt_hex);
       if cfg.log_details {
@@ -471,7 +481,7 @@ pub fn main(api) {
     common::patch_function("z_nrf_clock_control_lf_on", arm::RETURN);
     common::patch_function("pinctrl_apply_state", arm::RETURN_0);
     common::patch_function("pm_device_driver_init", arm::RETURN_0);
-    common::patch_function("is_tx_ready", arm::RETURN_1);
+    // common::patch_function("is_tx_ready", arm::RETURN_1);
     common::patch_function("log_output_process", arm::RETURN);
     common::patch_function("nrf_event_readback", arm::RETURN);
     common::patch_function("zb_trace_msg_port_vl", arm::RETURN_0);
@@ -521,6 +531,7 @@ pub fn main(api) {
     common::patch_function("csma_ca_state_set", arm::RETURN_1);
     // ignore radio_state_check for receive_buffer_missing_buffer_set 
     common::patch_address(0x0001c94c, arm::NOP);
+
     // -------------------------------------------------------------------------------
     //  Test, eventually the functon zigbee_l2_recv need to append the rx packet to the queue then process it but now the function was not called
     // common::patch_function("zb_trans_rx_pending", arm::RETURN_1);
@@ -529,6 +540,12 @@ pub fn main(api) {
     // nrf_egu_task_trigger - Force branch to _swi_irq_handler (TODO IRQ Handling via peripheral)
     common::patch_address(0x0001bac0, [0x77, 0xf0, 0x5b, 0xfa]);
     common::patch_address(0x0001bac8, [0x00, 0xbf]);
+
+    // make sure the zb_trans_transmit alawys think zigbee_event is transmited successfully
+    // the var_2c_1 is returnning error, need to check up why??
+    common::patch_address(0x00016c42, [0x13, 0xf1, 0x01, 0x0f]);
+    common::patch_address(0x00016c4c, arm::NOP);
+
     // -----
     // for the scan_step think all channls are scaned:
     // common::patch_address(0x0007a1b2, arm::NOP);
