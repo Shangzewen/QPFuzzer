@@ -51,6 +51,7 @@ pub struct Hardware<I: Input + Debug> {
     egu_event_check1:USize,
     egu_event_check2:USize,
     egu_event_check3:USize,
+    pub tx_flag: USize,
 
     // 0x40011504
 }
@@ -84,6 +85,7 @@ impl<I: Input + Debug> Hardware<I> {
             egu_event_check1:0,
             egu_event_check2:0,
             egu_event_check3:0,
+            tx_flag:0,
         }
     }
 
@@ -104,6 +106,7 @@ impl<I: Input + Debug> Hardware<I> {
         self.egu_event_check1=0;
         self.egu_event_check2=0;
         self.egu_event_check3=0;
+        self.tx_flag = 0;
 
     }
 
@@ -200,6 +203,49 @@ impl<I: Input + Debug> Hardware<I> {
         else if context.mmio().addr() == 0x40014108{
             let event_check3 = self.egu_event_check3.clone();
             return Ok(Some((event_check3, true))); 
+        }
+        // enable or diable the radio irq handler based on tx_flag
+        else if context.mmio().addr() == 0x40001168{
+            // make sure the branch of irq_handler never reaches
+            let irq_handler_sync = 0x0;
+            println!("Force the irq_handler_sync varible: {}", irq_handler_sync);
+            return Ok(Some((irq_handler_sync, true)));
+        }
+        else if context.mmio().addr() == 0x40001130{
+            // make sure the branch of irq_handler never reaches
+            if self.tx_flag == 0{
+                let irq_handler_crcok: u32 = 0x1;
+                println!("Force the irq_handler_crcok varible: {}", irq_handler_crcok);
+                return Ok(Some((irq_handler_crcok, true)));
+            }else {
+                let irq_handler_crcok: u32 = 0x0;
+                println!("Force the irq_handler_crcok varible: {}", irq_handler_crcok);
+                return Ok(Some((irq_handler_crcok, true)));
+            }
+        }
+        else if context.mmio().addr() == 0x40001134{
+            // make sure the branch of irq_handler never reaches
+            if self.tx_flag == 0{
+                let irq_handler_crerror: u32 = 0x1;
+                println!("Force the irq_handler_crcerror varible: {}", irq_handler_crerror);
+                return Ok(Some((irq_handler_crerror, true)));
+            }else {
+                let irq_handler_crerror: u32 = 0x0;
+                println!("Force the irq_handler_crcerror varible: {}", irq_handler_crerror);
+                return Ok(Some((irq_handler_crerror, true)));
+            }
+        }
+        else if context.mmio().addr() == 0x40001128{
+            // make sure the branch of irq_handler never reaches
+            if self.tx_flag == 0{
+                let irq_handler_bcmatch: u32 = 0x1;
+                println!("Force the irq_handler_crcerror varible: {}", irq_handler_bcmatch);
+                return Ok(Some((irq_handler_bcmatch, true)));
+            }else {
+                let irq_handler_bcmatch: u32 = 0x0;
+                println!("Force the irq_handler_crcerror varible: {}", irq_handler_bcmatch);
+                return Ok(Some((irq_handler_bcmatch, true)));
+            }
         }
         // unwrap input file
         let input = self.input.as_mut().expect("input file missing");

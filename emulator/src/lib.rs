@@ -523,23 +523,29 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
             return Ok(());
         }
         if((self.counts.basic_block)%1000 == 0){
-        //     // self.on_ram_write(pc, addr, data, size)
-        //     // increment the g_izb counter for the timer 2 every 1000 blocks
+            // self.on_ram_write(pc, addr, data, size)
+            // increment the g_izb counter for the timer 2 every 1000 blocks
             let g_izb_addr =0x20007768; 
-        //     // if let Ok(res) = qcontrol().read::<u32, 4>(g_izb_addr) {
-        //     //     let res_n = res + 1;
-        //     //     let result_counter_incremnt = qemu_rs::qcontrol_mut().write(g_izb_addr, res_n);
-        //     //     qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
-        //     //     // log::info!("This is the result {result_counter_incremnt:?}");
-        //     //     // log::info!("This is the g_izb_data {res_n:?}");
-        //     // }
+            // if let Ok(res) = qcontrol().read::<u32, 4>(g_izb_addr) {
+            //     let res_n = res + 1;
+            //     let result_counter_incremnt = qemu_rs::qcontrol_mut().write(g_izb_addr, res_n);
+                // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
+                // log::info!("This is the result {result_counter_incremnt:?}");
+                // log::info!("This is the g_izb_data {res_n:?}");
+            // }
             self.g_izb_data += 1;
             let g_izb_data_copy = self.g_izb_data;
             let result = qemu_rs::qcontrol_mut().write(g_izb_addr, g_izb_data_copy);
-        //     // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
-        //     // log::info!("This is the g_izb_data {g_izb_data_copy:?}");
-            
-
+            // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
+            // log::info!("This is the g_izb_data {g_izb_data_copy:?}");
+        }
+        if (pc ==0x19444){
+            self.hardware.tx_flag = 0;
+            println!("Encounter Rx_init set tx_flag to: {}",self.hardware.tx_flag);
+        }
+        else if pc == 0x19514{
+            self.hardware.tx_flag = 1;
+            println!("Encounter Tx_init set tx_flag to: {}",self.hardware.tx_flag);
         }
         // gzib handlling 
         // if((self.counts.basic_block - self.basic_block_counts)>1000){
