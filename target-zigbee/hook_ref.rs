@@ -292,7 +292,7 @@ pub fn main(api) {
       let pdu_length = memory::read_u8(pkt_buf_addr)?;
       log::info!("This is pdu length {}",pdu_length);
       // need to -1 for the pdu_length since the first bytes is the length itself which is a extra bytes
-      let pkt_data = memory_read_buffer(pkt_buf_addr, pdu_length-1);
+      let pkt_data = memory_read_buffer(pkt_buf_addr+1, pdu_length);
       let pkt_hex = common::encode_hex(pkt_data);
       log::info!(" RX Pkt. Bytes: {}", pkt_hex);
       if cfg.log_details {
