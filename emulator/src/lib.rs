@@ -656,6 +656,38 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                     self.relevant_edges += 200;
                     log::info!("Relevant Edge: nrf_802154_trx_receive_ack_received (0x{pc:08X})");
                 },
+                0x16a68 => { // zb_trans_transmit
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_trans_transmit (0x{pc:08X})");
+                },
+                0x60b20 => { // zb_macll_transmitted_raw
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_macll_transmitted_raw (0x{pc:08X})");
+                },
+                0x77234 => { // mac_association_req_sent
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: mac_association_req_sent (0x{pc:08X})");
+                },
+                0x772e0 => { // zb_mac_assoc_send_data_req_alarm
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_mac_assoc_send_data_req_alarm (0x{pc:08X})");
+                },
+                0x76e98 => { // zb_mac_assoc_send_data_req
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_mac_assoc_send_data_req (0x{pc:08X})");
+                },
+                0x78af8 => { // zb_mac_get_indirect_data
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_mac_get_indirect_data (0x{pc:08X})");
+                },
+                0x75fc4 => { // zb_mac_send_frame
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_mac_send_frame (0x{pc:08X})");
+                },
+                0x78a30 => { // zb_mlme_send_data_req_done
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: zb_mlme_send_data_req_done (0x{pc:08X})");
+                },
                 0x87542 => { // rx_timeslot_started_callback
                     self.relevant_edges += 100;
                     log::info!("Relevant Edge: z_thread_entry (0x{pc:08X})");
