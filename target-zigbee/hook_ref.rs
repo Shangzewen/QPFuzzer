@@ -73,27 +73,22 @@ pub fn main(api) {
     // api.on_instruction(Some(0x0001c94a), |_| register::write("r3",0x2)?);
     // api.on_instruction(Some(0x0001c94a), |_| register::read("r3")?);
     //Beacon Rsp
-    api.on_basic_block(Some(0x6a6f2), |_| log::info!("===========Reached!!!!!!!!!=========="));
-    // api.on_instruction(Some(0x2628a), |_| log::info!("===========bdb_network_steering_not_on_network=========="));
-    // api.on_instruction(Some(0x26226), |_| log::info!("===========bdb_network_steering_start_scan=========="));
-    // api.on_instruction(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zb_mac_send_beacon_request_command")?), |_| log::info!("===========zb_mac_send_beacon_request_command=========="));
-    api.on_basic_block(Some(symbolizer::resolve("nrf5_rx_thread")?), |_| log::info!("===========nrf5_rx_thread=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zdo_handle_nlme_network_discovery_confirm")?), |_| log::info!("===========zdo_handle_nlme_network_discovery_confirm=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_confirm")?), |_| log::info!("===========zb_mlme_scan_confirm=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| log::info!("===========zb_mlme_scan_step=========="));
+    // api.on_basic_block(Some(0x6a6f2), |_| log::info!("===========Reached!!!!!!!!!=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zb_mac_send_beacon_request_command")?), |_| log::info!("===========zb_mac_send_beacon_request_command=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf5_rx_thread")?), |_| log::info!("===========nrf5_rx_thread=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zdo_handle_nlme_network_discovery_confirm")?), |_| log::info!("===========zdo_handle_nlme_network_discovery_confirm=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_confirm")?), |_| log::info!("===========zb_mlme_scan_confirm=========="));
+
     // trigger the scan_confirm confition after second zb_mlme_scan_step
-    api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| pach_2nd_scan_step(cfg));
-    api.on_basic_block(Some(symbolizer::resolve("zb_nlme_network_discovery_confirm")?), |_| log::info!("===========zb_nlme_network_discovery_confirm=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zb_nlme_network_discovery_request")?), |_| log::info!("===========zb_nlme_network_discovery_request=========="));
-    api.on_basic_block(Some(symbolizer::resolve("net_recv_data")?), |_| log::info!("===========net_recv_data=========="));
-    api.on_basic_block(Some(symbolizer::resolve("net_pkt_set_timestamp_ns")?), |_| log::info!("===========net_pkt_set_timestamp_ns=========="));
-    api.on_basic_block(Some(symbolizer::resolve("zigbee_l2_recv")?), |_| log::info!("===========zigbee_l2_recv==========="));
-    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_co_received_raw")?), |_| log::info!("===========nrf_802154_co_received_raw==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zb_mlme_scan_step")?), |_| pach_2nd_scan_step(cfg));
+    // api.on_basic_block(Some(symbolizer::resolve("zb_nlme_network_discovery_confirm")?), |_| log::info!("===========zb_nlme_network_discovery_confirm=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zb_nlme_network_discovery_request")?), |_| log::info!("===========zb_nlme_network_discovery_request=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("net_recv_data")?), |_| log::info!("===========net_recv_data=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("net_pkt_set_timestamp_ns")?), |_| log::info!("===========net_pkt_set_timestamp_ns=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("zigbee_l2_recv")?), |_| log::info!("===========zigbee_l2_recv==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_co_received_raw")?), |_| log::info!("===========nrf_802154_co_received_raw==========="));
     
-    // api.on_ram_read(Some(pc), Some(memory_address), |_, _, _, _| memory::write_u8(20009ddf, 0)?);
-    // api.on_instruction(Some(0x9501e), |_| register::read("r0")?);
-    // api.on_instruction(Some(0x00004070), |_| register::write("r3",0x10)?);
+
     // --------------------------bypass the ns time less than 0 assert()new--------------------------------
     api.on_basic_block(Some(0x6777c), |_| register::write("r0",0x1)?);
 
@@ -123,8 +118,32 @@ pub fn main(api) {
     api.on_basic_block(Some(symbolizer::resolve("zb_mac_assoc_send_data_req")?), |_| log::info!("===========zb_mac_assoc_send_data_req==========="));
     api.on_basic_block(Some(symbolizer::resolve("zb_mac_get_indirect_data")?), |_| log::info!("===========zb_mac_get_indirect_data==========="));
     api.on_basic_block(Some(symbolizer::resolve("zb_mlme_send_data_req_done")?), |_| log::info!("===========zb_mlme_send_data_req_done==========="));
-
-
+    // Radio Irq handler
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ready")?), |_| log::info!("===========irq_handler_ready==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_address")?), |_| log::info!("===========irq_handler_address==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_bcmatch")?), |_| log::info!("===========irq_handler_bcmatch==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcerror")?), |_| log::info!("===========irq_handler_crcerror==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcok")?), |_| log::info!("===========irq_handler_crcok==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_phyend")?), |_| log::info!("===========irq_handler_phyend==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_disabled")?), |_| log::info!("===========irq_handler_disabled==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccaidle")?), |_| log::info!("===========irq_handler_ccaidle==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccabusy")?), |_| log::info!("===========irq_handler_ccabusy==========="));
+    api.on_basic_block(Some(symbolizer::resolve("irq_handler_edend")?), |_| log::info!("===========irq_handler_edend==========="));
+    // Ack
+    api.on_basic_block(Some(symbolizer::resolve("ack_match_check")?), |_| log::info!("===========ack_match_check==========="));
+    api.on_basic_block(Some(symbolizer::resolve("ieee802154_handle_ack")?), |_| log::info!("===========ieee802154_handle_ack==========="));
+    // api.on_basic_block(Some(0x101d0), |_| log::info!("===========Can i print this??????????==========="));
+    // api.on_basic_block(Some(0x101c4), |_| register::write("r3")?);
+    // api.on_basic_block(Some(0x101c4), |_| register::write("r2")?);
+    // api.on_basic_block(Some(0x101c8), |_| register::read("r3")?);
+    // api.on_basic_block(Some(0x101c8), |_| register::read("r2")?);
+    // api.on_basic_block(Some(0x101ca), |_| register::write("r3",0x1)?);
+    // api.on_basic_block(Some(0x16c40), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c42), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c48), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c4a), |_| register::write("r3",0x0)?);
   }
   fn print_symbol_name(pc, is_interrupt, isr_number) {
     match symbolizer::lookup(pc)
@@ -546,6 +565,9 @@ pub fn main(api) {
     common::patch_address(0x00016c42, [0x13, 0xf1, 0x01, 0x0f]);
     common::patch_address(0x00016c4c, arm::NOP);
 
+    // focre the handle_ack to ignore the timestamp check
+    common::patch_address(0x000101ce, [0xff,0x2b]);
+    common::patch_address(0x000101d0, [0x0b,0xd9]);
     // -----
     // for the scan_step think all channls are scaned:
     // common::patch_address(0x0007a1b2, arm::NOP);

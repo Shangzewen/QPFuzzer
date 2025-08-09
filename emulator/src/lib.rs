@@ -636,9 +636,25 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
                     self.relevant_edges += 100;
                     log::info!("Relevant Edge: nrf_802154_core_receive (0x{pc:08X})");
                 },
-                0x1d950 => { // irq_handler_sync
-                    self.relevant_edges += 50;
-                    log::info!("Relevant Edge: irq_handler_sync (0x{pc:08X})");
+                0x1d768 => { // irq_handler_phyend
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: irq_handler_phyend (0x{pc:08X})");
+                },
+                0x1d5e0 => { // irq_handler_crcok
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: irq_handler_crcok (0x{pc:08X})");
+                },
+                0x19f64 => { // nrf_802154_trx_receive_frame_received
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: nrf_802154_trx_receive_frame_received (0x{pc:08X})");
+                },
+                0x1a338 => { // nrf_802154_trx_transmit_frame_transmitted
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: nrf_802154_trx_transmit_frame_transmitted (0x{pc:08X})");
+                },
+                0x1a47c => { // nrf_802154_trx_receive_ack_received
+                    self.relevant_edges += 200;
+                    log::info!("Relevant Edge: nrf_802154_trx_receive_ack_received (0x{pc:08X})");
                 },
                 0x87542 => { // rx_timeslot_started_callback
                     self.relevant_edges += 100;

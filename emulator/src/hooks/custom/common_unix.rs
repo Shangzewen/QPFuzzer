@@ -54,6 +54,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["send_socket_data"], send_socket_data)?;
     module.function(&["get_socket_data"], get_socket_data)?;
     module.function(&["get_adv_rpl_data"], get_adv_rpl_data)?;
+    module.function(&["get_zigbee_rpl_data"], get_zigbee_rpl_data)?;
     module.function(&["update_tx_data"], update_tx_data)?;
     module.function(&["clear_tx_data"],clear_tx_data)?;
     module.function(&["get_empty_pdu_data"], get_empty_pdu_data)?;
@@ -306,6 +307,35 @@ fn update_tx_data(tx: String) {
     tx_data.lock().clear();
     tx_data.lock().push_str(&tx);
 }
+// generate zigbee rpl data
+fn generate_zigbee_rpl(acked: USize) -> PyResult<()> {
+    // Initialize the Python interpreter
+    Python::with_gil(|py| {
+        // Import the Python script (ensure it's in the same directory or in PYTHONPATH)
+        let module = zbe_module(py);
+        // println!("Module return error? {}", module);
+        // let testttt = get_tx_data();
+        // let input_test =format_hex_string(&testttt); 
+        // println!("This is get_tx_data: {}", input_test);
+        // Prepare the byte data you want to pass to the `handle_data` function
+        let handle_data = module.getattr("handle_adv")?;
+        // println!("Handle data? {:?}", get_tx_data().as_bytes());
+        let result = handle_data.call1((PyBytes::new_bound(py, get_tx_data().as_bytes()), acked))?;
+        // println!("This is teh retuned result : {}",result);
+        let result_str = std::str::from_utf8(result.extract()?)?;
+        let mut owned_string = result_str.to_string();
+        // Zephyr added one extra byte for the zigbee packet as the length
+        let length = owned_string.len();
+        let hex_len = format!("{:02x}", length/2);
+        // println!("This is length : {}",hex_len);
+        owned_string = hex_len + &owned_string;
+        // println!("This is owned_string : {}",owned_string);
+        // Update global varible for rx data retrival
+        adv_rpl_data.lock().clear();
+        adv_rpl_data.lock().push_str(&owned_string);
+        Ok(())
+    })
+}
 
 fn generate_adv_rpl() -> PyResult<()> {
     // Initialize the Python interpreter
@@ -381,8 +411,24 @@ fn bt_module(py: Python<'_>) -> &Bound<'_, PyModule> {
         .bind(py)
 }
 
+fn zbe_module(py: Python<'_>) -> &Bound<'_, PyModule> {
+    PY_MODULE
+        .get_or_init(py, || {
+            PyModule::from_code_bound(
+                py,
+                fs::read_to_string("scripts/zigbee_stack.py").unwrap().as_str(),
+                "zigbee_stack.py",
+                "zigbee_stack",
+            )
+            .unwrap()
+            .unbind()
+        })
+        .bind(py)
+}
+
 const PROTO_BLE: &str = "ble";
-const SUPPORTED_PROTOCOLS: &[&str] = &[PROTO_BLE];
+const PROTO_ZBE: &str = "zigbee";
+const SUPPORTED_PROTOCOLS: &[&str] = &[PROTO_BLE,PROTO_ZBE];
 
 fn parse_packet(
     proto_name: String,
@@ -400,6 +446,10 @@ fn parse_packet(
             PROTO_BLE => {
                 let module = bt_module(py);
                 Ok(module.getattr("parse_ble_packet").unwrap())
+            },
+            PROTO_ZBE => {
+                let module = zbe_module(py);
+                Ok(module.getattr("parse_zigbee_packet").unwrap())
             }
             _ => Err("Protocol Function not found: parse_ble_packet"),
         }?;
@@ -488,4 +538,8 @@ fn update_rx_data(rx: String) {
 
 fn register_basic_block(address: Address) {
     register_basic_block_hook(Some(address));
+}
+fn get_zigbee_rpl_data(acked: USize) -> String {
+    _ = generate_zigbee_rpl(acked);
+    adv_rpl_data.lock().clone()
 }
