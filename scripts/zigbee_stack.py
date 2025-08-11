@@ -244,4 +244,4 @@ def handle_adv(pkt_raw, ackd):
 # print(parse_zigbee_packet("23c83182b50000ffffe14eb78b1436cef4018e0255",0,False))
 # print(handle_adv("030890ffffffff072a6e", 0))
 # print(handle_adv("23c80182b50000ffff48575cf86236cef4018e0000", 1))
-print(parse_zigbee_packet("63c80282b50000558200000036cef404f401", 0,False))
+# print(parse_zigbee_packet("63c80282b50000558200000036cef404f401", 0,False))

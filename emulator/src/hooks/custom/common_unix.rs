@@ -56,7 +56,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["get_adv_rpl_data"], get_adv_rpl_data)?;
     module.function(&["get_zigbee_rpl_data"], get_zigbee_rpl_data)?;
     module.function(&["update_tx_data"], update_tx_data)?;
-    module.function(&["clear_tx_data"],clear_tx_data)?;
+    module.function(&["clear_transmission_data"],clear_transmission_data)?;
     module.function(&["get_empty_pdu_data"], get_empty_pdu_data)?;
     module.function(&["get_data_rpl_data"], get_data_rpl_data)?;
     module.function(&["parse_packet"], parse_packet)?;
@@ -513,8 +513,9 @@ fn get_tx_data() -> String {
 fn get_rx_data() -> String {
     rx_data.lock().clone()
 }
-fn clear_tx_data(){
+fn clear_transmission_data(){
     tx_data.lock().clear();
+    adv_rpl_data.lock().clear();
     // println!("This is tx_data_buffer: {}",tx_data.lock().clone());
     // if flagdata.lock().clone() == "1" {
     //     flagdata.lock().clear();

@@ -130,18 +130,18 @@ pub fn main(api) {
     api.on_basic_block(Some(symbolizer::resolve("zb_mac_get_indirect_data")?), |_| log::info!("===========zb_mac_get_indirect_data==========="));
     api.on_basic_block(Some(symbolizer::resolve("zb_mlme_send_data_req_done")?), |_| log::info!("===========zb_mlme_send_data_req_done==========="));
     // Radio Irq handler
-    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ready")?), |_| log::info!("===========irq_handler_ready==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_address")?), |_| log::info!("===========irq_handler_address==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_bcmatch")?), |_| log::info!("===========irq_handler_bcmatch==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcerror")?), |_| log::info!("===========irq_handler_crcerror==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcok")?), |_| log::info!("===========irq_handler_crcok==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_phyend")?), |_| log::info!("===========irq_handler_phyend==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_disabled")?), |_| log::info!("===========irq_handler_disabled==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccaidle")?), |_| log::info!("===========irq_handler_ccaidle==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccabusy")?), |_| log::info!("===========irq_handler_ccabusy==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_edend")?), |_| log::info!("===========irq_handler_edend==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ready")?), |_| log::info!("===========irq_handler_ready==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_address")?), |_| log::info!("===========irq_handler_address==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_bcmatch")?), |_| log::info!("===========irq_handler_bcmatch==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcerror")?), |_| log::info!("===========irq_handler_crcerror==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcok")?), |_| log::info!("===========irq_handler_crcok==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_phyend")?), |_| log::info!("===========irq_handler_phyend==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_disabled")?), |_| log::info!("===========irq_handler_disabled==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccaidle")?), |_| log::info!("===========irq_handler_ccaidle==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccabusy")?), |_| log::info!("===========irq_handler_ccabusy==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_edend")?), |_| log::info!("===========irq_handler_edend==========="));
     // Ack
     api.on_basic_block(Some(symbolizer::resolve("ack_match_check")?), |_| log::info!("===========ack_match_check==========="));
     api.on_basic_block(Some(symbolizer::resolve("ieee802154_handle_ack")?), |_| log::info!("===========ieee802154_handle_ack==========="));
@@ -169,7 +169,8 @@ pub fn main(api) {
         cfg.data_req_flag = false;
         // cfg.beacon_req_flag = false;
         // cfg.initial_pdu_flag = true;
-        // common::clear_tx_data();
+        // Need to make sure the data_buffer is empty every new itteration
+        common::clear_transmission_data();
         // Normal case need to sart the transmission at here
         // common::send_socket_data("hello");
         // enable the data_connection_flag for fuzzing from scrach
