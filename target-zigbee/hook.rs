@@ -167,7 +167,7 @@ pub fn main(api) {
         cfg.counter = 0;
         cfg.counter_data_req_ack = 0;
         cfg.data_req_flag = false;
-        // cfg.beacon_req_flag = false;
+        cfg.beacon_req_flag = false;
         // cfg.initial_pdu_flag = true;
         // Need to make sure the data_buffer is empty every new itteration
         common::clear_transmission_data();
@@ -300,11 +300,15 @@ pub fn main(api) {
       // zigbee_rx_pdu = 
       // let test_str = "";
       log::info!("Pkt Raw: {}",rx_pdu);
-
+      // Need to clear the stack manually if the rx_pdu is empty
+      if rx_pdu == ""{
+        memory::write_u8(pkt_buf_addr, 0x0);
+      }
       let data = common::decode_hex(rx_pdu)?;
-      // log::info!("Pkt Raw: {}",data);
+      // log::info!("Pkt Raw data: {:?}",data);
       for (i, v) in data.iter().enumerate() {
-        memory::write_u8(pkt_buf_addr + i, v);
+        let result = memory::write_u8(pkt_buf_addr + i, v);
+        log::info!("This is the memory write result {:?}", result);
       }
 
       // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
