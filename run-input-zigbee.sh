@@ -10,8 +10,8 @@ source venv/bin/activate
 export PATH="/home/asset/.cargo/bin:$PATH" 
 # export TARGET=target-zephyr
 export TARGET_ZEPHYR=target-zigbee
-# export HOOK_FILE=$TARGET_ZEPHYR/hook_ref.rs
-export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
+export HOOK_FILE=$TARGET_ZEPHYR/hook_ref.rs
+# export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
 
 
 # cargo run --release --bin hoedur-arm 2>&1 -- \

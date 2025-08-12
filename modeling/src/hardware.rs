@@ -208,37 +208,37 @@ impl<I: Input + Debug> Hardware<I> {
         else if context.mmio().addr() == 0x40001168{
             // make sure the branch of irq_handler never reaches
             let irq_handler_sync = 0x0;
-            println!("Force the irq_handler_sync varible: {}", irq_handler_sync);
+            // println!("Force the irq_handler_sync varible: {}", irq_handler_sync);
             return Ok(Some((irq_handler_sync, true)));
         }
         else if context.mmio().addr() == 0x40001128{
             // make sure the branch of irq_handler never reaches
             let irq_handler_bcmatch = 0;
-            println!("Force the irq_handler_bcmatch varible: {}", irq_handler_bcmatch);
+            // println!("Force the irq_handler_bcmatch varible: {}", irq_handler_bcmatch);
             return Ok(Some((irq_handler_bcmatch, true)));
         }
         else if context.mmio().addr() == 0x40001134{
             // make sure the branch of irq_handler never reaches
             let irq_handler_crcerror = 0;
-            println!("Force the irq_handler_crcerror varible: {}", irq_handler_crcerror);
+            // println!("Force the irq_handler_crcerror varible: {}", irq_handler_crcerror);
             return Ok(Some((irq_handler_crcerror, true)));
         }
         else if context.mmio().addr() == 0x40001100{
             // make sure the branch of irq_handler never reaches
             let irq_handler_ready = 0;
-            println!("Force the irq_handler_ready varible: {}", irq_handler_ready);
+            // println!("Force the irq_handler_ready varible: {}", irq_handler_ready);
             return Ok(Some((irq_handler_ready, true)));
         }
         else if context.mmio().addr() == 0x40001110{
             // make sure the branch of irq_handler never reaches
             let irq_handler_disabled = 0;
-            println!("Force the irq_handler_disabled varible: {}", irq_handler_disabled);
+            // println!("Force the irq_handler_disabled varible: {}", irq_handler_disabled);
             return Ok(Some((irq_handler_disabled, true)));
         }
         else if context.mmio().addr() == 0x40001104{
             // make sure the branch of irq_handler never reaches
             let irq_handler_address = 0;
-            println!("Force the irq_handler_address varible: {}", irq_handler_address);
+            // println!("Force the irq_handler_address varible: {}", irq_handler_address);
             return Ok(Some((irq_handler_address, true)));
         }
         // else if context.mmio().addr() == 0x40001130{
