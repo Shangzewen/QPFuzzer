@@ -6,7 +6,7 @@ struct State {
   sequence,
   data_connection,
   log_details,
-  adv_ind_flag,
+  data_req_flag,
   initial_pdu_flag,
   pkt_length,
   counter,
@@ -24,7 +24,7 @@ pub fn main(api) {
       sequence: 0,
       data_connection: false,
       log_details: false,
-      adv_ind_flag: false,
+      data_req_flag: false,
       initial_pdu_flag:true,
       pkt_length: 0,
       counter: 0
@@ -164,6 +164,8 @@ pub fn main(api) {
       api.on_prepare_run(||{
         cfg.sequence = 0;
         cfg.counter = 0;
+        cfg.data_req_flag = false;
+        common::clear_transmission_data();
         // cfg.adv_ind_flag = false;
         // cfg.initial_pdu_flag = true;
         // common::clear_tx_data();
@@ -220,14 +222,18 @@ pub fn main(api) {
       let pkt_hex = common::encode_hex(pkt_data);
       // cfg.sequence == 1 beacon req received 
       // cfg.sequence == 2 Assoation req received 
-      if pkt_hex == "030800ffffffff070000"{
+      if pkt_hex.contains("0308"){
         log::info!("Beacon Req");
         cfg.sequence = 1
       }
       // else if pkt_hex == "23c80182b50000ffff007098905a36cef4018e0000"{
       else if pkt_hex.contains("8e"){
-        log::info!("Assoation Req");
+        log::info!("Assoiation Req");
         cfg.sequence = 2
+      }
+      else if pkt_hex.contains("04"){
+        log::info!("Data Req");
+        cfg.sequence = 3
       }
       else{
         cfg.sequence = 0
@@ -241,63 +247,25 @@ pub fn main(api) {
       }
       // let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
       let rx_pdu = "";
-      match cfg.sequence {
-        // 0 => rx_pdu = "830cf37a7d65de2800000000000c2aba95",
-        1 => rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179",
-        // 2 => {
-          // log::info!("-------------- ANCHOR POINT -------------");
-          // cfg.data_connection = true;
-          // rx_pdu = "0900";
-          // },
-        2 => rx_pdu = "050200010000", // ACK with seq number of 01
-        // 6 => rx_pdu = "0306000c0800000000", // LL_VERSION_IND
-        // 6 => rx_pdu = "03090014fb004808fb004808", // LL_LENGTH_REQ
-        _ => rx_pdu = "",
+      if cfg.data_req_flag{
+        rx_pdu = "1b63cce082b5e14eb78b1436cef4b28a1020a436cef40256a0004a3f";
+        cfg.data_req_flag = false;
+      }else{
+        match cfg.sequence {
+          1 => rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179",
+          2 => rx_pdu = "050200010000", // ACK with seq number of 01
+          3 => {
+            rx_pdu = "051200020000"; // ACK with seq number of 02
+            cfg.data_req_flag = true;
+          } 
+          _ => rx_pdu = "",
+        }
       }
       // let test_str = "";
       log::info!("Pkt Raw: {}",rx_pdu);
-
-
-  //     // // ADV Channel
-  //     // if cfg.data_connection == false {
-  //     //   if cfg.sequence == 0 {
-  //     //     // Scan Request
-  //     //     // rx_pdu = common::get_adv_rpl_data();
-  //     //     rx_pdu = common:: get_rx_data();
-  //     //     log::info!("RX adv: {}", rx_pdu);
-  //     //   }
-  //     //   else if cfg.sequence >= 1 {
-  //     //     log::info!("RX adv: {}", rx_pdu);
-
-  //     //     // rx_pdu = common::get_adv_rpl_data();
-  //     //     rx_pdu = common:: get_rx_data();
-
-  //     //     cfg.data_connection = true; // Switch to data channel
-  //     //   }
-  //     //   else {
-  //     //     cfg.sequence = cfg.sequence + 1;
-  //     //     return;
-  //     //   }
-  //     // }
-  //     // else {
-  //     //   // set initial flag
-  //     //   if cfg.initial_pdu_flag == true{
-  //     //     cfg.initial_pdu_flag = false;
-  //     //     // rx_pdu = common::get_empty_pdu_data();
-  //     //     rx_pdu = common:: get_rx_data();
-
-  //     //     // log::info!("<============> initial_empty_pdu received <============>");
-  //     //   }
-  //     //   else{
-  //     //     // rx_pdu = common::get_data_rpl_data();
-  //     //     rx_pdu = common:: get_rx_data();
-
-  //     //     log::info!("RX data pdu: {}", rx_pdu);
-  //     //     //  log::info!("<============> rx_pdu received <============>");
-  //     //   }
-  //     // }
-
-      // cfg.sequence = cfg.sequence + 1;
+      if rx_pdu == ""{
+        memory::write_u8(pkt_buf_addr, 0x0);
+      }
 
       let data = common::decode_hex(rx_pdu)?;
       // log::info!("Pkt Raw: {}",data);
@@ -323,129 +291,6 @@ pub fn main(api) {
   }
 
 
-  // fn handle_link_layer_packet(cfg, pkt_buf_addr, direction) {
-  //   // let pkt_hex = "";
-
-  //   if (direction == 1) {
-  //     if cfg.log_details {
-  //       log::info!("<============> TX PKT <============>");
-  //     }
-  //     let pkt_hdr = memory::read_u8(pkt_buf_addr)?;
-  //     let pdu_length = memory::read_u8(pkt_buf_addr+1)?;
-  //     if (pdu_length == 0 && pkt_hdr == 0) {return;}
-  //     if (pdu_length == 0)
-  //     {
-  //       cfg.pkt_length = pdu_length + 3;
-  //     }
-  //     else{
-  //       cfg.pkt_length = pdu_length + 1;
-  //     }
-  //     // println!("This is pkt_length {}", cfg.pkt_length);
-  //     // if (cfg.pkt_length > 20){
-  //     //   cfg.data_connection = false;
-  //     //   log::info!("Received adv packet!");
-  //     // }else{
-  //     //   cfg.data_connection = true;
-  //     //   log::info!("Received data packet!");
-
-  //     // }
-  //     let pkt_data = memory_read_buffer(pkt_buf_addr, cfg.pkt_length);
-  //     let pkt_hex = common::encode_hex(pkt_data);
-  //     log::info!(" TX Pkt. Bytes: {}", pkt_hex);
-
-  //     let pkt_summary = common::parse_packet("ble", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
-  //     if pkt_summary.contains("BTLE_ADV_IND") {
-  //       // log::info!("BTLE_ADV_IND !!!! {}", pkt_summary);
-  //       if cfg.adv_ind_flag == false {
-  //         cfg.adv_ind_flag = true;
-  //         common::update_tx_data(pkt_hex);
-  //       }
-  //       else{
-  //         return
-  //       }
-  //     }
-  //     else{
-  //       common::update_tx_data(pkt_hex);
-  //     }
-  //     if cfg.log_details {
-  //       log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-  //       log::info!("Pkt. Length: {}", cfg.pkt_length);
-  //       log::info!("Pkt. Bytes: {}", pkt_hex);
-  //       log::info!("Pkt. Bytes: {}", pkt_hex);
-
-  //     }
-
-  //     log::info!("TX ---> {}", pkt_summary);
-  //   }
-  //   else {
-  //     if cfg.log_details {
-  //       log::info!("<============> RX PKT <============>");
-  //     }
-  //     let rx_pdu = "";
-  //     let test_str = "";
-
-  //     // ADV Channel
-  //     if cfg.data_connection == false {
-  //       if cfg.sequence == 0 {
-  //         // Scan Request
-  //         // rx_pdu = common::get_adv_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-  //         log::info!("RX adv: {}", rx_pdu);
-  //       }
-  //       else if cfg.sequence >= 1 {
-  //         log::info!("RX adv: {}", rx_pdu);
-
-  //         // rx_pdu = common::get_adv_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         cfg.data_connection = true; // Switch to data channel
-  //       }
-  //       else {
-  //         cfg.sequence = cfg.sequence + 1;
-  //         return;
-  //       }
-  //     }
-  //     else {
-  //       // set initial flag
-  //       if cfg.initial_pdu_flag == true{
-  //         cfg.initial_pdu_flag = false;
-  //         // rx_pdu = common::get_empty_pdu_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         // log::info!("<============> initial_empty_pdu received <============>");
-  //       }
-  //       else{
-  //         // rx_pdu = common::get_data_rpl_data();
-  //         rx_pdu = common:: get_rx_data();
-
-  //         log::info!("RX data pdu: {}", rx_pdu);
-  //         //  log::info!("<============> rx_pdu received <============>");
-  //       }
-  //     }
-
-  //     cfg.sequence = cfg.sequence + 1;
-      
-  //     let data = common::decode_hex(rx_pdu)?;
-  //     for (i, v) in data.iter().enumerate() {
-  //       memory::write_u8(pkt_buf_addr + i, v);
-  //     }
-
-  //     let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
-  //     log::info!("RX <--- {}", pkt_summary);
-
-  //     if cfg.log_details {
-  //         log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-  //         log::info!("Pkt. Length: {}", data[1]);
-  //         log::info!("Pkt. Bytes: {}", rx_pdu);
-  //       }
-  //   }
-  // }
-
-  // // fn print_symbol_name(pc) {
-  // //   if let Ok(symbol_name) = symbolizer::lookup(pc) {
-  // //     log::info!("0x{:08x}: {}", pc, symbol_name);
-  // //   }
-  // // }
 
   fn memory_read_buffer(addr, length) {
     let pkt_data = [];
@@ -538,7 +383,8 @@ pub fn main(api) {
     // common::patch_function("nrf_802154_queue_is_empty", arm::RETURN_0);
     // common::patch_function("active_vector_priority_is_high", arm::RETURN_1);
 
-    
+    // levae the pick up radio_handler job to the intenset, always let event check return true
+    // common::patch_function("nrf_radio_event_check", arm::RETURN_1);
     common::patch_function("qspi_nor_init", arm::RETURN_0);
     common::patch_function("settings_subsys_init", arm::RETURN_0);
     common::patch_function("nrfx_gpiote_0_irq_handler", arm::RETURN);
@@ -568,6 +414,7 @@ pub fn main(api) {
     // focre the handle_ack to ignore the timestamp check
     common::patch_address(0x000101ce, [0xff,0x2b]);
     common::patch_address(0x000101d0, [0x0b,0xd9]);
+
     // -----
     // for the scan_step think all channls are scaned:
     // common::patch_address(0x0007a1b2, arm::NOP);

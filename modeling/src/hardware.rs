@@ -241,15 +241,44 @@ impl<I: Input + Debug> Hardware<I> {
             // println!("Force the irq_handler_address varible: {}", irq_handler_address);
             return Ok(Some((irq_handler_address, true)));
         }
-        // else if context.mmio().addr() == 0x40001130{
+        // else if context.mmio().addr() == 0x40001148{
+        //     // make sure the branch of irq_handler never reaches
+        //     let irq_handler_ccabusy = 0;
+        //     // println!("Force the irq_handler_address varible: {}", irq_handler_address);
+        //     return Ok(Some((irq_handler_ccabusy, true)));
+        // }
+        // else if context.mmio().addr() == 0x40001144{
+        //     // make sure the branch of irq_handler never reaches
+        //     let irq_handler_ccaidle = 0;
+        //     // println!("Force the irq_handler_address varible: {}", irq_handler_address);
+        //     return Ok(Some((irq_handler_ccaidle, true)));
+        // }
+        // INNSET register to control the radio event
+        // else if context.mmio().addr() == 0x40001304{
         //     // make sure the branch of irq_handler never reaches
         //     if self.tx_flag == 1{
         //         // let irq_handler_crcok: u32 = 0x1;
         //         // println!("Force the irq_handler_crcok varible: {}", irq_handler_crcok);
         //         // return Ok(Some((irq_handler_crcok, true)));
-        //         let irq_handler_crcok: u32 = 0x0;
-        //         println!("Force the irq_handler_crcok varible: {}", irq_handler_crcok);
-        //         return Ok(Some((irq_handler_crcok, true)));
+        //         let intenset: u32 = 0x8000000;
+        //         // println!("Force the irq_handler_crcok varible: {}", intenset);
+        //         return Ok(Some((intenset, true)));
+        //     }
+        //     else{
+        //         let intenset: u32 = 0x1000;
+        //         // println!("Force the irq_handler_crcok varible: {}", intenset);
+        //         return Ok(Some((intenset, true)));
+        //     }
+        // }
+        // else if context.mmio().addr() == 0x4000116c{
+        //     // make sure the branch of irq_handler never reaches
+        //     if self.tx_flag == 0{
+        //         // let irq_handler_crcok: u32 = 0x1;
+        //         // println!("Force the irq_handler_crcok varible: {}", irq_handler_crcok);
+        //         // return Ok(Some((irq_handler_crcok, true)));
+        //         let irq_handler_phyend: u32 = 0x0;
+        //         println!("Force the irq_handler_crcok varible: {}", irq_handler_phyend);
+        //         return Ok(Some((irq_handler_phyend, true)));
         //     }
         // }
         // else if context.mmio().addr() == 0x40001134{
