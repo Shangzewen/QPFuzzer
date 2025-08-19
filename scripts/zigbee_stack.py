@@ -42,7 +42,7 @@ def association_response_gen(pkt_raw):
     dst_addr = zigbee_pkt.dest_addr     # your device
     pan_id = zigbee_pkt.dest_panid      # PAN ID
     # capability = zigbee_pkt[ZigbeeAssociationRequest].capability
-    capability = zigbee_pkt.security_capability
+    # capability = zigbee_pkt.security_capability
     assoc_rsp = (
     Dot15d4FCS(
         fcf_frametype=3,     # Data frame

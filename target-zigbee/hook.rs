@@ -285,11 +285,12 @@ pub fn main(api) {
       if cfg.data_req_flag == true && cfg.counter_data_req_ack == 1{
         cfg.counter_data_req_ack = 2;
         rx_pdu = common::get_zigbee_rpl_data(0);
-      // after ack the data request, send asso_rsp
+      // after ack the data request, send asso_rsp then only wait until acknowledged then reset the flag and oucnter
+      // other than that keep sending Association Response
       }else if cfg.data_req_flag == true && cfg.counter_data_req_ack == 2{
         // reset the counter to 0 and the data_req to to make sure the data_req re_transmit was handled the same way
-        cfg.counter_data_req_ack = 0;
-        cfg.data_req_flag = false;
+        // cfg.counter_data_req_ack = 0;
+        // cfg.data_req_flag = false;
         rx_pdu = common::get_zigbee_rpl_data(1);
       }else{
         
