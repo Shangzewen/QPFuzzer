@@ -539,9 +539,9 @@ impl<I: Input + Debug> QemuCallback for EmulatorData<I> {
             // qemu_rs::request_interrupt_injection(Exception::from(qemu_rs::NvicException::from(0x11)));
             // log::info!("This is the g_izb_data {g_izb_data_copy:?}");
         }
-        if (pc ==0x19444){
+        if (pc ==0x1c974){
             self.hardware.tx_flag = 0;
-            println!("Encounter Rx_init set tx_flag to: {}",self.hardware.tx_flag);
+            println!("Encounter Rx_buffer_set set tx_flag to: {}",self.hardware.tx_flag);
         }
         else if pc == 0x19514{
             self.hardware.tx_flag = 1;

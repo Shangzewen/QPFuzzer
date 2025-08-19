@@ -53,7 +53,7 @@ pub fn main(api) {
     // api.on_basic_block(Some(symbolizer::resolve("frame_transmit")?), |_| log::info!("===========frame_transmit=========="));
     // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_transmit")?), |_| log::info!("===========nrf_802154_core_transmit=========="));
     // api.on_basic_block(Some(symbolizer::resolve("tx_init")?), |_| log::info!("===========tx_init=========="));
-    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
+    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
     // api.on_basic_block(Some(symbolizer::resolve("rx_init")?), |_| log::info!("===========rx_init=========="));
     // api.on_basic_block(Some(symbolizer::resolve("nrf_raal_init")?), |_| log::info!("===========nrf_raal_init=========="));
     // api.on_basic_block(Some(symbolizer::resolve("rx_timeslot_started_callback")?), |_| log::info!("===========rx_timeslot_started_callback=========="));
@@ -119,18 +119,18 @@ pub fn main(api) {
     api.on_basic_block(Some(symbolizer::resolve("zb_mac_get_indirect_data")?), |_| log::info!("===========zb_mac_get_indirect_data==========="));
     api.on_basic_block(Some(symbolizer::resolve("zb_mlme_send_data_req_done")?), |_| log::info!("===========zb_mlme_send_data_req_done==========="));
     // Radio Irq handler
-    api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ready")?), |_| log::info!("===========irq_handler_ready==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_address")?), |_| log::info!("===========irq_handler_address==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_bcmatch")?), |_| log::info!("===========irq_handler_bcmatch==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcerror")?), |_| log::info!("===========irq_handler_crcerror==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ready")?), |_| log::info!("===========irq_handler_ready==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_address")?), |_| log::info!("===========irq_handler_address==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_bcmatch")?), |_| log::info!("===========irq_handler_bcmatch==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcerror")?), |_| log::info!("===========irq_handler_crcerror==========="));
     api.on_basic_block(Some(symbolizer::resolve("irq_handler_crcok")?), |_| log::info!("===========irq_handler_crcok==========="));
     api.on_basic_block(Some(symbolizer::resolve("irq_handler_phyend")?), |_| log::info!("===========irq_handler_phyend==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_disabled")?), |_| log::info!("===========irq_handler_disabled==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccaidle")?), |_| log::info!("===========irq_handler_ccaidle==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccabusy")?), |_| log::info!("===========irq_handler_ccabusy==========="));
-    api.on_basic_block(Some(symbolizer::resolve("irq_handler_edend")?), |_| log::info!("===========irq_handler_edend==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_disabled")?), |_| log::info!("===========irq_handler_disabled==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccaidle")?), |_| log::info!("===========irq_handler_ccaidle==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_ccabusy")?), |_| log::info!("===========irq_handler_ccabusy==========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_edend")?), |_| log::info!("===========irq_handler_edend==========="));
     // Ack
     api.on_basic_block(Some(symbolizer::resolve("ack_match_check")?), |_| log::info!("===========ack_match_check==========="));
     api.on_basic_block(Some(symbolizer::resolve("ieee802154_handle_ack")?), |_| log::info!("===========ieee802154_handle_ack==========="));
@@ -250,6 +250,7 @@ pub fn main(api) {
       if cfg.data_req_flag{
         rx_pdu = "1b63cce082b5e14eb78b1436cef4b28a1020a436cef40256a0004a3f";
         cfg.data_req_flag = false;
+        cfg.sequence = 4;
       }else{
         match cfg.sequence {
           1 => rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179",
@@ -258,6 +259,7 @@ pub fn main(api) {
             rx_pdu = "051200020000"; // ACK with seq number of 02
             cfg.data_req_flag = true;
           } 
+          4 => rx_pdu = "1b63cce082b5e14eb78b1436cef4b28a1020a436cef40256a0004a3f",
           _ => rx_pdu = "",
         }
       }
@@ -373,7 +375,11 @@ pub fn main(api) {
     // force to make sure the current prority is high enough
     // common::patch_function("is_state_allowed_for_prio", arm::RETURN_1);
     // -----------------------------------------------------------
+    // These two patches make sure the irq_handler_sync does not enter
+    // common::patch_function("nrf_radio_event_check", arm::RETURN_1);
+    // common::patch_function("nrf_egu_int_enable_check", arm::RETURN_0);
 
+    
     common::patch_function("zb_nvram_load", arm::RETURN);
     common::patch_function("zb_nvram_write_dataset", arm::RETURN);
     common::patch_function("zb_nvram_dataset_is_supported", arm::RETURN_0);
@@ -383,8 +389,7 @@ pub fn main(api) {
     // common::patch_function("nrf_802154_queue_is_empty", arm::RETURN_0);
     // common::patch_function("active_vector_priority_is_high", arm::RETURN_1);
 
-    // levae the pick up radio_handler job to the intenset, always let event check return true
-    // common::patch_function("nrf_radio_event_check", arm::RETURN_1);
+    
     common::patch_function("qspi_nor_init", arm::RETURN_0);
     common::patch_function("settings_subsys_init", arm::RETURN_0);
     common::patch_function("nrfx_gpiote_0_irq_handler", arm::RETURN);
@@ -407,14 +412,13 @@ pub fn main(api) {
     common::patch_address(0x0001bac8, [0x00, 0xbf]);
 
     // make sure the zb_trans_transmit alawys think zigbee_event is transmited successfully
-    // the var_2c_1 is returnning error, need to check up why??
+    // the var_2c_1 is returnning error, need to check up why??f
     common::patch_address(0x00016c42, [0x13, 0xf1, 0x01, 0x0f]);
     common::patch_address(0x00016c4c, arm::NOP);
 
     // focre the handle_ack to ignore the timestamp check
     common::patch_address(0x000101ce, [0xff,0x2b]);
     common::patch_address(0x000101d0, [0x0b,0xd9]);
-
     // -----
     // for the scan_step think all channls are scaned:
     // common::patch_address(0x0007a1b2, arm::NOP);
