@@ -37,6 +37,45 @@ pub fn main(api) {
     hook_link_layer(api, cfg);
 
     //  ------------ Print Logs ------------
+    // Exit Hoo1ks
+    // api.on_instruction(Some(symbolizer::resolve("arch_system_halt")?), |_| log::info!("===========exit_hook reached arch_system_halt==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_do_kernel_oops")?), |_| log::info!("===========exit_hook reached z_do_kernel_oops==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_fatal_error")?), |_| log::info!("===========exit_hook reached z_fatal_error==========="));
+    // api.on_instruction(Some(symbolizer::resolve("z_arm_fault")?), |_| log::info!("===========exit_hook reached z_arm_fault==========="));
+
+    //ZBE Setup
+    // api.on_instruction(Some(symbolizer::resolve("nrf5_init")?), |_| log::info!("===========nrf5_init=========="));
+    // api.on_instruction(Some(symbolizer::resolve("net_init")?), |_| log::info!("===========net_init=========="));
+    
+    // api.on_instruction(Some(symbolizer::resolve("main")?), |_| log::info!("===========main=========="));
+    // api.on_instruction(Some(symbolizer::resolve("zigbee_enable")?), |_| log::info!("===========zigbee_enable=========="));
+    // api.on_instruction(Some(symbolizer::resolve("process_channel")?), |_| log::info!("===========process_channel=========="));
+    // api.on_instruction(Some(symbolizer::resolve("timer_handler")?), |_| log::info!("===========timer_handler=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("mpsl_init")?), |_| log::info!("===========mpsl_init=========="));
+    
+    // CLEAN
+    // api.on_basic_block(Some(symbolizer::resolve("frame_transmit")?), |_| log::info!("===========frame_transmit=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_transmit")?), |_| log::info!("===========nrf_802154_core_transmit=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("tx_init")?), |_| log::info!("===========tx_init=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_transmit_frame")?), |_| log::info!("===========nrf_802154_trx_transmit_frame=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("rx_init")?), |_| log::info!("===========rx_init=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_raal_init")?), |_| log::info!("===========nrf_raal_init=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("rx_timeslot_started_callback")?), |_| log::info!("===========rx_timeslot_started_callback=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_core_receive")?), |_| log::info!("===========nrf_802154_core_receive=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_radio_irq_handler")?), |_| log::info!("===========nrf_802154_radio_irq_handler=========="));
+    
+    // api.on_basic_block(Some(symbolizer::resolve("nrf_802154_trx_receive_buffer_set")?), |_| log::info!("===========nrf_802154_trx_receive_buffer_set=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("radio_pkt_rx_set")?), |_| log::info!("===========radio_pkt_rx_set=========="));
+
+    // CLEAN
+    
+    
+    //  return 1 for timeslot_is_granted only when tx_init was called
+    // api.on_instruction(Some(symbolizer::resolve("tx_init")?), |_| memory::write_u8(0x20008ae7, 1));
+    // api.on_basic_block(Some(0x0001caf0), |_| log::info!("===========Am I reaching here??=========="));
+    // api.on_basic_block(Some(symbolizer::resolve("irq_handler_sync")?), |_| log::info!("===========irq_handler_sync=========="));
+    // api.on_instruction(Some(0x0001c94a), |_| register::write("r3",0x2)?);
+    // api.on_instruction(Some(0x0001c94a), |_| register::read("r3")?);
     //Beacon Rsp
     api.on_basic_block(Some(0x6a6f2), |_| log::info!("===========Reached!!!!!!!!!=========="));
     // api.on_instruction(Some(0x2628a), |_| log::info!("===========bdb_network_steering_not_on_network=========="));
@@ -63,6 +102,14 @@ pub fn main(api) {
     // api.on_instruction(Some(0x00004070), |_| register::write("r3",0x10)?);
     // --------------------------bypass the ns time less than 0 assert()new--------------------------------
     api.on_basic_block(Some(0x6777c), |_| register::write("r0",0x1)?);
+
+    // api.on_basic_block(Some(0x16c3a), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c3c), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c3e), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c40), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c42), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c48), |_| register::write("r3",0x0)?);
+    // api.on_basic_block(Some(0x16c4a), |_| register::write("r3",0x0)?);
 
     // --------------------------------------------------------------------------
     // api.on_basic_block(Some(symbolizer::resolve("nrf_egu_task_trigger")?), |_| log::info!("===========nrf_egu_task_trigger==========="));
@@ -163,15 +210,35 @@ pub fn main(api) {
       else{
         cfg.pkt_length = pdu_length;
       }
+      // println!("This is pkt_length {}", cfg.pkt_length);
+      // if (cfg.pkt_length > 20){
+      //   cfg.data_connection = false;
+      //   log::info!("Received adv packet!");
+      // }else{
+      //   cfg.data_connection = true;
+      //   log::info!("Received data packet!");
+
+      // }
       let pkt_data = memory_read_buffer(pkt_buf_addr+1, cfg.pkt_length);
 
       let pkt_hex = common::encode_hex(pkt_data);
+      // cfg.sequence == 1 beacon req received 
+      // cfg.sequence == 2 Assoation req received 
+      // if pkt_hex == "030800ffffffff070000"{
+      //   log::info!("Beacon Req");
+      //   cfg.sequence = 1
+      // }
+      // // else if pkt_hex == "23c80182b50000ffff007098905a36cef4018e0000"{
+      // else if pkt_hex.contains("8e"){
+      //   log::info!("Assoation Req");
+      //   cfg.sequence = 2
+      // }
+      // else{
+      //   cfg.sequence = 0
+      // }
       log::info!(" TX Pkt. Bytes: {}", pkt_hex);
 
       let pkt_summary = common::parse_packet("zigbee", pkt_hex, direction, !cfg.initial_pdu_flag, cfg.log_details);
-      // zmq tx transmition
-      common::zmq_transmit_receive(pkt_hex,"00",0);
-
       // println!("This is the pkt summary {}", pkt_summary);
       if pkt_summary.contains("BeaconReq") {
         // log::info!("Beacon req !!!! {}", pkt_summary);
@@ -200,8 +267,20 @@ pub fn main(api) {
       }
       // let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
       let rx_pdu = "";
-      let fuzzed_msg = "";
       let rx_pdu_test = "";
+      // match cfg.sequence {
+      //   // 0 => rx_pdu = "830cf37a7d65de2800000000000c2aba95",
+      //   1 => rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179",
+      //   // 2 => {
+      //     // log::info!("-------------- ANCHOR POINT -------------");
+      //     // cfg.data_connection = true;
+      //     // rx_pdu = "0900";
+      //     // },
+      //   2 => rx_pdu = "050200010000", // ACK with seq number of 01
+      //   // 6 => rx_pdu = "0306000c0800000000", // LL_VERSION_IND
+      //   // 6 => rx_pdu = "03090014fb004808fb004808", // LL_LENGTH_REQ
+      //   _ => rx_pdu = "",
+      // }
       // just receive the data requet, send ack
       if cfg.data_req_flag == true && cfg.counter_data_req_ack == 1{
         cfg.counter_data_req_ack = 2;
@@ -213,62 +292,40 @@ pub fn main(api) {
         // cfg.counter_data_req_ack = 0;
         // cfg.data_req_flag = false;
         rx_pdu = common::get_zigbee_rpl_data(1);
-        if rx_pdu == ""{
-          // memory::write_u8(pkt_buf_addr, 0x0);
-          // pass;
-          // let data = 0x0;
-        }else{
-          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",1);
-        }
       }else{
+        
         rx_pdu = common::get_zigbee_rpl_data(0);
-        if rx_pdu == ""{
-          // memory::write_u8(pkt_buf_addr, 0x0);
-          // let data = 0x0;
-          // log::info!("rx pdu     {}",rx_pdu);
-        }else{
-          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",1);
-        }
       }
       // let test_zigbee_stack = common::get_zigbee_rpl_data(); 
       // log::info!("Zigbee Pkt Raw: {}",rx_pdu_test);
       // zigbee_rx_pdu = 
       // let test_str = "";
-      // log::info!("Pkt Raw: {}",rx_pdu);
-      log::info!("fuzzed msg {}",fuzzed_msg);
-      log::info!("rx pdu     {}",rx_pdu);
+      log::info!("Pkt Raw: {}",rx_pdu);
       // Need to clear the stack manually if the rx_pdu is empty
       if rx_pdu == ""{
         memory::write_u8(pkt_buf_addr, 0x0);
-        // let data = 0x0;
-      }else{
-        let data = common::decode_hex(fuzzed_msg)?;
-        // log::info!("Pkt Raw data: {:?}",data);
-        for (i, v) in data.iter().enumerate() {
-          memory::write_u8(pkt_buf_addr + i, v);
-          // log::info!("This is the memory write result {:?}", result);
-        }
-        let pdu_length = memory::read_u8(pkt_buf_addr)?;
-        log::info!("This is pdu length {}",pdu_length);
-        // need to -1 for the pdu_length since the first bytes is the length itself which is a extra bytes
-        let pkt_data = memory_read_buffer(pkt_buf_addr+1, pdu_length);
-        let pkt_hex = common::encode_hex(pkt_data);
-        log::info!(" RX Pkt. Bytes: {}", pkt_hex);
       }
+      let data = common::decode_hex(rx_pdu)?;
+      // log::info!("Pkt Raw data: {:?}",data);
+      for (i, v) in data.iter().enumerate() {
+        memory::write_u8(pkt_buf_addr + i, v);
+        // log::info!("This is the memory write result {:?}", result);
+      }
+
       // let pkt_summary = common::parse_packet("ble", rx_pdu, direction, !cfg.initial_pdu_flag, cfg.log_details);
       // log::info!("RX <--- {}", pkt_summary);
       // let pkt_len 
-      // let pdu_length = memory::read_u8(pkt_buf_addr)?;
-      // log::info!("This is pdu length {}",pdu_length);
-      // // need to -1 for the pdu_length since the first bytes is the length itself which is a extra bytes
-      // let pkt_data = memory_read_buffer(pkt_buf_addr+1, pdu_length);
-      // let pkt_hex = common::encode_hex(pkt_data);
-      // log::info!(" RX Pkt. Bytes: {}", pkt_hex);
-      // if cfg.log_details {
-      //     log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
-      //     log::info!("Pkt. Length: {}", data[1]);
-      //     log::info!("Pkt. Bytes: {}", rx_pdu);
-      //   }
+      let pdu_length = memory::read_u8(pkt_buf_addr)?;
+      log::info!("This is pdu length {}",pdu_length);
+      // need to -1 for the pdu_length since the first bytes is the length itself which is a extra bytes
+      let pkt_data = memory_read_buffer(pkt_buf_addr+1, pdu_length);
+      let pkt_hex = common::encode_hex(pkt_data);
+      log::info!(" RX Pkt. Bytes: {}", pkt_hex);
+      if cfg.log_details {
+          log::info!("Pkt. Addr: 0x{:08x}", pkt_buf_addr);
+          log::info!("Pkt. Length: {}", data[1]);
+          log::info!("Pkt. Bytes: {}", rx_pdu);
+        }
     }
   }
 
@@ -394,5 +451,19 @@ pub fn main(api) {
     common::patch_address(0x000101ce, [0xff,0x2b]);
     common::patch_address(0x000101d0, [0x0b,0xd9]);
     // -----
+    // for the scan_step think all channls are scaned:
+    // common::patch_address(0x0007a1b2, arm::NOP);
+    // for to make sure the 7th bit of the 0x20007889 to be set so :
+    // common::patch_address(0x0007a1b2, arm::NOP);
+    // Ignore the time < 0 error for ns_to_net_pip_time
+    // common::patch_address(0x00004080, arm::NOP);
+    
+    // Branch to radio handler
+    // Force zb_zdo_joined return 0
+    // common::patch_address(0x24efe, arm::NOP);
+
+    // common::patch_address(0x0001bac4, [0x48,0x47]);
+    // // Fix memcmp on adv_ind addr check
+    // common::patch_address(0x0001b760, [0x4f, 0xf0, 0x20, 0x00]);
     
   }

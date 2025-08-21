@@ -146,22 +146,6 @@ def beacon_rsp_gen():
     print(hexlify(bytes(beacon_rsp)).decode())
     return hexlify(bytes(beacon_rsp))
 
-
-
-    # packet_summary = parse_ble_packet(data,0,False)
-    # print(f"RX <-- {packet_summary}")
-    # received_msg = data.decode()
-    # # print(f"Rceived Message: {str(received_msg)}")
-    # # print (f"Rceived raw data: {data}") 
-
-    # try:
-    #     rpl, pkt_t, p_summary = generate_reply_adv(str(received_msg))
-    #     result_tx = parse_ble_packet(rpl,1,False)
-    #     print(f"TX --> {result_tx}")
-    #     return rpl
-    # except Exception as e:
-    #     print(f"There is an error occured: {e}")
-    #     traceback.print_exc()
 def handle_adv(pkt_raw, ackd):
     # TODO: need to check ack byte?? or can just ignore lol
     # print("This is pkt_raw: ", pkt_raw.decode())
@@ -209,39 +193,4 @@ def handle_adv(pkt_raw, ackd):
         except Exception as e:
             print(f"There is an error occured: {e}")
             traceback.print_exc()
-    # elif cmd_id == 4 and ackd==1:
-    #     try:
-    #         rpl_pkt = association_response_gen(pkt_raw)
-    #         result_rx = parse_zigbee_packet(rpl_pkt, 0, False)
-    #         print(f"RX <---------- {result_rx}")
-    #         return rpl_pkt
-    #     except Exception as e:
-    #         print(f"There is an error occured: {e}")
-    #         traceback.print_exc()       
 
-# Replace with your Zigbee raw packet bytes (with FCS if available)
-# zigbee_packets = [
-    # bytes.fromhex("030800ffffffff070000"),   # Beacon Request (example)
-    # bytes.fromhex("00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179"),  # Beacon Response
-    # bytes.fromhex("63cce082b5e14eb78b1436cef4b28a1020a436cef40256a0004a3f"),      # Association Request
-    # bytes.fromhex("0200010000"),                    # ACK
-    # bytes.fromhex("030d008f5678ffff070210b40200"),    # Association Response
-    # bytes.fromhex("0308008f5678ffff070401")           # Data Request
-# ]
-# association_response_gen("23c80182b50000ffff48575cf86236cef4018e0000")
-# ack_gen("23c83182b50000ffffe14eb78b1436cef4018e0255")
-# beacon_rsp_gen("00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179")
-# for i, pkt_bytes in enumerate(zigbee_packets):
-#     print(f"\n=== Zigbee Packet {i+1} ===")
-#     pkt = Dot15d4FCS(pkt_bytes)
-#     # pkt = ZigbeeAssociationRequest(pkt_bytes)
-#     pkt.show()
-
-# def handle_connection(pkt):
-
-# TX ---------------> (End_device --------------> coordinator)
-# RX <--------------- (End_device <-------------- coordinator)
-# print(parse_zigbee_packet("23c83182b50000ffffe14eb78b1436cef4018e0255",0,False))
-# print(handle_adv("030890ffffffff072a6e", 0))
-# print(handle_adv("23c80182b50000ffff48575cf86236cef4018e0000", 1))
-# print(parse_zigbee_packet("63c80282b50000558200000036cef404f401", 0,False))
