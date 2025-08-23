@@ -37,6 +37,8 @@ variant_count = "1.1.0"
 zstd = "0.12.3"
 pyo3 = {version = "0.22.3", features = ["auto-initialize"]}
 colored = "2.0"
+hex = "0.4.3"
+zmq = "0.10"
 
 [dev-dependencies]
 fastrand = "1.9.0"
