@@ -12,6 +12,7 @@ struct State {
   pkt_length,
   counter,
   counter_data_req_ack,
+  counter_rx_pkt,
 }
 pub fn main(api) {
     //  ------------ Apply Firmware Patches ------------
@@ -32,6 +33,7 @@ pub fn main(api) {
       pkt_length: 0,
       counter: 0,
       counter_data_req_ack: 0,
+      counter_rx_pkt: 0,
     };
 
     hook_link_layer(api, cfg);
@@ -121,6 +123,7 @@ pub fn main(api) {
         cfg.counter_data_req_ack = 0;
         cfg.data_req_flag = false;
         cfg.beacon_req_flag = false;
+        cfg.counter_rx_pkt = 0;
         // cfg.initial_pdu_flag = true;
         // Need to make sure the data_buffer is empty every new itteration
         common::clear_transmission_data();
@@ -199,6 +202,9 @@ pub fn main(api) {
         log::info!("<============> RX PKT <============>");
       }
       // let rx_pdu = "1c00806582b50000ffcf0000002286b28a1020a436cef4ffffff00e179";
+      // cfg.counter_rx_pkt +=1;
+      // cfg.counter_rx_pkt = (cfg.counter_rx_pkt + 1) % 256;
+      // let hex_counter = format!("{:02x}", cfg.counter_rx_pkt & 0xFF);
       let rx_pdu = "";
       let fuzzed_msg = "";
       let rx_pdu_test = "";
@@ -218,7 +224,9 @@ pub fn main(api) {
           // pass;
           // let data = 0x0;
         }else{
-          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",1);
+          // rx_pdu.replace_range(rx_pdu.len() - 2.., &hex_counter);
+          // rx_pdu = common::update_counter_last_byte(rx_pdu, cfg.counter_rx_pkt);
+          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",cfg.counter_rx_pkt);
         }
       }else{
         rx_pdu = common::get_zigbee_rpl_data(0);
@@ -227,7 +235,10 @@ pub fn main(api) {
           // let data = 0x0;
           // log::info!("rx pdu     {}",rx_pdu);
         }else{
-          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",1);
+          // Update the last byte to the counter to make sure the duplicated pkt can be distinguish by the poc generater 
+          // PoC Generator need a clear filter to filtter out the pkt then it can mutate
+          // rx_pdu = common::update_counter_last_byte(rx_pdu, cfg.counter_rx_pkt);
+          fuzzed_msg = common::zmq_transmit_receive(rx_pdu[2..],"01",cfg.counter_rx_pkt);
         }
       }
       // let test_zigbee_stack = common::get_zigbee_rpl_data(); 

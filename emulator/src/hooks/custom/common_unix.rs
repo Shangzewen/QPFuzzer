@@ -64,6 +64,7 @@ pub fn module(symbolizer: Arc<Mutex<Symbolizer>>) -> Result<Module> {
     module.function(&["parse_packet"], parse_packet)?;
     module.function(&["zmq_transmit_receive"], zmq_transmit_receive)?;
     module.function(&["register_basic_block"], register_basic_block)?;
+    module.function(&["update_counter_last_byte"], update_counter_last_byte)?;
 
     Ok(module)
 }
@@ -627,7 +628,7 @@ fn construct_pkt(header_base: &str, ble_ll_data: &str, crc: &str, event: &str, a
         constructed_pkt
     }
 }
-fn zmq_transmit_receive(hex_str: &str,event:&str,pkt_type:usize) -> String{
+fn zmq_transmit_receive(hex_str: &str,event:&str,counter:usize) -> String{
     // establish the connection with server side which implemented at the fuzzer side
     // println!("Connecting to hello world server...\n");
     let context = zmq::Context::new();
@@ -637,25 +638,6 @@ fn zmq_transmit_receive(hex_str: &str,event:&str,pkt_type:usize) -> String{
     assert!(requester.connect("tcp://127.0.0.1:5555").is_ok());
 
     let mut msg = zmq::Message::new();
-    //  wdissector pkt structure evt_byte + 
-    // let hex_str = "03090014fb004808fb004808";
-    // let access_adr_adv = "d6be898e";
-    // let access_adr_data = "7083329a";
-    // let crc = "000000";
-    // let mut header_base = "";
-    // if (event == "00"){
-    //     header_base = "061c0002c06a060a01031d00005ef50000";
-    // }
-    // else if (event == "01"){
-    //     header_base = "061c0002c06a060a03031d00005ef50000";
-
-    // }
-    // let header_base = "061c0002c06a060a01031d00005ef50000";
-    // let event = "01";
-    // let pkt_str = format!("{}{}{}{}{}",event,header_base,access_adr_data,hex_str,crc);
-    // let pkt_str = construct_pkt(header_base, hex_str, crc, event, access_adr_adv, access_adr_data, pkt_type);
-    // update_pkt_str = 
-    // println!("{}",pkt_str);
     let constructed_pkt = format!("{}{}",event,hex_str);
     println!("{}",constructed_pkt);
     let raw_bytes = hex::decode(constructed_pkt).expect("Invalid hex string");
@@ -674,8 +656,13 @@ fn zmq_transmit_receive(hex_str: &str,event:&str,pkt_type:usize) -> String{
         let mut zbee_pkt = received_msg[2..].to_string();
         let length = zbee_pkt.len();
         let hex_len = format!("{:02x}", length/2);
+        // let hex_rx_counter = format!("{:02x}", counter);
         // println!("This is length : {}",hex_len);
         zbee_pkt = hex_len + &zbee_pkt;
+        // replace last byte with counter
+        // if zbee_pkt.len() >= 2 {
+        //     zbee_pkt.replace_range(zbee_pkt.len()-2.., &hex_rx_counter);
+        // }
         // if pkt_type ==1 {
         //     received_msg.truncate(received_msg.len()-6);
         //     let new_msg = received_msg[44..].to_string();
@@ -690,4 +677,12 @@ fn zmq_transmit_receive(hex_str: &str,event:&str,pkt_type:usize) -> String{
     }
     // return received_msg;
     // received_msg
+}
+fn update_counter_last_byte(hex_str: &str, counter:usize)->String{
+    let hex_rx_counter = format!("{:02x}", counter);
+    let mut updated_rx_pdu = hex_str.to_string();
+    if updated_rx_pdu.len() >= 2 {
+        updated_rx_pdu.replace_range(updated_rx_pdu.len()-2.., &hex_rx_counter);
+    }
+    return updated_rx_pdu;
 }

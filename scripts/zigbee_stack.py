@@ -146,6 +146,17 @@ def beacon_rsp_gen():
     print(hexlify(bytes(beacon_rsp)).decode())
     return hexlify(bytes(beacon_rsp))
 
+# # Define counters globally
+counters = {
+    "beacon_rsp": 0,
+    "assoc_req_ack": 0,
+    "data_req_ack": 0,
+    "assoc_rsp": 0,
+}
+def update_last_byte(pkt, counter):
+    hex_counter = format(counter, "04x") 
+    return (pkt.decode()[:-4]+hex_counter).encode()
+
 def handle_adv(pkt_raw, ackd):
     # TODO: need to check ack byte?? or can just ignore lol
     # print("This is pkt_raw: ", pkt_raw.decode())
@@ -157,39 +168,54 @@ def handle_adv(pkt_raw, ackd):
     # Beacon req 
     if cmd_id == 7:
         try:
+            counters["beacon_rsp"] +=1
             rpl_pkt = beacon_rsp_gen()
             result_rx = parse_zigbee_packet(rpl_pkt, 0, False)
             print(f"RX <---------- {result_rx}")
-            return rpl_pkt
+            rpl_pkt_counter = update_last_byte(rpl_pkt,counters["beacon_rsp"])
+            # new_pkt = update_last_byte(rpl_pkt, 0x01)
+            print("This is generated new_pkt: ",rpl_pkt_counter)
+            return rpl_pkt_counter
         except Exception as e:
             print(f"There is an error occured: {e}")
             traceback.print_exc()
     # Association req
     elif cmd_id == 1:
         try:
+            counters["assoc_req_ack"] +=1
             rpl_pkt = ack_gen(pkt_raw.decode())
             result_rx = parse_zigbee_packet(rpl_pkt, 0, False)
             print(f"RX <---------- {result_rx}")
-            return rpl_pkt
+            rpl_pkt_counter = update_last_byte(rpl_pkt,counters["assoc_req_ack"])
+            # new_pkt = update_last_byte(rpl_pkt, 0x01)
+            print("This is generated new_pkt: ",rpl_pkt_counter)
+            return rpl_pkt_counter
         except Exception as e:
             print(f"There is an error occured: {e}")
             traceback.print_exc()
     # TODO: Data req (Need to give both ack and the Association rsp, how can i do this, maybe can have a specifical flag? Need to prepare a buffer??)
     elif cmd_id == 4 and ackd==0:
         try:
+            counters["data_req_ack"] +=1
             rpl_pkt = ack_gen(pkt_raw.decode())
             result_rx = parse_zigbee_packet(rpl_pkt, 0, False)
             print(f"RX <---------- {result_rx}")
-            return rpl_pkt
+            rpl_pkt_counter = update_last_byte(rpl_pkt,counters["data_req_ack"])
+            # new_pkt = update_last_byte(rpl_pkt, 0x01)
+            print("This is generated new_pkt: ",rpl_pkt_counter)
+            return rpl_pkt_counter
         except Exception as e:
             print(f"There is an error occured: {e}")
             traceback.print_exc()
     elif cmd_id == 4 and ackd==1:
         try:
+            counters["assoc_rsp"] +=1
             rpl_pkt = association_response_gen(pkt_raw.decode())
             result_rx = parse_zigbee_packet(rpl_pkt, 0, False)
             print(f"RX <---------- {result_rx}")
-            return rpl_pkt
+            rpl_pkt_counter = update_last_byte(rpl_pkt,counters["assoc_rsp"])
+            print("This is generated new_pkt: ",rpl_pkt_counter)
+            return rpl_pkt_counter
         except Exception as e:
             print(f"There is an error occured: {e}")
             traceback.print_exc()

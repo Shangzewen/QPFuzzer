@@ -28,11 +28,11 @@ def runner(input_file_path, input_files, socket, ip, port):
         # log Crash message
         for line in process1.stdout:
             # print(line, end='')
-            if "Result: Crash" in line or "Hit exit hook" in line:
+            if "Result: Crash" in line or "Hit exit hook" in line or "Result: RomWrite" in line:
                 # process the string with the target parten
                 print(line, end='')
                 match_crash = re.search(r'(Crash\s*\{[^}]+\})', line)
-                # match_exithooh = re.search(r'(ExitHook\s*\{[^}]+\})',line)
+                match_exithooh = re.search(r'(ExitHook\s*\{[^}]+\})',line)
                 match_romwrite = re.search(r'(RomWrite\s*\{[^}]+\})', line)
 
                 if match_crash:
@@ -44,7 +44,7 @@ def runner(input_file_path, input_files, socket, ip, port):
                     print(crash_info)
                     crash_log.append(crash_info)
                 elif match_romwrite:
-                    crash_info = match_exithooh.group(1)
+                    crash_info = match_romwrite.group(1)
                     print(crash_info)
                     crash_log.append(crash_info)
             # else:
