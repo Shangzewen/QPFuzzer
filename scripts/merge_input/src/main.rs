@@ -10,8 +10,8 @@ use std::path::Path;
 // This command tells sudo to use the same PATH as your current shell session, where cargo is found.
 fn main() -> Result<()> {
     // Replace "path_to_input1.bin" and "path_to_input2.bin" with actual file paths
-    let input_path1 = Path::new("/home/asset/qpfuzzer/target-zephyr/runs/input/input-80526.bin");
-    let input_path2 = Path::new("/home/asset/qpfuzzer/target-zephyr/runs/input/input-24780.bin");
+    let input_path1 = Path::new("~/qpfuzzer/target-zephyr/runs/input/input-80526.bin");
+    let input_path2 = Path::new("~/qpfuzzer/target-zephyr/runs/input/input-24780.bin");
 
     // Read the input files
     let input_file1 = InputFile::read_from_path(input_path1)?;
@@ -24,7 +24,7 @@ fn main() -> Result<()> {
     println!("Merged Input File: {:?}", merged_input_file);
 
     // Write merged input to a new file, if needed
-    let output_path = Path::new("/home/asset/qpfuzzer/target-zephyr/runs/input/merged_input_file.bin");
+    let output_path = Path::new("~/qpfuzzer/target-zephyr/runs/input/merged_input_file.bin");
     merged_input_file.write_to(std::fs::File::create(output_path)?)?;
 
     Ok(())

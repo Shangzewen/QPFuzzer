@@ -10,6 +10,7 @@ export TARGET=interval-500-fuzzed-clock-10t
 
 export HOOK_FILE=$TARGET_ZEPHYR/hook.rs
 export PREFIX_INPUT=$TARGET_ZEPHYR/inputs/sm_pairing_req.bin
+# export PREFIX_INPUT=$TARGET_ZEPHYR/inputs/sm_pairing_rsp_good350.bin
 
 
 
