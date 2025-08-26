@@ -1,6 +1,6 @@
 import pyshark
 
-cap = pyshark.FileCapture('/home/asset/ble_410_exithook.pcapng')
+cap = pyshark.FileCapture('~/ble_410_exithook.pcapng')
 
 # for idx, pkt in enumerate(cap):
     # print(pkt.frame_info._all_fields)

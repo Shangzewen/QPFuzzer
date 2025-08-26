@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source venv/bin/activate
-export PATH="/home/asset/.cargo/bin:$PATH" 
+export PATH="~/.cargo/bin:$PATH" 
 export TARGET_ZEPHYR=target-zigbee
 
 # export HOOK_FILE=$TARGET_ZEPHYR/hook.rs

@@ -56,13 +56,13 @@ def listern_to_fuzzer(file_name_t,file_name_o):
 def create_timestamp_log():
      current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
     # Mosquitto file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/mosquitto/time_stamp_log/time_stamp_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/mosquitto/time_stamp_log/time_stamp_log_"+current_time+".txt"
     # EMQX file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/Zigbee/zigbee_log/Philp_hue_light/Time_stamp_log/time_stamp_log_"+current_time+".txt"
-     file_name = "/home/asset/qpfuzzer/target-zigbee/log/Time_stamp_log/time_stamp_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/Zigbee/zigbee_log/Philp_hue_light/Time_stamp_log/time_stamp_log_"+current_time+".txt"
+     file_name = "~/qpfuzzer/target-zigbee/log/Time_stamp_log/time_stamp_log_"+current_time+".txt"
     
     # hivemq-ce file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/hivemq-ce/time_stamp_log/time_stamp_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/hivemq-ce/time_stamp_log/time_stamp_log_"+current_time+".txt"
 
      fo = open(file_name,'w')
      fo.write("Crash Time Stamp \n")
@@ -72,13 +72,13 @@ def create_timestamp_log():
 def create_output_log():
      current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
     # Mosquitto file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/mosquitto/output_log/output_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/mosquitto/output_log/output_log_"+current_time+".txt"
     # EMQX file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/Zigbee/zigbee_log/Philp_hue_light/output_log/output_log_"+current_time+".txt"
-     file_name = "/home/asset/qpfuzzer/target-zigbee/log/output_log/output_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/Zigbee/zigbee_log/Philp_hue_light/output_log/output_log_"+current_time+".txt"
+     file_name = "~/qpfuzzer/target-zigbee/log/output_log/output_log_"+current_time+".txt"
     
     # hivemq-ce file name
-    #  file_name = "/home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/hivemq-ce/output_log/output_log_"+current_time+".txt"
+    #  file_name = "~/Desktop/work/wireless-deep-fuzzer-zigbee/mqtt_log/hivemq-ce/output_log/output_log_"+current_time+".txt"
 
      fo = open(file_name,'w')
      fo.write("Log session starts \n")
@@ -151,12 +151,12 @@ def run_server_gdb(f_name_t,f_name_o):
     # UDPServerSocket.bind((localIP, localPort))
     # print("-----------------------------------------------------UDP server up and listening for mosquito------------------------------------------------------------")
     # cmd to start the mosquitto broker
-    cmd = "sudo docker-compose -f /home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/zigbee_dongle_connection/coordinator/docker-compose.yml up"
-    # cmd = "sudo gdb -ex run -ex backtrace --args docker-compose -f /home/asset/Desktop/work/wireless-deep-fuzzer-zigbee/zigbee_dongle_connection/coordinator/docker-compose.yml up"
+    cmd = "sudo docker-compose -f ~/Desktop/work/wireless-deep-fuzzer-zigbee/zigbee_dongle_connection/coordinator/docker-compose.yml up"
+    # cmd = "sudo gdb -ex run -ex backtrace --args docker-compose -f ~/Desktop/work/wireless-deep-fuzzer-zigbee/zigbee_dongle_connection/coordinator/docker-compose.yml up"
     # cmd to start the emqx broker
     # cmd = "sudo systemctl start emqx"
     # cmd to start the hivemq-ce broker
-    # cmd = "sudo /home/asset/Desktop/work/HiveMQ_Community_Edition/hivemq-ce-2023.3/bin/run.sh"
+    # cmd = "sudo ~/Desktop/work/HiveMQ_Community_Edition/hivemq-ce-2023.3/bin/run.sh"
     p = Popen(cmd.split(),shell=False,stdout=PIPE,stderr=PIPE, stdin=PIPE)
     time.sleep(1)
     # seting log level to debug for emqx
