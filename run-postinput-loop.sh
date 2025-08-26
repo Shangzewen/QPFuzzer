@@ -3,7 +3,7 @@
 source venv/bin/activate
 # Add Cargo to PATH (To make sure the cmd_testing script can find cargo correctly since 
 # the python subprocess does not know the correct path everytime )
-export PATH="/home/asset/.cargo/bin:$PATH" 
+export PATH="~/.cargo/bin:$PATH" 
 
 export TARGET_ZEPHYR=target-zephyr
 export TARGET=interval-500-fuzzed-clock-10t
