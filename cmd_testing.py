@@ -1,6 +1,6 @@
 import os 
 import subprocess
-input_dir = '/home/asset/qpfuzzer/target-zephyr/runs/input'
+input_dir = '~/qpfuzzer/target-zephyr/runs/input'
 input_files = os.listdir(input_dir)
 # command_template = "cargo run --release --bin hoedur-arm 3>&1 1>&2 2>&3 -- --config  $(pwd)/target-zephyr/config.yml --debug --trace --hook $(pwd)/target-zephyr/hook.rs run $(pwd)/target-zephyr/runs/input/{}"
 command_template = "source ~/.bashrc && ./run-postinput.sh $(pwd)/target-zephyr/runs/input/{}"
