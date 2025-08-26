@@ -330,7 +330,7 @@ pub fn main(api) {
       // let fuzzed_msg_clean = !format("{}{}",&fuzzed_msg[43..]);
       log::info!("fuzzed msg {}",fuzzed_msg);
       log::info!("rx pdu     {}",rx_pdu);
-      // Comment when combine with u-fuzz
+      // Comment when combine with fuzzer
       let data = common::decode_hex(rx_pdu)?;
       // let data = common::decode_hex(fuzzed_msg)?;
       for (i, v) in data.iter().enumerate() {
