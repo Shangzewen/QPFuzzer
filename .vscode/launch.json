@@ -76,7 +76,7 @@
                 // the existing PATH, ensuring that executables in venv/bin are prioritized
                 //  over others in the system path(because the venv still take some 
                 // global depenencies from the system, if dont dpecify this, the dependencies could not be found).
-                "PATH": "/home/asset/qpfuzzer/venv/bin:${env:PATH}"
+                "PATH": "~/qpfuzzer/venv/bin:${env:PATH}"
             },
         },
         {
