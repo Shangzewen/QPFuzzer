@@ -621,7 +621,7 @@ $0.00
 <name>Architect</name>
 
 
-# Current Working Directory (/home/asset/github/GhidraMCP) Files
+# Current Working Directory (~/github/GhidraMCP) Files
 .gitignore
 bridge_mcp_ghidra.py
 LICENSE

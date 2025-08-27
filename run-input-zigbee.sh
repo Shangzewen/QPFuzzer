@@ -7,7 +7,7 @@
 #     --hook $TARGET_ZEPHYR/hook-trace-basic.rs \
 #     run $1
 source venv/bin/activate
-export PATH="/home/asset/.cargo/bin:$PATH" 
+export PATH="~/.cargo/bin:$PATH" 
 # export TARGET=target-zephyr
 export TARGET_ZEPHYR=target-zigbee
 # export HOOK_FILE=$TARGET_ZEPHYR/hook_ref.rs
