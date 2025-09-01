@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>emulation_replication_toturial_readme</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><p><strong>Step1:</strong><br>
+<em>Running different Exploit from U-fuzz Engine</em><br>
+<em>Make sure both the mutation and optimization was disabled</em></p>
+<pre><code>Select the potential exploit to run
+$ sudo bin/ble_realtime_fuzzer --exploit=&lt;Specific exploit from exploit list&gt;
+</code></pre>
+<h2 id="normal-replication-tutorial">Normal Replication Tutorial</h2>
+<p><strong>Step2:</strong><br>
+<em>Run single Emulation input</em></p>
+<pre><code>Script selection depends on exploit selection
+$ ./run-input-zigbee.sh &lt;target emulation input&gt;
+$ ./run-input-ble.sh &lt;target emulation input&gt; 
+i.e., 
+./run-input.sh target-zephyr/inputs/sm_pairing_rsp_good350.bin
+</code></pre>
+<h2 id="gdb-replication-tutorial">GDB Replication Tutorial</h2>
+<p><strong>Step2:</strong><br>
+<em>Run GDB Server Process with single Emulation input</em></p>
+<pre><code>Script selection depends on exploit selection
+$ GDB=1 ./run-input-zigbee.sh &lt;target emulation input&gt;
+$ GDB=1 ./run-input-ble.sh &lt;target emulation input&gt; 
+i.e., 
+GDB=1 ./run-input.sh target-zephyr/inputs/sm_pairing_rsp_good350.bin
+</code></pre>
+<p><strong>Step3:</strong><br>
+<em>Attach the gdb server</em></p>
+<pre><code>$ gdb-multiarch &lt;path to .elf&gt; -ex "target remote localhost:1236" -ex "-enable-pretty-printing"
+i.e.,
+gdb-multiarch ./interval-500-fuzzed-clock-10t/zephyr.elf -ex "target remote localhost:1236" -ex "-enable-pretty-printing"
+</code></pre>
+<p>After the gdb client attached, can set break point for different exploit selected</p>
+<pre><code>bt *&lt;addr&gt;
+</code></pre>
+</div>
+</body>
+
+</html>
