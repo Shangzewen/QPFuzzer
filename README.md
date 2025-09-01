@@ -126,7 +126,7 @@ $ Comments line:802, 811-815
   (`target_compile_options(zigbee_realtime_fuzzer PRIVATE -w -O0)`)
   (`target_compile_definitions(zigbee_realtime_fuzzer PRIVATE -DFUZZ_WIFI_AP)`)
 
-$ Uncomments line: 806, 825-829 which were configured for CoAP fuzzing
+$ Uncomments line: 806, 825-829 which were configured for Ble fuzzing
   (set(BLE_SRC src/ble_realtime_fuzzer.cpp libs/shared_memory.c))
   (add_executable(ble_realtime_fuzzer ${BLE_SRC} libs/profiling.c))
   (target_link_libraries(ble_realtime_fuzzer PRIVATE ${MINIMAL_FUZZER_LIBS} viface))
