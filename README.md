@@ -38,7 +38,7 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
 ------
 
 # 1. 📋 Software Environment
-* **OS:** Ubuntu 24.04 - We recommend using Ubuntu 24.04 to build and run the emualtion engine for aIRQFuzz. As for the fuzzing engine, we prepared a ready-to-run docker [container]([url](TODO)) which build on ubuntu-18.04.  Alternativelly, you can refer to [U-fuzz]([url](https://github.com/asset-group/U-Fuzz/blob/main/README.md#2--initial-compilation)) github repo for environment setup to ensure the correct OS environment.
+* **OS:** Ubuntu 24.04 - We recommend using Ubuntu 24.04 to build and run the emualtion engine for aIRQFuzz. As for the fuzzing engine, we prepared a ready-to-run docker [container](#51-customised-u-fuzz-docker-image) which build on ubuntu-18.04.  Alternativelly, you can refer to [U-fuzz]([url](https://github.com/asset-group/U-Fuzz/blob/main/README.md#2--initial-compilation)) github repo for environment setup to ensure the correct OS environment.
 
 # 2. ⏩ Initial Compilation 
 Several requirements need to be installed before compiling the project. An automated script for Ubuntu 24.04 is provided on `requirements.sh`. To compile from source, simply run the following commands:
@@ -112,7 +112,10 @@ $ ./run-input-zigbee-detail.sh <input.bin>
 
 # 5. 📄 Running the fuzzer
 ## 5.1 Customised U-fuzz docker image
-[Fuzzer Docker]([url](todo))
+*Can pull from docker hub*
+```
+docker pull airqfuzz/u-fuzz-docker:aIRQFuzz
+```
 ## 5.2 Running Totural
 **Step1:**
 *build the project (zigbee_realtime_fuzzer)*
