@@ -1,4 +1,4 @@
-# aIRQFuzz (Zigbee) - QEMU Directed Firmware Protocol Fuzzer
+read# aIRQFuzz (Zigbee) - QEMU Directed Firmware Protocol Fuzzer
 An emulation-based, directed fuzzing framework that automatically discovers vulnerabilities deep into the wireless protocol implementation of bare-metal firmware. We evaluate aIRQFuzz on two distinct targets (BLE and Zigbee) to demonstrate both its effectiveness and its extensibility.  aIRQFuzz opens possibilities for emulation-based and stateful fuzzing of complex wireless protocols.
 
 <p align="center">
@@ -227,14 +227,151 @@ TODO -->
 
 ## 6.3. Emulation replication
 Emulation replication requires the auto-generated [PoC scripts](#62-available-exploits) running by the fuzzing engine to replay the crash sequence. Both the enable_mutation and enable_optimization need to be set to false to eliminate the normal mutation operation.
-The detailed emulation replication [toturial](./toturial/emulation_replication_toturial.html) was provided.
-<!-- Add a file for toturial -->
+The detailed emulation replication [tutorial](./tutorial/emulation_replication_toturial.html) was provided.
+<!-- Add a file for tutorial -->
 
 # 7. 🧑‍💻 PoC script Auto-generator
-## 7.1 Running Toturials and Potential Issues
+This script analyzes `.pcapng` log files from a fuzzing session. It identifies crash-causing packet sequences, generates a CSV summary, and creates C++ scripts to reproduce potential exploits using U-Fuzz fuzzing framework.
+
+```bash
+pip install pandas typer pcapng numpy tqdm
+```
+
+Analyze a log for the `zigbee` or `ble` protocol and save the report to a custom file named `results.csv`.
+
+```bash
+# For BLE
+python analyse_log.py zigbee_run.pcapng --output-file results.csv --protocol-name ble
+
+# For Zigbee
+python analyse_log.py zigbee_run.pcapng --output-file results.csv --protocol-name zigbee
+```
+
+The script performs two main actions:
+
+1.  **Generates a CSV Report**: It creates a `.csv` file (e.g., `capture.csv`) summarizing each fuzzing iteration, sorted to highlight the most promising results (low number of fuzzed packets before a crash). The report includes columns like `Iteration`, `Crashes`, `Fuzz Count`, and `Fuzz-End Distance`.
+
+2.  **Generates Trial Scripts**: For each identified crash, it generates a C++ script under folder `exploits` (e.g., `exploits/zigbee/t1_25_beaconrsp.cpp`). These scripts are designed to reproduce the exact sequence of packets that caused the crash, and should be moved to the `modules/exploits/zigbee` folder of the fuzzer engine. 
+
 
 # 8. 🧑‍💻 Auto Weight calculator
-## 8.1 Running Toturials and Potential Issues
+
+## Prerequisites
+
+1. **Python Dependencies**: Install the required packages.
+
+   ```bash
+   pip install typer chromadb pandas numpy matplotlib binaryninja cmsis-svd tqdm PyYAML
+   ```
+
+   *Note: A valid Binary Ninja license is required for the `binaryninja` package.*
+
+2. **Embedding Service**: The tool requires an [infinity_emb](https://github.com/michaelfeil/infinity) embedding model server to be running. Set its URL via an environment variable.
+
+   ```bash
+   export EMBEDDINGS_URL="http://127.0.0.1:7997"
+   ```
+
+## Core Workflow Example
+
+This example demonstrates the end-to-end process of analyzing an ELF file to generate Rust hook files for a fuzzer.
+
+### Step 1: Import Symbols from an ELF file
+
+First, ingest the function symbols from your compiled firmware into the vector database. This needs to be done only once per file.
+> This reads symbols from `firmware.elf`, generates embeddings, and saves them in the `firmware_db/` directory.
+
+### For BLE
+```bash
+cd scripts/
+python3 symbol-analyzer.py import-elf --elf-path ../target-zephyr/zephyr.elf
+```
+
+### For Zigbee
+```bash
+cd scripts/
+python3 symbol-analyzer.py import-elf --elf-path ../target-zigbee/zigbee.elf
+```
+
+### Step 2: Search for Symbols and Generate Call Traces
+
+Use natural language queries to find relevant functions and automatically generate their call traces. The tool uses Binary Ninja in the background to analyze the callers for each found symbol.
+
+
+```bash
+# For BLE
+./symbol-analyzer.py search-calltrace "smp pairing" --n 20
+./symbol-analyzer.py search-calltrace "att message" --n 20
+./symbol-analyzer.py search-calltrace "gatt message" --n 20
+./symbol-analyzer.py search-calltrace "l2cap message" --n 20
+./symbol-analyzer.py search-calltrace "link layer message" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth advertisement indication" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth scan response" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth gap profile" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth radio phy transmit" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth radio phy receive" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth radio interrupt" --n 20
+./symbol-analyzer.py search-calltrace "bluetooth radio handling" --n 20
+
+# For Zigbee
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "beacon request"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "scan request"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "radio tx init"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "radio rx init"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "radio transmission"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "radio reception"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "zigbee state machine"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "zigbee protocol message"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "zigbee network message"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "zigbee mac message"
+./symbol-analyzer.py search-calltrace --n=20 --folder=calltraces-zigbee --file="zigbee.elf" "ack rx"
+```
+
+
+> For each command, this creates `.json` and `.yaml` backtrace files inside the `calltraces/` directory.
+
+### Step 3: Merge All Call Traces
+
+Combine all the individual JSON backtrace files generated in the previous step into a single file. This command also generates Rust hook files for instrumentation.
+
+```bash
+# For BLE
+python symbol-analyzer.py merge-calltraces --calltrace-folder calltraces
+
+# For Zigbee
+python symbol-analyzer.py merge-calltraces --calltrace-folder calltraces-zigbee
+```
+
+> This creates:
+>
+> - `merged_calltrace.json`: A combined JSON of all unique functions and their weights.
+> - `hook-traces.rs`: A Rust file to log when a function is executed.
+> - `hook-weights.rs`: A Rust file to assign weights to basic blocks for guided fuzzing.
+
+### Step 4: Use the Generated Hooks
+
+Finally, copy the generated Rust files into your target project (e.g., a fuzzer's hooks directory).
+
+```bash
+# For BLE
+cp hook-weights.rs hook-traces.rs ../target-zephyr
+
+# For Zigbee
+cp hook-weights.rs hook-traces.rs ../target-zigbee
+
+
+# Start the fuzzer with the weights
+cargo run --release --bin hoedur-arm -- \
+    --config target-zephyr/config.yml \
+    --hook hook.rs \
+    --hook hook-weights.rs \
+    --debug \
+    fuzz \
+    --statistics \
+    --archive-dir target-zephyr/runs
+```
+
+> You can now run the fuzzer with these new hooks to guide its execution based on your semantic searches. 
 
 
 # 9. 📝 Citing aIRQFuzz
