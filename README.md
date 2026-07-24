@@ -180,7 +180,7 @@ For fuzzing the emulation, the fuzzing engine needs to be conencted with the emu
 
 # 6. 📄 Exploits
 ## 6.1.  Summary of potential Crashes:
-To this day, aIRQFUZZ has found 96 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 27 potential crashes in Zephyr/Nordic Zigbee implementation. 
+To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 7 potential crashes in Zephyr/Nordic Zigbee implementation. 
 ### QPF effectiveness to find/replicate crashes
 
 | Protocol | Fw. Version                  | Unique Crash | # Mutations | Potential Crash after multi-step filtering| Board Replication |
