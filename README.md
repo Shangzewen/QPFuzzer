@@ -2,36 +2,42 @@ read# aIRQFuzz (Zigbee) - QEMU Directed Firmware Protocol Fuzzer
 An emulation-based, directed fuzzing framework that automatically discovers vulnerabilities deep into the wireless protocol implementation of bare-metal firmware. We evaluate aIRQFuzz on two distinct targets (BLE and Zigbee) to demonstrate both its effectiveness and its extensibility.  aIRQFuzz opens possibilities for emulation-based and stateful fuzzing of complex wireless protocols.
 
 <p align="center">
-  <img src="figs/Overview.png" alt="aIRQFuzz Overview and Design">
+  <img src="figs/Overview_Update_page-0001.jpg" alt="aIRQFuzz Overview and Design">
 </p>
 
 ------
 
 **Table of Contents**
 
-1. [📋 Software Environment](#1--software-environment)
-2. [⏩ Initial Compilation](#2--initial-compilation)
-3. [🔀 Running Emulation Exploriation](#3--running-emulation-exploriation)
-    * [Target Firmware Zigbee](#31-target-firmware-zigbee)
-    * [Target Config Zigbee](#32-target-config-zigbee)
-    * [Target Patch Zigbee](#33-target-patch-zigbee)
-4. [🧑‍💻 Input Runner](#4--input-runner)
-    * [Run single input](#41-run-single-input)
-    * [Run single input with mmio/ram access documented](#42-run-single-input-with-mmio-ram-access-documented)
-    * [Emulation input](#43-emulation-input)
-5. [📄 Running the fuzzer](#5--running-the-fuzzer)
-    * [Customised U-fuzz docker image](#51-customised-u-fuzz-docker-image)
-    * [Running Totural](#52-running-totural)
-6. [📄 Exploits](#6--exploits)
-    * [Summary of potential Crashes](#61-summary-of-potential-crashes)
-    * [Available Exploits](#62-available-exploits)
-    * [Real board replication](#63-real-board-replication)
-    * [Emulation replication](#64-emulation-replication)
-7. [🧑‍💻 PoC script Auto-generator](#7--poc-script-auto-generator)
-    * [Running Toturials and Potential Issues](#71-running-toturials-and-potential-issues)
-8. [🧑‍💻 Auto-Weight calculator](#8--auto-weight-calculator)
-    * [Running Toturials and Potential Issues](#81-running-toturials-and-potential-issues)
-9. [📝 Citing aIRQFuzz](#9--citing-airqfuzz)
+- [1. 📋 Software Environment](#1--software-environment)
+- [2. ⏩ Initial Compilation](#2--initial-compilation)
+- [3. 🔀 Running Emulation Exploriation](#3--running-emulation-exploriation)
+  - [3.1 Target Firmware Zigbee](#31-target-firmware-zigbee)
+  - [3.2 Target Config Zigbee](#32-target-config-zigbee)
+  - [3.3 Target Patch Zigbee](#33-target-patch-zigbee)
+- [4. 🧑‍💻 Input Runner](#4--input-runner)
+  - [4.1 Run single input](#41-run-single-input)
+  - [4.2 Run single input with mmio/ram access documented](#42-run-single-input-with-mmioram-access-documented)
+  - [4.3 Emulation input](#43-emulation-input)
+- [5. 📄 Running the fuzzer](#5--running-the-fuzzer)
+  - [5.1 Customised U-fuzz docker image](#51-customised-u-fuzz-docker-image)
+  - [5.2 Running Totural](#52-running-totural)
+- [6. 📄 Exploits](#6--exploits)
+  - [6.1.  Summary of potential Crashes:](#61--summary-of-potential-crashes)
+    - [QPF effectiveness to find/replicate crashes](#qpf-effectiveness-to-findreplicate-crashes)
+  - [6.2. Available Exploits](#62-available-exploits)
+  - [6.3. Emulation replication](#63-emulation-replication)
+- [7. 🧑‍💻 PoC script Auto-generator](#7--poc-script-auto-generator)
+- [8. 🧑‍💻 Auto Weight calculator](#8--auto-weight-calculator)
+  - [Prerequisites](#prerequisites)
+  - [Core Workflow Example](#core-workflow-example)
+    - [Step 1: Import Symbols from an ELF file](#step-1-import-symbols-from-an-elf-file)
+    - [For BLE](#for-ble)
+    - [For Zigbee](#for-zigbee)
+    - [Step 2: Search for Symbols and Generate Call Traces](#step-2-search-for-symbols-and-generate-call-traces)
+    - [Step 3: Merge All Call Traces](#step-3-merge-all-call-traces)
+    - [Step 4: Use the Generated Hooks](#step-4-use-the-generated-hooks)
+- [9. 📝 Citing aIRQFuzz](#9--citing-airqfuzz)
 
 
 
