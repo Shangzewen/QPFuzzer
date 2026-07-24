@@ -183,16 +183,15 @@ For fuzzing the emulation, the fuzzing engine needs to be conencted with the emu
 To this day, aIRQFUZZ has found 96 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 27 potential crashes in Zephyr/Nordic Zigbee implementation. 
 ### QPF effectiveness to find/replicate crashes
 
-| Protocol | Fw. Version                  | Unique Crash | # Mutations | Potential Crash | Board Replication |
+| Protocol | Fw. Version                  | Unique Crash | # Mutations | Potential Crash after multi-step filtering| Board Replication |
 |----------|------------------------------|--------------|-------------|-----------------|-------------------|
-| **BLE**  | V2.2.99                      | 78           | ≤ 3         | 68              | 2 (CVE-2020-10061, CVE-2020-10069) |
+| **BLE**  | V2.2.99                      | 78           | ≤ 3         | 11              | 2 (CVE-2020-10061, CVE-2020-10069) |
 |          | V2.5.1                       | 2            | ≤ 3         | 2               | 0                 |
-|          | V3.5.99                      | 5            | ≤ 3         | 5               | 1                 |
-|          | V3.7.1                       | 18           | ≤ 2         | 11              | 1 (duplicate to V3.5) |
-|          | V4.0.0                       | 13           | ≤ 3         | 10              | 1 (duplicate to V3.5) |
-| **Total**| All versions                 | 116          | ≤ 3         | 96              | 3                 |
-| **Zigbee** | Nordic V2.9.99 + Zephyr OS V3.7.9 | 27   | ≤ 5         | 27              | NA                |
-
+|          | V3.5.99                      | 5            | ≤ 3         | 1               | 1 (New:CVE-2025-12890)                 |
+|          | V3.7.1                       | 18           | ≤ 2         | 6              | 1 (duplicate to V3.5) |
+|          | V4.0.0                       | 13           | ≤ 3         | 2              | 1 (duplicate to V3.5) |
+| **Total**| All versions                 | 116          | ≤ 3         | 22              | 3                 |
+| **Zigbee** | Nordic V2.9.99 + Zephyr OS V3.7.9 | 27   | ≤ 5         | 7 (New: CVE-2025-65620, CVE-2025-70905)             | NA                |
 
 ## 6.2. Available Exploits
 | Vulnerability Name | Exploit |
