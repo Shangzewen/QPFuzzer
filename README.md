@@ -19,7 +19,6 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
 - [4. 🧑‍💻 Input Runner](#4--input-runner)
   - [4.1 Run single input](#41-run-single-input)
   - [4.2 Run single input with mmio/ram access documented](#42-run-single-input-with-mmioram-access-documented)
-  - [4.3 Emulation input](#43-emulation-input)
 - [5. 📄 Running the fuzzer](#5--running-the-fuzzer)
   - [5.1 Customised U-fuzz docker image](#51-customised-u-fuzz-docker-image)
   - [5.2 Running Totural](#52-running-totural)
@@ -106,23 +105,55 @@ cargo run --bin hoedur-arm -- fuzz --help
 ``` -->
 
 ## 4.1 Run single input
-The following cmd could be used to run single input
+
+First of all need to go the the qpfuzzer_ble directory by running the following cmd
 ```
 $ cd qpfuzzer_ble
+```
+Then before running the single input with different ble firmware versions, several files need to be updated to make sure the emulation process is replicable
 
+**Step1:**
+*Update the run-inpuit.sh*
+The file is located at (./qpfuzzer_ble).
+
+1. update the hook file path to hook_without_fuzzer.rs with targeted version instead of using the hook.rs which is created for liveing fuzzing using socket.
+   All hook files could be located at [Ble patch](./target-zephyr/hook_multi_version/)
+
+**Step2:**
+*Update the config.yml*
+The file is located at the (./interval-500-fuzzed-clock-10t/config.yml)
+Update the content based on the config file for different verison. 
+All config file are loacted at [Ble config](./target-zephyr/config_multi_version/)
+
+**Step3:**
+*Copy the targeted Firmware*
+The targeted firmware needs to be specified in the config file and the binary need to be copy and paste into the (./interval-500-fuzzed-clock-10t/).
+All firmware could be located at [Ble binary](./target-zephyr/firmwire/) and [Ble elf](./target-zephyr/firmwire/).
+
+**Step4:**
+*Update the Emulation handling logic*
+The emulator will handle the firmware with different verison slightly different. Since different version requires different targeted keywords etc. 
+The file (qpfuzzer_ble/emulator/src/hooks/custom/common.rs) needs to be updated for different targeted version. The reference code could be located at [common](./target-zephyr/common_multi_version/)
+
+**Step5:**
+*Update the Coverage handling logic*
+The hardware.rs file (qpfuzzer_ble/modeling/src/hardware.rs) also need to be updated to make sure the emulation is replicable. The reference code could be located at [hardware](./target-zephyr/common_multi_version/)
+
+
+**Step6:**
+Then use the following cmd to run the targted input file for targeted version
+```
 $ ./run-input.sh <input.bin>
 ```
+All input file could be loacted at [Individual input Ble](./target-zephyr/meaningful_input_multi_version/)
 
 ## 4.2 Run single input with mmio/ram access documented
-The following cmd could be used to run single input
+After all update done previously, the following cmd could be used to run single input
 ```
 $ cd qpfuzzer_ble
 
 $ ./run-input-detail.sh <input.bin>
 ```
-
-## 4.3 Emulation input
-[Individual input Ble](./target-zephyr/meaningful_input_multi_version/)
 
 # 5. 📄 Running the fuzzer
 ## 5.1 Customised U-fuzz docker image
