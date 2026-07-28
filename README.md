@@ -1,18 +1,20 @@
-# aIRQFuzz (BLE) - QEMU Directed Firmware Protocol Fuzzer
-An emulation-based, directed fuzzing framework that automatically discovers vulnerabilities deep into the wireless protocol implementation of bare-metal firmware. We evaluate aIRQFuzz on two distinct targets (BLE and Zigbee) to demonstrate both its effectiveness and its extensibility.  aIRQFuzz opens possibilities for emulation-based and stateful fuzzing of complex wireless protocols.
+# 🚀 aIRQFuzz (BLE) - QEMU Directed Firmware Protocol Fuzzer
+
+An emulation-based, directed fuzzing framework that automatically discovers vulnerabilities deep into the wireless protocol implementation of bare-metal firmware. We evaluate **aIRQFuzz** on two distinct targets (BLE and Zigbee) to demonstrate both its effectiveness and its extensibility. aIRQFuzz opens possibilities for emulation-based and stateful fuzzing of complex wireless protocols.
 
 <p align="center">
-  <img src="figs/Overview_Update_page-0001.jpg" alt="aIRQFuzz Overview and Design">
+  <img src="figs/Overview_Update_page-0001.jpg" alt="aIRQFuzz Overview and Design" width="800">
 </p>
 
-------
+---
+
 
 **Table of Contents**
 
 - [aIRQFuzz (BLE) - QEMU Directed Firmware Protocol Fuzzer](#airqfuzz-ble---qemu-directed-firmware-protocol-fuzzer)
 - [1. 📋 Software Environment](#1--software-environment)
 - [2. ⏩ Initial Compilation](#2--initial-compilation)
-- [3. 🔀 Running Emulation Exploriation](#3--running-emulation-exploriation)
+- [3. 🔀 Running Emulation Exploration](#3--running-emulation-exploriation)
   - [3.1 Target Firmware BLE](#31-target-firmware-ble)
   - [3.2 Target Config BLE](#32-target-config-ble)
   - [3.3 Target Patch BLE](#33-target-patch-ble)
@@ -21,8 +23,8 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
   - [4.2 Run single input with mmio/ram access documented](#42-run-single-input-with-mmioram-access-documented)
   - [4.1 Run single input with fuzzing engine](#41-run-single-input-with-fuzzing-engine)
 - [5. 📄 Running the fuzzer](#5--running-the-fuzzer)
-  - [5.1 Customised U-fuzz docker image](#51-customised-u-fuzz-docker-image)
-  - [5.2 Running Totural](#52-running-totural)
+  - [5.1 Customized U-fuzz docker image](#51-customised-u-fuzz-docker-image)
+  - [5.2 Running Tutorial](#52-running-totural)
 - [6. 📄 Exploits](#6--exploits)
   - [6.1.  Summary of potential Crashes:](#61--summary-of-potential-crashes)
     - [QPF effectiveness to find/replicate crashes](#qpf-effectiveness-to-findreplicate-crashes)
@@ -51,13 +53,13 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
 
 ------
 
-# 1. 📋 Software Environment
+## 📋 1. Software Environment
 * **OS:** Ubuntu 24.04 - We recommend using Ubuntu 24.04 to build and run the emualtion engine for aIRQFuzz. As for the fuzzing engine, we prepared a ready-to-run docker [container](#51-customised-u-fuzz-docker-image) which build on ubuntu-18.04.  Alternativelly, you can refer to [U-fuzz]([url](https://github.com/asset-group/U-Fuzz/blob/main/README.md#2--initial-compilation)) github repo for environment setup to ensure the correct OS environment.
 
-# 2. ⏩ Initial Compilation 
+## ⏩ 2. Initial Compilation 
 Several requirements need to be installed before compiling the project. An automated script for Ubuntu 24.04 is provided on `requirements.sh`. To compile from source, simply run the following commands:
-```
-$ Download the content from this github link:
+```bash
+# Download the content from this github link:
 https://anonymous.4open.science/r/AIRQFuzz_ZBE/
 
 $ cd aIRQFuzz_ble
@@ -67,17 +69,17 @@ $ ./requirements.sh # Create a python virtual environment and Install all requir
 $ cargo build # Compile all binaries. It may take around 15min. Go get a coffe!
 ```
 
-# 3. 🔀 Running Emulation Exploriation
+## 🔀 3. Running Emulation Exploration
 Before running the emulation engine three inputs need to be provided as follows:
 
 1: Target Firmware Binary and Elf
 
 2: Target configuration which specifies the memmory layout for the target firmware, the exithook function list and Interrupt Injection method.
 
-3: Customised Patch for Target whcih contains the necessary patch for advancing the emulation to protocol code space.
+3: Customized Patch for Target whcih contains the necessary patch for advancing the emulation to protocol code space.
 
 After compiling the project with the correct software environment, please run the following command
-```
+```bash
 $ cd qpfuzzer_ble
 
 target fodler was specified in fuzz.sh
@@ -89,18 +91,18 @@ The emulation log would be saved in the target fodler under name log-fuzzing.txt
 ## 3.2 Target Config BLE
 ## 3.3 Target Patch BLE -->
 ## 3.1 Target Firmware BLE
-[Ble binary](./target-zephyr/firmwire/)
-[Ble elf](./target-zephyr/firmwire/)
+[Ble binary](./target-zephyr/firmware/)
+[Ble elf](./target-zephyr/firmware/)
 ## 3.2 Target Config BLE
 [Ble config](./target-zephyr/config_multi_version/)
 ## 3.3 Target Patch BLE
 [Ble patch](./target-zephyr/hook_multi_version/)
 [Ble patch for fuzzing](./target-zephyr/hook_multi_version/)
 
-# 4. 🧑‍💻 Input Runner
+## 🧑‍💻 4. Input Runner
 Once meaningful emulation session has been done. a corpus archive file will be saved at target_folder/runs directory. After un-tar it, individual file could be retrieved.
 
-<!-- See help for detials:
+<!-- See help for details:
 ```
 cargo run --bin hoedur-arm -- fuzz --help
 ``` -->
@@ -108,7 +110,7 @@ cargo run --bin hoedur-arm -- fuzz --help
 ## 4.1 Run single input without fuzzing engine
 
 First of all need to go the the qpfuzzer_ble directory by running the following cmd
-```
+```bash
 $ cd qpfuzzer_ble
 ```
 Then before running the single input with different ble firmware versions, several files need to be updated to make sure the emulation process is replicable
@@ -129,7 +131,7 @@ All config file are loacted at [Ble config](./target-zephyr/config_multi_version
 **Step3:**
 *Copy the targeted Firmware*
 The targeted firmware needs to be specified in the config file and the binary need to be copy and paste into the (./interval-500-fuzzed-clock-10t/).
-All firmware could be located at [Ble binary](./target-zephyr/firmwire/) and [Ble elf](./target-zephyr/firmwire/).
+All firmware could be located at [Ble binary](./target-zephyr/firmware/) and [Ble elf](./target-zephyr/firmware/).
 
 **Step4:**
 *Update the Emulation handling logic*
@@ -150,7 +152,7 @@ All input file could be loacted at [Individual input Ble](./target-zephyr/meanin
 
 ## 4.2 Run single input with mmio/ram access documented
 After all update done previously, the following cmd could be used to run single input
-```
+```bash
 $ cd qpfuzzer_ble
 
 $ ./run-input-detail.sh <input.bin>
@@ -158,20 +160,20 @@ $ ./run-input-detail.sh <input.bin>
 ## 4.1 Run single input with fuzzing engine
 To show the interception and live decoding of the fuzzer, besides all the steps we went through at 4.1. we only need to change the replace the hook file from (hook_without_fuzzer.rs) to (hook.rs).
 
-Before running the input, the **U-fuzz** fuzzing engine need to be run by folloing the 5. toturial.  
+Before running the input, the **U-fuzz** fuzzing engine need to be run by folloing the 5. tutorial.  
 
-# 5. 📄 Running the fuzzer
-## 5.1 Customised U-fuzz docker image
+## 📄 5. Running the Fuzzer
+## 5.1 Customized U-fuzz docker image
 *Can pull from docker hub*
 ```
 docker pull airqfuzz/u-fuzz-docker:aIRQFuzz
 ```
-## 5.2 Running Totural
+## 5.2 Running Tutorial
 **Step1:**
 *build the project (ble_realtime_fuzzer)*
 
-```
-Edit the CMakeLists.txt
+```cmake
+# Edit the CMakeLists.txt
 $ Comments line:802, 811-815 
   (`set(ZIGBEE_SRC src/zigbee_realtime_fuzzer.cpp libs/shared_memory.c)`)
   (`add_executable(zigbee_realtime_fuzzer ${ZIGBEE_SRC} libs/profiling.c)`)
@@ -191,25 +193,25 @@ $ ./build.sh all
 ```
 **Step2:**
 *Update the fuzzing config if needed*
-```
+```bash
 $ sudo nano /home/user/U-Fuzz/configs/ble_config.json
 ```
 set enable_mutation == true and enable_optimization == true to enable stateful protocol aware fuzzing
 
 **Step3:**
 *Running the fuzzer*
-```
+```bash
 $ cd /home/user/U-Fuzz
-# Enable the mutation("enable_mutation": True) and optimazation("enable_optimazation": True) for the fuzzer by update the config
+# Enable the mutation("enable_mutation": True) and optimization("enable_optimization": True) for the fuzzer by update the config
 $ sudo nano configs/ble_config.json
 # Once config is done, run the following cmd to start the fuzzing engine
 $ sudo bin/ble_realtime_fuzzer
 ```
-The fuzzing probability, max fuzzing time and max iteration could also be updated in the config file. More detials could be found in [U-fuzz repo]([url](https://github.com/asset-group/U-Fuzz/))
+The fuzzing probability, max fuzzing time and max iteration could also be updated in the config file. More details could be found in [U-fuzz repo]([url](https://github.com/asset-group/U-Fuzz/))
 
 **Step4:**
 *Replay the emulation single input  at aIRQFuzz*
-```
+```bash
 $ cd ~/qpfuzer_ble
 
 # This step will loop the emulation input over and over again to allow the fuzzer to fuzz the communication process.
@@ -217,15 +219,15 @@ $ ./run-input-loop.sh <input.bin>
 ```
 [Potential input](#43-emulation-input) were provided
 **potential cmd:**
-```
+```bash
 ./run-input-loop.sh ./target-zephyr/meaningful_input_multi_version/v350/sm_pairing_req_good350_ss2.bin
 ```
  
-For fuzzing the emulation, the fuzzing engine needs to be conencted with the emulation engine to intercept the communication. [Ble patch for fuzzing](./target-zephyr/hook.rs) was required instead of 
+For fuzzing the emulation, the fuzzing engine needs to be connected with the emulation engine to intercept the communication. [Ble patch for fuzzing](./target-zephyr/hook.rs) was required instead of 
 [Ble patch](./target-zephyr/hook_without_fuzzer.rs).
 
 
-# 6. 📄 Exploits
+## 🚨 6. Exploits
 ## 6.1.  Summary of potential Crashes:
 To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 7 potential crashes in Zephyr/Nordic Zigbee implementation. 
 ### QPF effectiveness to find/replicate crashes
@@ -242,7 +244,9 @@ To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation o
 
 
 ## 6.2. Available Exploits
-### BLE v2.2.99 Exploits
+<details>
+<summary><b>View BLE v2.2.99 Exploits</b></summary>
+
 | Vulnerability Name | Exploit |
 | --- | --- |
 | t1_1_connect_ind | [t1_1_connect_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v220/t1_1_connect_ind.cpp) |
@@ -321,13 +325,21 @@ To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation o
 | t3_25_ll_length_req | [t3_25_ll_length_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v220/t3_25_ll_length_req.cpp) |
 | t3_27_ll_version_ind | [t3_27_ll_version_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v220/t3_27_ll_version_ind.cpp) |
 
-### BLE v2.5.0 Exploits
+</details>
+
+<details>
+<summary><b>View BLE v2.5.0 Exploits</b></summary>
+
 | Vulnerability Name | Exploit |
 | --- | --- |
 | t1_2_connect_ind | [t1_2_connect_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v250/t1_2_connect_ind.cpp) |
 | t1_3_connect_ind | [t1_3_connect_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v250/t1_3_connect_ind.cpp) |
 
-### BLE v3.5.0 Exploits
+</details>
+
+<details>
+<summary><b>View BLE v3.5.0 Exploits</b></summary>
+
 | Vulnerability Name | Exploit |
 | --- | --- |
 | t1_8_ll_version_ind | [t1_8_ll_version_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v350/t1_8_ll_version_ind.cpp) |
@@ -342,7 +354,11 @@ To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation o
 | t3_6_ll_version_ind | [t3_6_ll_version_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v350/t3_6_ll_version_ind.cpp) |
 | t3_8_ll_version_ind | [t3_8_ll_version_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v350/t3_8_ll_version_ind.cpp) |
 
-### BLE v3.7.1 Exploits
+</details>
+
+<details>
+<summary><b>View BLE v3.7.1 Exploits</b></summary>
+
 | Vulnerability Name | Exploit |
 | --- | --- |
 | t1_2_connect_ind | [t1_2_connect_ind.cpp](./target-zephyr/ble_exploits_multi_version/ble_v371/t1_2_connect_ind.cpp) |
@@ -363,7 +379,11 @@ To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation o
 | t2_34_ll_feature_req | [t2_34_ll_feature_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v371/t2_34_ll_feature_req.cpp) |
 | t2_35_ll_feature_req | [t2_35_ll_feature_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v371/t2_35_ll_feature_req.cpp) |
 
-### BLE v4.1.0 Exploits
+</details>
+
+<details>
+<summary><b>View BLE v4.1.0 Exploits</b></summary>
+
 | Vulnerability Name | Exploit |
 | --- | --- |
 | t1_10_ll_length_req | [t1_10_ll_length_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v410/t1_10_ll_length_req.cpp) |
@@ -380,6 +400,8 @@ To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation o
 | t3_4_ll_length_req | [t3_4_ll_length_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v410/t3_4_ll_length_req.cpp) |
 | t3_10_ll_length_req | [t3_10_ll_length_req.cpp](./target-zephyr/ble_exploits_multi_version/ble_v410/t3_10_ll_length_req.cpp) |
 
+</details>
+
 ## 6.3. Real board replication
 Our group used nrf52840DK board to verify the potential crash on the real board.
 To launch such attack, please follow the attack tutorial that vakt-ble provided in section [4.1 Launching Sweyntooth Attacks](https://github.com/asset-group/vakt-ble-defender?tab=readme-ov-file#41-launching-sweyntooth-attacks)
@@ -387,18 +409,18 @@ To launch such attack, please follow the attack tutorial that vakt-ble provided 
 
 ## 6.4. Emulation replication
 Emulation replication requires the auto-generated [PoC scripts](#62-available-exploits) running by the fuzzing engine to replay the crash sequence. Both the enable_mutation and enable_optimization need to be set to false to eliminate the normal mutation operation.
-The detailed emulation replication [toturial](./toturial/emulation_replication_toturial.html) was provided.
+The detailed emulation replication [tutorial](./tutorial/emulation_replication_tutorial.html) was provided.
 The replay result should looks like the following 
 <p align="center">
   <img src="figs/crash_in_fuzzing.png" alt="crash fuzing">
 </p>
-<!-- Add a file for toturial -->
+<!-- Add a file for tutorial -->
 
 ## 6.5. Auto Verification Potential PoC on Multiple Emulation Input
 As mentioned in the paper, one of our crash filtering step is to verify the potential crash on multiple emulation input. We created a [script](./QPFuzzer/scripts/auto_test_crash.sh) for this automatic testing.
 
-```
-After the emulation engine is configed for specific target, the fuzzing engine also need to be configed to target the exploit folder for that target and the mutation and optimazation flag also need to be enabled.
+```bash
+# After the emulation engine is configured for specific target, the fuzzing engine also need to be configured to target the exploit folder for that target and the mutation and optimization flag also need to be enabled.
 
 Once set up, run the following cmd to auto verify the potential crash
 
@@ -419,7 +441,7 @@ Expected result should looks like
   <img src="figs/auto_verification.png" alt="Auto Verification">
 </p>
 
-# 7. 🧑‍💻 PoC script Auto-generator
+## ⚙️ 7. PoC Script Auto-generator
 This script analyzes `.pcapng` log files from a fuzzing session. It identifies crash-causing packet sequences, generates a CSV summary, and creates C++ scripts to reproduce potential exploits using U-Fuzz fuzzing framework.
 
 ```bash
@@ -443,7 +465,7 @@ The script performs two main actions:
 2.  **Generates Trial Scripts**: For each identified crash, it generates a C++ script under folder `exploits` (e.g., `exploits/zigbee/t1_25_beaconrsp.cpp`). These scripts are designed to reproduce the exact sequence of packets that caused the crash, and should be moved to the `modules/exploits/zigbee` folder of the fuzzer engine. 
 
 
-# 8. 🧑‍💻 Auto Weight calculator
+## ⚖️ 8. Auto Weight Calculator
 
 ## Prerequisites
 
@@ -563,17 +585,22 @@ cargo run --release --bin hoedur-arm -- \
 > You can now run the fuzzer with these new hooks to guide its execution based on your semantic searches. 
 
 
-# 9. 📝 Citing aIRQFuzz
+## 📝 9. Citing aIRQFuzz
 
-```
-Todo
+```bibtex
+@article{airqfuzz,
+  title={aIRQFuzz: QEMU Directed Firmware Protocol Fuzzer},
+  author={To Be Added},
+  journal={To Be Added},
+  year={2026}
+}
 ```
 
 
 <!-- 
 Todo:
 1. finished the fuzzing docker (separete ble and zigbee)
-2. Update the ## 5.2 Running Totural
+2. Update the ## 5.2 Running Tutorial
 3. output the docker
 4. realboard replication script
 6. Finished the PoC generator part
