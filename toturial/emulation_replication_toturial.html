@@ -4,25 +4,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>emulation_replication_toturial_readme</title>
+  <title>emulation_replication_toturial.html</title>
   <link rel="stylesheet" href="https://stackedit.io/style.css" />
 </head>
 
 <body class="stackedit">
-  <div class="stackedit__html"><p><strong>Step1:</strong><br>
+  <div class="stackedit__html"><p>emulation_replication_toturial_readme</p>
+<p><strong>Step1:</strong><br>
 <em>Running different Exploit from U-fuzz Engine</em><br>
 <em>Make sure both the mutation and optimization was disabled</em></p>
-<pre><code>Select the potential exploit to run
+<p><mark>Exploit for different version is saved at different folder. For example, the exploit PoC prepared for Ble_v220 is saved at (/home/user/U-Fuzz/modules/exploits/ble_v220). To launch the PoC the exploit folder needs to be passed to the fuzzer by following the following steps</mark></p>
+<pre><code>update the fuzzer src code
+$ sudo nano src/ble_realtime_fuzzer.cpp
+
+Update module path to targed exploit folder(#define MODULES_PATH "modules/exploits/ble_v220/")
+
+compile again
+$ ninja -C build
+
+Select the potential exploit to run
 $ sudo bin/ble_realtime_fuzzer --exploit=&lt;Specific exploit from exploit list&gt;
+
 </code></pre>
 <h2 id="normal-replication-tutorial">Normal Replication Tutorial</h2>
 <p><strong>Step2:</strong><br>
+<em>After set up the emulation engine for different target version by following the steps specify in readme.</em><br>
 <em>Run single Emulation input</em></p>
 <pre><code>Script selection depends on exploit selection
 $ ./run-input-zigbee.sh &lt;target emulation input&gt;
 $ ./run-input-ble.sh &lt;target emulation input&gt; 
 i.e., 
 ./run-input.sh target-zephyr/inputs/sm_pairing_rsp_good350.bin
+
 </code></pre>
 <h2 id="gdb-replication-tutorial">GDB Replication Tutorial</h2>
 <p><strong>Step2:</strong><br>
@@ -32,15 +45,18 @@ $ GDB=1 ./run-input-zigbee.sh &lt;target emulation input&gt;
 $ GDB=1 ./run-input-ble.sh &lt;target emulation input&gt; 
 i.e., 
 GDB=1 ./run-input.sh target-zephyr/inputs/sm_pairing_rsp_good350.bin
+
 </code></pre>
 <p><strong>Step3:</strong><br>
 <em>Attach the gdb server</em></p>
 <pre><code>$ gdb-multiarch &lt;path to .elf&gt; -ex "target remote localhost:1236" -ex "-enable-pretty-printing"
 i.e.,
 gdb-multiarch ./interval-500-fuzzed-clock-10t/zephyr.elf -ex "target remote localhost:1236" -ex "-enable-pretty-printing"
+
 </code></pre>
 <p>After the gdb client attached, can set break point for different exploit selected</p>
 <pre><code>bt *&lt;addr&gt;
+
 </code></pre>
 </div>
 </body>

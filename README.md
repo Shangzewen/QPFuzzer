@@ -17,8 +17,9 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
   - [3.2 Target Config BLE](#32-target-config-ble)
   - [3.3 Target Patch BLE](#33-target-patch-ble)
 - [4. 🧑‍💻 Input Runner](#4--input-runner)
-  - [4.1 Run single input](#41-run-single-input)
+  - [4.1 Run single input without fuzzing engine](#41-run-single-input-without-fuzzing-engine)
   - [4.2 Run single input with mmio/ram access documented](#42-run-single-input-with-mmioram-access-documented)
+  - [4.1 Run single input with fuzzing engine](#41-run-single-input-with-fuzzing-engine)
 - [5. 📄 Running the fuzzer](#5--running-the-fuzzer)
   - [5.1 Customised U-fuzz docker image](#51-customised-u-fuzz-docker-image)
   - [5.2 Running Totural](#52-running-totural)
@@ -32,8 +33,8 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
     - [BLE v3.7.1 Exploits](#ble-v371-exploits)
     - [BLE v4.1.0 Exploits](#ble-v410-exploits)
   - [6.3. Real board replication](#63-real-board-replication)
-    - [6.3.1. Realboard crash script](#631-realboard-crash-script)
   - [6.4. Emulation replication](#64-emulation-replication)
+  - [6.5. Auto Verification Potential PoC on Multiple Emulation Input](#65-auto-verification-potential-poc-on-multiple-emulation-input)
 - [7. 🧑‍💻 PoC script Auto-generator](#7--poc-script-auto-generator)
 - [8. 🧑‍💻 Auto Weight calculator](#8--auto-weight-calculator)
   - [Prerequisites](#prerequisites)
@@ -104,7 +105,7 @@ Once meaningful emulation session has been done. a corpus archive file will be s
 cargo run --bin hoedur-arm -- fuzz --help
 ``` -->
 
-## 4.1 Run single input
+## 4.1 Run single input without fuzzing engine
 
 First of all need to go the the qpfuzzer_ble directory by running the following cmd
 ```
@@ -133,11 +134,11 @@ All firmware could be located at [Ble binary](./target-zephyr/firmwire/) and [Bl
 **Step4:**
 *Update the Emulation handling logic*
 The emulator will handle the firmware with different verison slightly different. Since different version requires different targeted keywords etc. 
-The file (qpfuzzer_ble/emulator/src/hooks/custom/common.rs) needs to be updated for different targeted version. The reference code could be located at [common](./target-zephyr/common_multi_version/)
+The file (qpfuzzer_ble/emulator/src/hooks/custom/common.rs) and (qpfuzze_4.1/emulator/src/lib.rs) needs to be updated for different targeted version. The reference code could be located at [common](./target-zephyr/common_multi_version/) and [lib](./target-zephyr/lib_multi_version/)
 
 **Step5:**
 *Update the Coverage handling logic*
-The hardware.rs file (qpfuzzer_ble/modeling/src/hardware.rs) also need to be updated to make sure the emulation is replicable. The reference code could be located at [hardware](./target-zephyr/common_multi_version/)
+The hardware.rs file (qpfuzzer_ble/modeling/src/hardware.rs) also need to be updated to make sure the emulation is replicable. The reference code could be located at [hardware](./target-zephyr/hardware_multi_version/)
 
 
 **Step6:**
@@ -154,6 +155,10 @@ $ cd qpfuzzer_ble
 
 $ ./run-input-detail.sh <input.bin>
 ```
+## 4.1 Run single input with fuzzing engine
+To show the interception and live decoding of the fuzzer, besides all the steps we went through at 4.1. we only need to change the replace the hook file from (hook_without_fuzzer.rs) to (hook.rs).
+
+Before running the input, the **U-fuzz** fuzzing engine need to be run by folloing the 5. toturial.  
 
 # 5. 📄 Running the fuzzer
 ## 5.1 Customised U-fuzz docker image
@@ -195,7 +200,9 @@ set enable_mutation == true and enable_optimization == true to enable stateful p
 *Running the fuzzer*
 ```
 $ cd /home/user/U-Fuzz
-
+# Enable the mutation("enable_mutation": True) and optimazation("enable_optimazation": True) for the fuzzer by update the config
+$ sudo nano configs/ble_config.json
+# Once config is done, run the following cmd to start the fuzzing engine
 $ sudo bin/ble_realtime_fuzzer
 ```
 The fuzzing probability, max fuzzing time and max iteration could also be updated in the config file. More detials could be found in [U-fuzz repo]([url](https://github.com/asset-group/U-Fuzz/))
@@ -205,6 +212,7 @@ The fuzzing probability, max fuzzing time and max iteration could also be update
 ```
 $ cd ~/qpfuzer_ble
 
+# This step will loop the emulation input over and over again to allow the fuzzer to fuzz the communication process.
 $ ./run-input-loop.sh <input.bin>
 ```
 [Potential input](#43-emulation-input) were provided
@@ -219,7 +227,7 @@ For fuzzing the emulation, the fuzzing engine needs to be conencted with the emu
 
 # 6. 📄 Exploits
 ## 6.1.  Summary of potential Crashes:
-To this day, aIRQFUZZ has found 96 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 27 potential crashes in Zephyr/Nordic Zigbee implementation. 
+To this day, aIRQFUZZ has found 22 potential crashes in the BLE implementation of Zephyr OS across multiple versions and 7 potential crashes in Zephyr/Nordic Zigbee implementation. 
 ### QPF effectiveness to find/replicate crashes
 
 | Protocol | Fw. Version                  | Unique Crash | # Mutations | Potential Crash after multi-step filtering| Board Replication |
@@ -375,13 +383,41 @@ To this day, aIRQFUZZ has found 96 potential crashes in the BLE implementation o
 ## 6.3. Real board replication
 Our group used nrf52840DK board to verify the potential crash on the real board.
 To launch such attack, please follow the attack tutorial that vakt-ble provided in section [4.1 Launching Sweyntooth Attacks](https://github.com/asset-group/vakt-ble-defender?tab=readme-ov-file#41-launching-sweyntooth-attacks)
-### 6.3.1. Realboard crash script
-TODO
+
 
 ## 6.4. Emulation replication
 Emulation replication requires the auto-generated [PoC scripts](#62-available-exploits) running by the fuzzing engine to replay the crash sequence. Both the enable_mutation and enable_optimization need to be set to false to eliminate the normal mutation operation.
 The detailed emulation replication [toturial](./toturial/emulation_replication_toturial.html) was provided.
+The replay result should looks like the following 
+<p align="center">
+  <img src="figs/crash_in_fuzzing.png" alt="crash fuzing">
+</p>
 <!-- Add a file for toturial -->
+
+## 6.5. Auto Verification Potential PoC on Multiple Emulation Input
+As mentioned in the paper, one of our crash filtering step is to verify the potential crash on multiple emulation input. We created a [script](./QPFuzzer/scripts/auto_test_crash.sh) for this automatic testing.
+
+```
+After the emulation engine is configed for specific target, the fuzzing engine also need to be configed to target the exploit folder for that target and the mutation and optimazation flag also need to be enabled.
+
+Once set up, run the following cmd to auto verify the potential crash
+
+Enter screen session to control running u-fuzz docker
+$ screen -r u-fuzz
+
+$ sudo bin/ble_realtime_fuzzer --exploit=<Specific exploit from exploit list>
+
+Exit the screen session
+$ ctrl + A + D 
+
+Run the auto test script 
+$ cd airqfuzz_ble
+$ ./script/auto_test_crash.sh
+```
+Expected result should looks like
+<p align="center">
+  <img src="figs/auto_verification.png" alt="Auto Verification">
+</p>
 
 # 7. 🧑‍💻 PoC script Auto-generator
 This script analyzes `.pcapng` log files from a fuzzing session. It identifies crash-causing packet sequences, generates a CSV summary, and creates C++ scripts to reproduce potential exploits using U-Fuzz fuzzing framework.
