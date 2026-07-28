@@ -6,31 +6,34 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
   <img src="figs/Overview_Update_page-0001.jpg" alt="aIRQFuzz Overview and Design" width="800">
 </p>
 
+
+
 ---
 
 
 **Table of Contents**
 
-- [1. 📋 Software Environment](#1--software-environment)
-- [2. ⏩ Initial Compilation](#2--initial-compilation)
-- [3. 🔀 Running Emulation Exploration](#3--running-emulation-exploriation)
+- [🚀 aIRQFuzz (Zigbee) - QEMU Directed Firmware Protocol Fuzzer](#-airqfuzz-zigbee---qemu-directed-firmware-protocol-fuzzer)
+  - [📋 1. Software Environment](#-1-software-environment)
+  - [⏩ 2. Initial Compilation](#-2-initial-compilation)
+  - [🔀 3. Running Emulation Exploration](#-3-running-emulation-exploration)
   - [3.1 Target Firmware Zigbee](#31-target-firmware-zigbee)
   - [3.2 Target Config Zigbee](#32-target-config-zigbee)
   - [3.3 Target Patch Zigbee](#33-target-patch-zigbee)
-- [4. 🧑‍💻 Input Runner](#4--input-runner)
+  - [🧑‍💻 4. Input Runner](#-4-input-runner)
   - [4.1 Run single input](#41-run-single-input)
   - [4.2 Run single input with mmio/ram access documented](#42-run-single-input-with-mmioram-access-documented)
   - [4.3 Emulation input](#43-emulation-input)
-- [5. 📄 Running the fuzzer](#5--running-the-fuzzer)
-  - [5.1 Customized U-fuzz docker image](#51-customised-u-fuzz-docker-image)
-  - [5.2 Running Tutorial](#52-running-totural)
-- [6. 📄 Exploits](#6--exploits)
+  - [📄 5. Running the Fuzzer](#-5-running-the-fuzzer)
+  - [5.1 Customized U-fuzz docker image](#51-customized-u-fuzz-docker-image)
+  - [5.2 Running Tutorial](#52-running-tutorial)
+  - [🚨 6. Exploits](#-6-exploits)
   - [6.1.  Summary of potential Crashes:](#61--summary-of-potential-crashes)
     - [QPF effectiveness to find/replicate crashes](#qpf-effectiveness-to-findreplicate-crashes)
   - [6.2. Available Exploits](#62-available-exploits)
   - [6.3. Emulation replication](#63-emulation-replication)
-- [7. 🧑‍💻 PoC script Auto-generator](#7--poc-script-auto-generator)
-- [8. 🧑‍💻 Auto Weight calculator](#8--auto-weight-calculator)
+  - [⚙️ 7. PoC Script Auto-generator](#️-7-poc-script-auto-generator)
+  - [⚖️ 8. Auto Weight Calculator](#️-8-auto-weight-calculator)
   - [Prerequisites](#prerequisites)
   - [Core Workflow Example](#core-workflow-example)
     - [Step 1: Import Symbols from an ELF file](#step-1-import-symbols-from-an-elf-file)
@@ -39,11 +42,13 @@ An emulation-based, directed fuzzing framework that automatically discovers vuln
     - [Step 2: Search for Symbols and Generate Call Traces](#step-2-search-for-symbols-and-generate-call-traces)
     - [Step 3: Merge All Call Traces](#step-3-merge-all-call-traces)
     - [Step 4: Use the Generated Hooks](#step-4-use-the-generated-hooks)
-- [9. 📝 Citing aIRQFuzz](#9--citing-airqfuzz)
+  - [📝 9. Citing aIRQFuzz](#-9-citing-airqfuzz)
 
 
 
 ------
+> [!NOTE]
+> Should you encounter any technical difficulties reproducing our results, please do not hesitate to contact us at **zewena66@gmail.com**. We maintain a pre-configured virtual machine for testing and evaluation, which can be securely accessed via Tailscale upon request.
 
 ## 📋 1. Software Environment
 * **OS:** Ubuntu 24.04 - We recommend using Ubuntu 24.04 to build and run the emualtion engine for aIRQFuzz. As for the fuzzing engine, we prepared a ready-to-run docker [container](#51-customised-u-fuzz-docker-image) which build on ubuntu-18.04.  Alternativelly, you can refer to [U-fuzz]([url](https://github.com/asset-group/U-Fuzz/blob/main/README.md#2--initial-compilation)) github repo for environment setup to ensure the correct OS environment.
