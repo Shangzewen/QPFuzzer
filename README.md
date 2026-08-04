@@ -72,16 +72,22 @@ Before running the emulation engine three inputs need to be provided as follows:
 
 2: Target configuration which specifies the memmory layout for the target firmware, the exithook function list and Interrupt Injection method.
 
-3: Customized Patch for Target whcih contains the necessary patch for advancing the emulation to protocol code space.
+3: Customized Patch for Target whcih contains the necessary patch for advancing the emulation to protocol code space(Hook.rs).
 
-After compiling the project with the correct software environment, please run the following command
+4: Customized proitised functions and weights assigned (Hardware.rs and lib.rs).
+
+After compiling the project with the correct software environment(more details about be find at 4. Input Runner ), please run the following command
 ```bash
 $ cd qpfuzzer_ble
 
 target fodler was specified in fuzz.sh
 $ ./fuzz.sh
 ```
-The emulation log would be saved in the target fodler under name log-fuzzing.txt
+The emulation log would be saved in the target fodler under name log-fuzzing.txt and the individual input file are saved as .tar.zst format at $CORPUS_FOLDER dir which speficied at hook.rs.
+Once located the targeted file can use the following cmd to extract the individual input file:
+```bash
+$ tar -I zstd -xvf <target.tar.zst>
+```
 <!-- ## 3.1 Target Firmware BLE
 [Target Fimware BLE](TODO)
 ## 3.2 Target Config BLE
